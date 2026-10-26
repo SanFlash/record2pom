@@ -27,7 +27,7 @@ test("dashboard and extension scripts parse", async () => {
   }
 });
 
-async function generateFromFixture(engine) {
+async function generateFromFixture(engine, kind = "click") {
   const source = await readFile("app.js", "utf8");
   const elements = new Map();
   let fileButtons = [];
@@ -56,7 +56,9 @@ async function generateFromFixture(engine) {
   vm.runInNewContext(await readFile("core.js", "utf8"), context);
   context.window.Record2POMCore = context.Record2POMCore;
   vm.runInNewContext(source, context);
-  const event = {id:"fixture-1",sequence:1,kind:"click",description:"Click Continue",target:{role:"button",name:"Continue"},locators:[{strategy:"role",value:"button",name:"Continue"}],source:"fixture"};
+  const role = kind === "select" ? "combobox" : "button";
+  const name = kind === "select" ? "Country" : "Continue";
+  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:{role,name},locators:[{strategy:"role",value:role,name}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -143,4 +145,12 @@ test("core recorder and generator remain website-agnostic", async () => {
     const source = await readFile(file, "utf8");
     assert.doesNotMatch(source, /orangehrm/i, file + " must not contain target-specific assumptions");
   }
+});
+
+test("Selenium generator emits real select and keyboard APIs", async () => {
+  const select = await generateFromFixture("selenium", "select");
+  assert.match(select.code, /Select\(self\.driver\.find_element/);
+  assert.match(select.code, /select_by_visible_text\("India"\)/);
+  const press = await generateFromFixture("selenium", "press");
+  assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
 });
