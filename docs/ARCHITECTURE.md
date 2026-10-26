@@ -6,14 +6,14 @@
 - extension/recorder.js: captures supported interaction events and locator metadata.
 - extension/background.js: session lifecycle and chrome.storage.local persistence.
 - extension/popup.*: controls recording and exports JSON.
-- core.js: versioned recording validation and locator-candidate ranking.
+- core.js: versioned recording validation, canonical intermediate-representation (IR) normalization, sensitive-value removal, and locator-candidate ranking.
 - fixtures/universal-demo/: neutral fixture site for manual recorder smoke testing.
 - generated run_tests.py: local, bounded-time execution of the generated project and structured JSON/log reporting.
 - tests/generator.test.mjs: Node built-in generator, schema, selector and Python-syntax checks.
 - vercel.json: static hosting and basic security headers.
 
 ## Data flow
-User-selected target → extension content recorder → local extension storage → explicit JSON export → schema validation → dashboard review → locator ranking → deterministic generator → client-side ZIP export → generated local runner → test process → JSON/log report (plus pytest JUnit XML for the Playwright adapter).
+User-selected target → extension content recorder → local extension storage → explicit JSON export → schema validation and canonical IR normalization → dashboard review → locator ranking → deterministic generator → client-side ZIP export → generated local runner → test process → JSON/log report (plus pytest JUnit XML for the Playwright adapter).
 
 ## Trust boundaries
 Target-page content and attributes are untrusted data. Recordings are not uploaded automatically. Sensitive input values are redacted where detected. The Vercel dashboard has no server-side recording store or test execution service. The generated runner executes only after download on the user's machine; it is not a sandbox.
