@@ -23,7 +23,7 @@ This MVP supports Python + Playwright + pytest and Python + Selenium + unittest 
 
 ## Next milestones
 1. Improve lifecycle and navigation capture reliability.
-2. Add selector uniqueness inspection and correction UI.
+2. Expand locator correction with live re-measurement after editing, and add coverage for every supported locator strategy.
 3. Run the documented neutral fixture workflow in a real Chrome/Chromium session and retain observed evidence.
 4. Add a controlled local runner bridge only if the user explicitly needs dashboard-triggered execution; do not expose arbitrary commands over HTTP.
 5. Add a canonical typed intermediate representation before expanding generator adapters.
