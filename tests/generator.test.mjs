@@ -226,6 +226,6 @@ test("generator emits explicit assertion actions for both engines", async () => 
     const visible = await generateFromFixture(engine, "assert-visible");
     assert.match(visible.code, /is_visible\(\)|is_displayed\(\)/);
     const text = await generateFromFixture(engine, "assert-text");
-    assert.match(text.code, /Continue/);
+    assert.match(text.code, engine === "playwright" ? /get_by_text/ : /By\.TAG_NAME/);
   }
 });
