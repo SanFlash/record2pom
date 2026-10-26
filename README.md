@@ -10,7 +10,7 @@ A website-agnostic browser recording and Page Object Model generation MVP. It co
 - Sensitive field values are redacted by the extension.
 - Local extension storage and explicit JSON export/import.
 - Action timeline, manual action entry, editing and user-authored assertions.
-- Versioned recording validation, event-count/field limits, and selector-candidate ranking with uniqueness evidence.
+- Canonical versioned recording intermediate representation (IR), legacy event normalization, event-count/field limits, sensitive-value removal, and selector-candidate ranking with uniqueness evidence.
 - Generated local runner with timeout, captured output, JSON result report, log file, and pytest JUnit output.
 - Deterministic Python + Playwright + pytest and Python + Selenium + unittest project generators.
 - Client-side ZIP export of generated project files.
@@ -29,7 +29,7 @@ Import SanFlash/record2pom in Vercel. Select framework preset Other, root direct
 Open chrome://extensions, enable Developer mode, choose Load unpacked, and select the extension directory. Open an authorized HTTP/HTTPS site, reload it, start recording, stop and export JSON, then import it into the dashboard.
 
 ## Generate and run
-Review actions and locators, add explicit assertions, generate and download the project, extract it, create a Python virtual environment, install requirements and browser prerequisites, and run the generated README commands. Generation alone is not test execution. The exported `run_tests.py` runs only the generated project's declared pytest or unittest command using an argument array (not a shell), enforces a timeout, and writes `reports/run-results.json` and `reports/run.log`. It is not an operating-system sandbox: inspect the generated code before running it.
+Review actions and locators, add explicit assertions, generate and download the project, extract it, create a Python virtual environment, install requirements and browser prerequisites, and run the generated README commands. Generation alone is not test execution. The dashboard normalizes imported recordings into a canonical schema before generation; legacy `input`/`type`/`navigation` aliases are mapped explicitly, and values marked sensitive are discarded. The exported `run_tests.py` runs only the generated project's declared pytest or unittest command using an argument array (not a shell), enforces a timeout, and writes `reports/run-results.json` and `reports/run.log`. It is not an operating-system sandbox: inspect the generated code before running it.
 
 ## Supported generator combinations
 - Playwright + Python + pytest: MVP generator.
