@@ -1,3 +1,38 @@
-# Record2POM
+# Record2POM — Universal POM Automation Studio
 
-Universal, website-agnostic browser recording and Page Object Model generation. See the implementation and deployment documentation as the project is built out.
+A website-agnostic browser recording and Page Object Model generation MVP. It combines a static dashboard suitable for Vercel with a separately installed Chrome/Chromium extension that records interactions in the active browser tab.
+
+**Honest status:** This is an MVP foundation, not a claim that every feature in the full specification is complete. The dashboard generates project files locally in the browser. It does not execute generated tests or claim tests passed.
+
+## Features
+- Runtime user-supplied HTTP/HTTPS target URL; no website-specific production branches.
+- Browser extension records clicks, form changes, select changes, checkbox/radio changes, Enter and navigation metadata.
+- Sensitive field values are redacted by the extension.
+- Local extension storage and explicit JSON export/import.
+- Action timeline, manual action entry, editing and user-authored assertions.
+- Deterministic Python + Playwright + pytest and Python + Selenium + unittest project generators.
+- Client-side ZIP export of generated project files.
+- Vercel static hosting configuration and dependency-free local server.
+
+## Run locally
+Requires Node.js 20+.
+    npm test
+    npm start
+Open http://localhost:3000.
+
+## Deploy to Vercel
+Import SanFlash/record2pom in Vercel. Select framework preset Other, root directory repository root, build command empty, and output directory repository root. No environment variables are required. After deployment, verify the URL loads and test import and ZIP download. Do not claim deployment verified until this smoke test has been performed.
+
+## Install extension
+Open chrome://extensions, enable Developer mode, choose Load unpacked, and select the extension directory. Open an authorized HTTP/HTTPS site, reload it, start recording, stop and export JSON, then import it into the dashboard.
+
+## Generate and run
+Review actions and locators, add explicit assertions, generate and download the project, extract it, create a Python virtual environment, install requirements and browser prerequisites, and run the generated README commands. Generation alone is not test execution.
+
+## Supported generator combinations
+- Playwright + Python + pytest: MVP generator.
+- Selenium WebDriver + Python + unittest: MVP generator.
+- Other languages/frameworks: not implemented.
+
+## Limitations and security
+The initial extension cannot guarantee every website or browser surface. Complex widgets, closed shadow roots, cross-origin frames, file transfers and popups need more work. Enterprise profile is a starter skeleton. The dashboard has no accounts, database, server execution, cloud queue, AI integration or hosted test runner. Review broad HTTP/HTTPS extension permissions. Inspect recordings before sharing. Never commit secrets or test production data without authorization. Authentication, CAPTCHA and MFA are not bypassed.
