@@ -1,7 +1,7 @@
 # Record2POM MVP architecture
 
 ## Components
-- index.html, styles.css, app.js: static Vercel dashboard. Imports JSON, allows review/editing, generates project files, and builds a ZIP in the browser.
+- index.html, styles.css, app.js: static Vercel dashboard. Imports and exports normalized JSON, allows action/locator review, generates project files, and builds a ZIP in the browser.
 - extension/manifest.json: Chrome Manifest V3 extension.
 - extension/recorder.js: captures supported interaction events and locator metadata.
 - extension/background.js: session lifecycle and chrome.storage.local persistence.
