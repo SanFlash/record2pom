@@ -10,6 +10,7 @@ A website-agnostic browser recording and Page Object Model generation MVP. It co
 - Sensitive field values are redacted by the extension.
 - Local extension storage and explicit JSON export/import.
 - Action timeline, manual action entry, editing and user-authored assertions.
+- Export of the reviewed, normalized recording JSON for portable backups and repeatable debugging.
 - Canonical versioned recording intermediate representation (IR), legacy event normalization, event-count/field limits, and sensitive-value removal.
 - Locator health labels (unique, ambiguous, unverified, missing) and editable test ID, role/name, label, placeholder, and CSS locator strategies.
 - Generated local runner with timeout, captured output, JSON result report, log file, and pytest JUnit output.
