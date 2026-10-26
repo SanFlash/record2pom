@@ -16,3 +16,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: npm test
+      - run: python -m pip install "pytest-playwright>=0.5,<1"
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest -q tests/e2e
