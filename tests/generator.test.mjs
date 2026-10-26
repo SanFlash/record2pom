@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
+import { spawnSync } from "node:child_process";
 
 test("package, docs, extension manifest and Vercel configuration are valid", async () => {
   const pkg = JSON.parse(await readFile("package.json", "utf8"));
@@ -17,7 +18,7 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
 });
 
 test("dashboard and extension scripts parse", async () => {
-  for (const file of ["app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js"]) {
+  for (const file of ["core.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js"]) {
     const source = await readFile(file, "utf8");
     assert.doesNotThrow(() => new vm.Script(source), file + " must parse");
   }
@@ -63,7 +64,11 @@ async function generateFromFixture(engine) {
   const runnerButton = fileButtons.find(item => item.dataset.path === "run_tests.py");
   assert.ok(runnerButton?.onclick, "generated local runner should be listed");
   runnerButton.onclick();
-  return {code, runner:el("code").textContent, status:el("status").textContent};
+  const runner = el("code").textContent;
+  const testButton = fileButtons.find(item => item.dataset.path === "tests/test_recorded_journey.py");
+  assert.ok(testButton?.onclick, "generated test module should be listed");
+  testButton.onclick();
+  return {code, runner, test:el("code").textContent, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -105,4 +110,25 @@ test("generated runner uses no shell, applies timeout and documents result files
   assert.match(result.runner, /timeout=timeout/);
   assert.match(result.runner, /run-results\.json/);
   assert.match(result.runner, /run\.log/);
+});
+
+test("generated Python files parse when Python is installed", async (t) => {
+  const result = await generateFromFixture("playwright");
+  const sources = [
+    ["pages/recorded_page.py", result.code],
+    ["run_tests.py", result.runner],
+    ["tests/test_recorded_journey.py", result.test]
+  ];
+  let python = "python3";
+  let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
+  if (probe.error?.code === "ENOENT") {
+    python = "python";
+    probe = spawnSync(python, ["--version"], {encoding:"utf8"});
+  }
+  if (probe.error?.code === "ENOENT") return t.skip("Python is not installed in this environment.");
+  assert.equal(probe.status, 0, "Python interpreter should start");
+  for (const [name, source] of sources) {
+    const check = spawnSync(python, ["-c", "import ast,sys; ast.parse(sys.stdin.read())"], {input:source, encoding:"utf8"});
+    assert.equal(check.status, 0, name + " must parse: " + check.stderr);
+  }
 });
