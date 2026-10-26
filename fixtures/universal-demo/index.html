@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Record2POM Universal Fixture</title>
+  <style>
+    body{font:16px/1.5 system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;color:#172033}
+    fieldset,section{border:1px solid #ccd5e3;border-radius:12px;padding:1rem;margin:1rem 0}
+    label{display:block;margin:.8rem 0}input,select,button{font:inherit;padding:.55rem;border:1px solid #98a7bc;border-radius:6px}
+    button{cursor:pointer;background:#edf5ff}nav{display:flex;gap:.5rem;flex-wrap:wrap}output{display:block;margin-top:1rem;min-height:2rem}
+  </style>
+</head>
+<body>
+  <header><h1>Universal recording fixture</h1><p>This neutral fixture is for checking recorder behavior; it is not a production application.</p></header>
+  <nav aria-label="Fixture navigation">
+    <button type="button" role="tab" aria-selected="true" data-testid="overview-tab" onclick="document.getElementById('result').textContent='Overview selected'">Overview</button>
+    <button type="button" role="tab" aria-selected="false" data-testid="details-tab" onclick="document.getElementById('result').textContent='Details selected'">Details</button>
+  </nav>
+  <form id="demo-form" onsubmit="event.preventDefault();document.getElementById('result').textContent='Submitted: '+document.getElementById('full-name').value">
+    <fieldset>
+      <legend>Contact details</legend>
+      <label for="full-name">Full name</label>
+      <input id="full-name" name="fullName" placeholder="Enter your name" autocomplete="name" required>
+      <label for="country">Country</label>
+      <select id="country" name="country"><option value="">Choose a country</option><option value="in">India</option><option value="us">United States</option></select>
+      <label><input id="updates" name="updates" type="checkbox"> Send updates</label>
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" placeholder="Optional notes"></textarea>
+      <button type="submit" data-testid="submit-form">Submit form</button>
+    </fieldset>
+  </form>
+  <section aria-label="Result"><h2>Observed outcome</h2><output id="result" aria-live="polite">No action performed yet.</output></section>
+  <script>
+    document.getElementById('details-tab').addEventListener('click', function () {
+      this.setAttribute('aria-selected','true');
+      document.getElementById('result').textContent='Details selected';
+    });
+  </script>
+</body>
+</html>
