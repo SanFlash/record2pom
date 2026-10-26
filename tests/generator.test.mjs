@@ -190,3 +190,42 @@ test("canonical recording IR removes sensitive values and bounds event data", as
   assert.equal(result.recording.events[0].envVar, "LOGIN_PASSWORD");
   assert.equal(result.recording.events[0].milliseconds, 30000);
 });
+
+
+test("generated Selenium project Python files parse", async (t) => {
+  const result = await generateFromFixture("selenium");
+  let python = "python3";
+  let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
+  if (probe.error?.code === "ENOENT") {
+    python = "python";
+    probe = spawnSync(python, ["--version"], {encoding:"utf8"});
+  }
+  if (probe.error?.code === "ENOENT") return t.skip("Python is not installed in this environment.");
+  assert.equal(probe.status, 0);
+  for (const [name, source] of [
+    ["pages/recorded_page.py", result.code],
+    ["run_tests.py", result.runner],
+    ["tests/test_recorded_journey.py", result.test]
+  ]) {
+    const check = spawnSync(python, ["-c", "import ast,sys; ast.parse(sys.stdin.read())"], {input:source, encoding:"utf8"});
+    assert.equal(check.status, 0, name + " must parse: " + check.stderr);
+  }
+});
+
+test("reviewed recording export uses canonical normalization and redaction", async () => {
+  const source = await readFile("app.js", "utf8");
+  const html = await readFile("index.html", "utf8");
+  assert.match(html, /id="exportRecording"/);
+  assert.match(source, /function exportReviewedRecording\(\)/);
+  assert.match(source, /normalizeRecording\(payload\)/);
+  assert.match(source, /Sensitive values are omitted by the canonical normalizer/);
+});
+
+test("generator emits explicit assertion actions for both engines", async () => {
+  for (const engine of ["playwright", "selenium"]) {
+    const visible = await generateFromFixture(engine, "assert-visible");
+    assert.match(visible.code, /is_visible\(\)|is_displayed\(\)/);
+    const text = await generateFromFixture(engine, "assert-text");
+    assert.match(text.code, /Continue/);
+  }
+});
