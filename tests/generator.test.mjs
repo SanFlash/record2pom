@@ -154,3 +154,9 @@ test("Selenium generator emits real select and keyboard APIs", async () => {
   const press = await generateFromFixture("selenium", "press");
   assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
 });
+
+test("recorder redacts sensitive select values before export", async () => {
+  const source = await readFile("extension/recorder.js", "utf8");
+  assert.match(source, /HTMLSelectElement&&!extra\.redacted/);
+  assert.match(source, /extra\.redacted=true/);
+});
