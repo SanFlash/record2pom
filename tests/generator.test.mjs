@@ -9,12 +9,15 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   const readme = await readFile("README.md", "utf8");
   const manifest = JSON.parse(await readFile("extension/manifest.json", "utf8"));
   const vercel = JSON.parse(await readFile("vercel.json", "utf8"));
+  const fixture = await readFile("fixtures/universal-demo/index.html", "utf8");
   assert.equal(pkg.scripts.test, "node --test");
   assert.match(readme, /Playwright \+ Python \+ pytest/);
   assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.content_scripts[0].matches, ["http://*/*", "https://*/*"]);
   assert.equal(vercel.cleanUrls, true);
+  assert.match(fixture, /id="full-name"/);
+  assert.match(fixture, /data-testid="submit-form"/);
 });
 
 test("dashboard and extension scripts parse", async () => {
@@ -130,5 +133,12 @@ test("generated Python files parse when Python is installed", async (t) => {
   for (const [name, source] of sources) {
     const check = spawnSync(python, ["-c", "import ast,sys; ast.parse(sys.stdin.read())"], {input:source, encoding:"utf8"});
     assert.equal(check.status, 0, name + " must parse: " + check.stderr);
+  }
+});
+
+test("core recorder and generator remain website-agnostic", async () => {
+  for (const file of ["app.js", "core.js", "extension/recorder.js"]) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(source, /orangehrm/i, file + " must not contain target-specific assumptions");
   }
 });
