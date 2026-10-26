@@ -84,6 +84,8 @@ test("Selenium generator binds recorded locator to the page object", async () =>
   const result = await generateFromFixture("selenium");
   assert.match(result.code, /self\.driver\.find_element/);
   assert.match(result.status, /tests have NOT been executed/);
+  assert.match(result.runner, /unittest.*discover/s);
+  assert.match(result.runner, /pytest-playwright/);
 });
 
 test("shared event schema rejects unsupported kinds and caps recordings", async () => {
