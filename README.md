@@ -20,7 +20,7 @@ A website-agnostic browser recording and Page Object Model generation MVP. It co
 Requires Node.js 20+.
     npm test
     npm start
-Open http://localhost:3000.
+Open http://localhost:3000. The GitHub Actions workflow also installs Chromium and runs the real-browser fixture test with `python -m pytest -q tests/e2e`.
 
 ## Deploy to Vercel
 Import SanFlash/record2pom in Vercel. Select framework preset Other, root directory repository root, build command empty, and output directory repository root. No environment variables are required. After deployment, verify the URL loads and test import and ZIP download. Do not claim deployment verified until this smoke test has been performed.
