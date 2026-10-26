@@ -6,7 +6,7 @@
   const STRATEGY_WEIGHT = { testId: 100, role: 90, label: 80, placeholder: 70, attribute: 60, css: 40, xpath: 20 };
   function validateRecording(input) {
     const errors = [];
-    if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, errors: ["Recording must be a JSON object."] };
+    if (!input || typeof input !== "object") return { ok: false, errors: ["Recording must be a JSON object or event array."] };
     if (input.schemaVersion != null && input.schemaVersion !== 1) errors.push("Unsupported recording schemaVersion: " + input.schemaVersion);
     const events = Array.isArray(input) ? input : (input.events || input.actions);
     if (!Array.isArray(events)) errors.push("Recording must contain an events array.");
