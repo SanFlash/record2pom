@@ -160,3 +160,33 @@ test("recorder redacts sensitive select values before export", async () => {
   assert.match(source, /HTMLSelectElement&&!extra\.redacted/);
   assert.match(source, /extra\.redacted=true/);
 });
+
+
+test("canonical recording IR normalizes legacy aliases and locator candidates", async () => {
+  const context = {window:{}};
+  vm.runInNewContext(await readFile("core.js", "utf8"), context);
+  const result = context.Record2POMCore.normalizeRecording({
+    targetUrl:"https://example.test/form",
+    events:[{type:"input", target:{label:"Full name"}, value:"Ada", locatorCandidates:[{type:"label",selector:"Full name"}]}]
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.recording.schemaVersion, 1);
+  assert.equal(result.recording.targetUrl, "https://example.test/form");
+  assert.equal(result.recording.events[0].kind, "fill");
+  assert.equal(result.recording.events[0].locators[0].strategy, "label");
+  assert.equal(result.recording.events[0].locators[0].value, "Full name");
+});
+
+test("canonical recording IR removes sensitive values and bounds event data", async () => {
+  const context = {window:{}};
+  vm.runInNewContext(await readFile("core.js", "utf8"), context);
+  const result = context.Record2POMCore.normalizeRecording({
+    schemaVersion:1,
+    events:[{kind:"fill", value:"never-export-this", sensitivity:"sensitive", envVar:"LOGIN_PASSWORD", milliseconds:90000}]
+  });
+  assert.equal(result.ok, true);
+  assert.equal("value" in result.recording.events[0], false);
+  assert.equal(result.recording.events[0].redacted, true);
+  assert.equal(result.recording.events[0].envVar, "LOGIN_PASSWORD");
+  assert.equal(result.recording.events[0].milliseconds, 30000);
+});
