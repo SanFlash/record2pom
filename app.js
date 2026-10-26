@@ -27,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 REPORTS = ROOT / "reports"
-TIMEOUT_SECONDS = int(os.environ.get("RECORD2POM_TIMEOUT_SECONDS", "300"))
+TIMEOUT_SECONDS = os.environ.get("RECORD2POM_TIMEOUT_SECONDS", "300")
 MAX_TIMEOUT_SECONDS = 1800
 
 def utc_now():
