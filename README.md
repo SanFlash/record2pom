@@ -1,6 +1,6 @@
 # Record2POM — Universal POM Automation Studio
 
-A website-agnostic browser recording and Page Object Model generation MVP. It combines a static dashboard suitable for Vercel with a separately installed Chrome/Chromium extension that records interactions in the active browser tab.
+A website-agnostic browser recording and Page Object Model generation MVP. It combines a static dashboard suitable for Vercel with a separately installed Chrome/Chromium extension that records interactions in the active browser tab.\n\n**Production deployment:** https://record2pom.vercel.app/ (Vercel reports the deployment as READY; an interactive browser smoke test has not been verified from this session).
 
 **Honest status:** This is an MVP foundation, not a claim that every feature in the full specification is complete. The dashboard generates project files locally in the browser. It does not execute generated tests or claim tests passed.
 
