@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Record2POM Universal Recorder",
+  "version": "0.1.0",
+  "description": "Record authorized browser journeys and export JSON for POM generation.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {"default_title": "Record2POM Recorder", "default_popup": "popup.html"},
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [{"matches": ["http://*/*", "https://*/*"], "js": ["recorder.js"], "run_at": "document_idle", "all_frames": false}]
+}
