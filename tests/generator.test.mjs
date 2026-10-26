@@ -9,8 +9,8 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   const manifest = JSON.parse(await readFile("extension/manifest.json", "utf8"));
   const vercel = JSON.parse(await readFile("vercel.json", "utf8"));
   assert.equal(pkg.scripts.test, "node --test");
-  assert.match(readme, /Playwright \\+ Python \\+ pytest/);
-  assert.match(readme, /Selenium WebDriver \\+ Python \\+ unittest/);
+  assert.match(readme, /Playwright \+ Python \+ pytest/);
+  assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.content_scripts[0].matches, ["http://*/*", "https://*/*"]);
   assert.equal(vercel.cleanUrls, true);
@@ -61,12 +61,12 @@ async function generateFromFixture(engine) {
 
 test("Playwright generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("playwright");
-  assert.match(result.code, /self\\.page\\.get_by_role/);
+  assert.match(result.code, /self\.page\.get_by_role/);
   assert.match(result.status, /tests have NOT been executed/);
 });
 
 test("Selenium generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("selenium");
-  assert.match(result.code, /self\\.driver\\.find_element/);
+  assert.match(result.code, /self\.driver\.find_element/);
   assert.match(result.status, /tests have NOT been executed/);
 });
