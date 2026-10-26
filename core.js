@@ -22,6 +22,52 @@
     }
     return { ok: errors.length === 0, errors, count: Array.isArray(events) ? events.length : 0 };
   }
+  const KIND_ALIASES = { input:"fill", type:"fill", change:"fill", navigation:"navigate", keypress:"press", assertion:"assert-visible" };
+  function normalizeRecording(input) {
+    const validation = validateRecording(input);
+    if (!validation.ok) return { ok:false, errors:validation.errors, recording:null };
+    const rawEvents = Array.isArray(input) ? input : (input.events || input.actions || []);
+    const targetUrl = typeof input.targetUrl === "string" ? input.targetUrl : (typeof input.url === "string" ? input.url : "");
+    const events = rawEvents.map((raw, index) => {
+      const originalKind = String(raw.kind || raw.type || raw.action || "").toLowerCase().replace(/_/g, "-");
+      const kind = KIND_ALIASES[originalKind] || originalKind;
+      const target = raw.target && typeof raw.target === "object" && !Array.isArray(raw.target) ? {...raw.target} : {};
+      const candidates = Array.isArray(raw.locators) ? raw.locators :
+        (Array.isArray(raw.locatorCandidates) ? raw.locatorCandidates.map(c => ({
+          strategy:c.strategy || c.type, value:c.value || c.selector, name:c.name, matchCount:c.matchCount
+        })) : (raw.locator && typeof raw.locator === "object" ? [raw.locator] : []));
+      const isRedacted = raw.redacted === true || raw.sensitivity === "sensitive" || raw.sensitivity === "secret";
+      const event = {
+        id: String(raw.id || "event-" + (index + 1)),
+        sequence: Number.isFinite(Number(raw.sequence)) && Number(raw.sequence) > 0 ? Number(raw.sequence) : index + 1,
+        kind,
+        description: String(raw.description || raw.label || kind).slice(0, 150),
+        timestamp: typeof raw.timestamp === "string" ? raw.timestamp : null,
+        url: typeof raw.url === "string" ? raw.url.slice(0, 2000) : "",
+        target,
+        locators: candidates.filter(c => c && typeof c === "object").map(c => ({
+          strategy:String(c.strategy || c.type || "").slice(0, 40),
+          value:String(c.value || c.selector || "").slice(0, 1000),
+          ...(c.name != null ? {name:String(c.name).slice(0, 300)} : {}),
+          ...(Number.isFinite(c.matchCount) && c.matchCount >= 0 ? {matchCount:c.matchCount} : {})
+        })).filter(c => c.strategy && c.value),
+        source: String(raw.source || "import").slice(0, 80),
+        redacted: isRedacted
+      };
+      if (isRedacted) {
+        event.envVar = String(raw.envVar || "RECORDED_INPUT_" + event.sequence).replace(/[^A-Z0-9_]/gi, "_").toUpperCase().slice(0, 100);
+      } else if (raw.value != null) {
+        event.value = String(raw.value).slice(0, 500);
+      }
+      if (raw.assertion && typeof raw.assertion === "object") {
+        event.assertion = { ...raw.assertion };
+        if (event.assertion.expected != null) event.assertion.expected = String(event.assertion.expected).slice(0, 2000);
+      }
+      if (raw.milliseconds != null) event.milliseconds = Math.min(30000, Math.max(0, Number(raw.milliseconds) || 0));
+      return event;
+    });
+    return { ok:true, errors:[], recording:{schemaVersion:1, targetUrl:targetUrl.slice(0, 2000), metadata:(!Array.isArray(input) && input.metadata && typeof input.metadata === "object") ? {...input.metadata} : {}, events} };
+  }
   function rankLocators(candidates) {
     return (Array.isArray(candidates) ? candidates : []).filter(c => c && typeof c === "object" && c.value != null && String(c.value).length > 0)
       .map((c, index) => ({...c, _index:index, _weight:STRATEGY_WEIGHT[c.strategy] || 0,
@@ -34,5 +80,5 @@
     if (typeof candidate.matchCount === "number" && candidate.matchCount > 1) return {status:"ambiguous", message:"Locator matched " + candidate.matchCount + " elements when recorded."};
     return {status:"unverified", message:"Locator uniqueness was not measured; verify it before running tests."};
   }
-  root.Record2POMCore = Object.freeze({validateRecording, rankLocators, assessLocator, MAX_EVENTS});
+  root.Record2POMCore = Object.freeze({validateRecording, normalizeRecording, rankLocators, assessLocator, MAX_EVENTS});
 })(typeof globalThis !== "undefined" ? globalThis : this);
