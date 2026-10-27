@@ -128,6 +128,9 @@ The generated runner uses an argument array rather than shell interpolation and 
 
 ## ✦ Supported generator combinations
 
+- Playwright + Python + pytest
+- Selenium WebDriver + Python + unittest
+
 | Engine | Language | Test framework |
 |---|---|---|
 | Playwright | Python | pytest |
