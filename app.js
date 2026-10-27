@@ -146,6 +146,7 @@ def main():
         "failureCount": 0,
         "failures": [],
         "locatorHints": [],
+        "repairSuggestions": [],
         "artifacts": ["reports/run-results.json", "reports/run.log"],
     }
     junit_path = REPORTS / "junit.xml"
@@ -168,7 +169,7 @@ def main():
             diagnostics["artifacts"].append("reports/junit.xml")
         except (OSError, ValueError, ET.ParseError) as exc:
             diagnostics["failures"].append({"test": "JUnit parsing", "message": str(exc), "details": ""})
-    combined_output = (stdout + "\\n" + stderr + "\\n" + (error or ""))
+    combined_output = (stdout + "\n" + stderr + "\n" + (error or ""))
     for line in combined_output.splitlines():
         if "No locator candidate matched exactly one element" in line or "LookupError:" in line:
             diagnostics["locatorHints"].append(line[-2000:])
@@ -180,10 +181,56 @@ def main():
             "details": tail,
         })
         diagnostics["failureCount"] = len(diagnostics["failures"])
+    failure_text = " ".join(
+        str(f.get(key, "")) for f in diagnostics["failures"] for key in ("message", "details")
+    ).lower()
+    suggestions = []
+    def suggest(code, title, reason, actions):
+        suggestions.append({"code": code, "title": title, "reason": reason, "actions": actions})
+    if diagnostics["locatorHints"] or "no locator candidate matched exactly one element" in failure_text or "lookuperror" in failure_text:
+        suggest("locator-not-unique", "Repair the locator candidates",
+                "The generated page object could not find exactly one matching element.",
+                ["Inspect the failing step and candidate match counts.",
+                 "Prefer a stable data-testid or a specific role plus accessible name.",
+                 "Avoid broad text and CSS selectors; re-record the action after confirming the intended element."])
+    if "timeout" in failure_text or "timed out" in failure_text or timed_out:
+        suggest("timeout", "Check readiness and waiting conditions",
+                "The run reported a timeout or an operation did not finish in time.",
+                ["Confirm the page and target element are ready before interacting.",
+                 "Use a condition-based wait for the expected state rather than increasing timeouts blindly.",
+                 "Check network requests, overlays, and navigation that may block the step."])
+    if "strict mode" in failure_text or "multiple elements" in failure_text or "matched 0 elements" in failure_text or "matched 2 elements" in failure_text:
+        suggest("ambiguous-or-missing", "Narrow or refresh the selector",
+                "The selector may match zero elements or more than one element.",
+                ["Inspect the live DOM at the failing step.",
+                 "Add a stable test ID or refine the role/name, label, placeholder, or CSS selector.",
+                 "Re-run the readiness check and verify uniqueness before trusting the test."])
+    if "assertionerror" in failure_text or "assert " in failure_text or "failed" in status:
+        suggest("assertion-or-state", "Verify the expected application state",
+                "The test failed; the application may have changed or the assertion may no longer match intended behavior.",
+                ["Compare actual page state with the expected result.",
+                 "Check whether the action completed successfully before the assertion.",
+                 "Update expected values only after confirming the product requirement."])
+    if "stale element" in failure_text or "staleelementreference" in failure_text:
+        suggest("stale-element", "Re-query the element after page updates",
+                "The page may have re-rendered after the element was located.",
+                ["Wait for the relevant update to complete.",
+                 "Resolve the locator again after navigation or re-rendering.",
+                 "Avoid caching Selenium WebElement objects across page updates."])
+    if not suggestions and status == "passed":
+        suggest("passed", "No repair needed from captured output",
+                "The test process exited successfully; this is not proof of complete application correctness.",
+                ["Review assertions and artifacts to confirm they cover the intended journey."])
+    diagnostics["repairSuggestions"] = suggestions
     (REPORTS / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
     diagnostics["artifacts"].append("reports/diagnostics.json")
     html_escape = __import__("html").escape
-    rows = []
+    suggestion_cards = []
+    for item in suggestions:
+        action_list = "".join("<li>" + html_escape(action) + "</li>" for action in item["actions"])
+        suggestion_cards.append("<article><h2>" + html_escape(item["title"]) + "</h2><p>" +
+                                html_escape(item["reason"]) + "</p><ol>" + action_list + "</ol></article>")
+    rows = [];
     for failure in diagnostics["failures"]:
         rows.append("<article class='failure'><h2>" + html_escape(failure.get("test", "Test failure")) +
                     "</h2><p>" + html_escape(failure.get("message", "")) + "</p><pre>" +
@@ -192,7 +239,7 @@ def main():
     if not rows:
         rows = ["<article><h2>" + ("All tests passed" if status == "passed" else "No structured test failure found") +
                 "</h2><p>" + html_escape(diagnostics["summary"]) + "</p></article>"]
-    html_report = "<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Record2POM Diagnostics</title><style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:0 18px;color:#202633}article{border:1px solid #ccd3df;border-radius:10px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f9;padding:12px;border-radius:6px}.status{font-weight:700}code{overflow-wrap:anywhere}</style><h1>Record2POM execution diagnostics</h1><p class='status'>Status: " + html_escape(status.upper()) + "</p><p>" + html_escape(diagnostics["summary"]) + "</p><p>Duration: " + html_escape(str(result["durationSeconds"])) + " seconds · Engine: " + html_escape(engine) + "</p><h2>Failures</h2>" + "".join(rows) + "<h2>Locator fallback hints</h2><ul>" + (locator_rows or "<li>No locator fallback errors were detected in captured output.</li>") + "</ul><p>Generated locally from test process output. Review before relying on results.</p></html>"
+    html_report = "<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Record2POM Diagnostics</title><style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:0 18px;color:#202633}article{border:1px solid #ccd3df;border-radius:10px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f9;padding:12px;border-radius:6px}.status{font-weight:700}code{overflow-wrap:anywhere}</style><h1>Record2POM execution diagnostics</h1><p class='status'>Status: " + html_escape(status.upper()) + "</p><p>" + html_escape(diagnostics["summary"]) + "</p><p>Duration: " + html_escape(str(result["durationSeconds"])) + " seconds · Engine: " + html_escape(engine) + "</p><h2>Failures</h2>" + "".join(rows) + "<h2>Locator fallback hints</h2><ul>" + (locator_rows or "<li>No locator fallback errors were detected in captured output.</li>") + "</ul><h2>Suggested next steps</h2>" + "".join(suggestion_cards) + "<p>Generated locally from test process output. Review before relying on results.</p></html>"
     (REPORTS / "diagnostics.html").write_text(html_report, encoding="utf-8")
     diagnostics["artifacts"].append("reports/diagnostics.html")
     (REPORTS / "run-results.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
