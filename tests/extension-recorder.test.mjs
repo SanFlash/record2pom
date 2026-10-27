@@ -145,3 +145,29 @@ test("recorder reports navigation only while recording and not paused", async ()
   h.control({ type: "R2POM_NAVIGATION", url: "https://fixture.test/paused" });
   assert.equal(h.sent.filter(m => m.type === "R2POM_EVENT").length, 1);
 });
+
+
+test("recorder assigns semantic checkbox and radio roles and ignores file paths", async () => {
+  const checkbox = new FakeInput("input", { type: "checkbox", "aria-label": "Receive updates" }, { type: "checkbox", checked: true });
+  const radio = new FakeInput("input", { type: "radio", "aria-label": "Monthly" }, { type: "radio", checked: true });
+  const file = new FakeInput("input", { type: "file", name: "attachment" }, { type: "file", name: "attachment", value: "C:\\fakepath\\private.pdf" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [checkbox, radio, file] });
+  h.fire("change", { target: checkbox });
+  h.fire("change", { target: radio });
+  h.fire("change", { target: file });
+  const events = h.sent.filter(message => message.type === "R2POM_EVENT").map(message => message.event);
+  assert.equal(events.length, 2, "file input values must never be recorded");
+  assert.equal(events[0].target.role, "checkbox");
+  assert.equal(events[1].target.role, "radio");
+  assert.ok(events[0].locators.some(locator => locator.strategy === "role" && locator.value === "checkbox"));
+  assert.ok(events[1].locators.some(locator => locator.strategy === "role" && locator.value === "radio"));
+});
+
+test("recorder ignores invalid navigation protocols and tolerates missing composedPath", async () => {
+  const button = new FakeElement("button", { "aria-label": "Save" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
+  h.fire("click", { target: button });
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+  h.control({ type: "R2POM_NAVIGATION", url: "javascript:alert(1)" });
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+});
