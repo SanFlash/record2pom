@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" fill="none">
+<defs>
+  <linearGradient id="bg" x1="40" y1="20" x2="1160" y2="520" gradientUnits="userSpaceOnUse"><stop stop-color="#081126"/><stop offset=".52" stop-color="#111b3b"/><stop offset="1" stop-color="#25104b"/></linearGradient>
+  <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#72F7F0"/><stop offset="1" stop-color="#4D8DFF"/></linearGradient>
+  <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C7A2FF"/><stop offset="1" stop-color="#755BFF"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".18"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".035"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="15"/></filter>
+  <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" stroke="#8EA9FF" stroke-opacity=".13"/></pattern>
+</defs>
+<rect width="1200" height="520" rx="28" fill="url(#bg)"/>
+<rect width="1200" height="520" rx="28" fill="url(#grid)"/>
+<circle cx="950" cy="110" r="135" fill="#6757FF" fill-opacity=".3" filter="url(#glow)"/>
+<circle cx="860" cy="390" r="120" fill="#35D6D0" fill-opacity=".16" filter="url(#glow)"/>
+<g opacity=".5" stroke="#7189FF" stroke-width="1"><path d="M620 0L340 520M750 0L470 520M880 0L600 520M1010 0L730 520M1140 0L860 520"/><path d="M0 130H1200M0 260H1200M0 390H1200"/></g>
+<g transform="translate(72 74)">
+  <rect width="555" height="370" rx="22" fill="url(#glass)" stroke="#B8C7FF" stroke-opacity=".27"/>
+  <rect x="0" y="0" width="555" height="52" rx="22" fill="#FFFFFF" fill-opacity=".06"/>
+  <path d="M0 52H555" stroke="#B8C7FF" stroke-opacity=".2"/>
+  <circle cx="25" cy="26" r="5" fill="#FF718A"/><circle cx="43" cy="26" r="5" fill="#FFCE75"/><circle cx="61" cy="26" r="5" fill="#69F0C5"/>
+  <text x="88" y="31" fill="#E8EDFF" font-family="Arial,sans-serif" font-size="13" font-weight="700">RECORDING SESSION / 001</text>
+  <rect x="22" y="75" width="160" height="270" rx="13" fill="#080F25" fill-opacity=".66" stroke="#A8B6FF" stroke-opacity=".16"/>
+  <text x="40" y="101" fill="#8DA3E8" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">JOURNEY MAP</text>
+  <path d="M52 132V300" stroke="url(#cyan)" stroke-width="2" stroke-dasharray="4 6"/>
+  <g font-family="Arial,sans-serif" font-size="11" fill="#DDE7FF">
+    <circle cx="52" cy="137" r="7" fill="#55E8DA"/><text x="70" y="141">Navigate</text>
+    <circle cx="52" cy="178" r="7" fill="#55E8DA"/><text x="70" y="182">Fill form</text>
+    <circle cx="52" cy="219" r="7" fill="#9A83FF"/><text x="70" y="223">Select option</text>
+    <circle cx="52" cy="260" r="7" fill="#9A83FF"/><text x="70" y="264">Click submit</text>
+    <circle cx="52" cy="301" r="7" fill="#55E8DA"/><text x="70" y="305">Assert result</text>
+  </g>
+  <g transform="translate(205 75)">
+    <rect width="326" height="113" rx="14" fill="#081126" fill-opacity=".65" stroke="#6EEBE0" stroke-opacity=".25"/>
+    <text x="18" y="26" fill="#93A8DD" font-family="Arial,sans-serif" font-size="10" letter-spacing="1.8">LOCATOR CONFIDENCE</text>
+    <text x="18" y="59" fill="#F3F7FF" font-family="Arial,sans-serif" font-size="22" font-weight="700">98.4%</text>
+    <rect x="18" y="76" width="288" height="7" rx="3.5" fill="#FFFFFF" fill-opacity=".1"/>
+    <rect x="18" y="76" width="266" height="7" rx="3.5" fill="url(#cyan)"/>
+    <rect x="0" y="129" width="326" height="141" rx="14" fill="#081126" fill-opacity=".65" stroke="#A88CFF" stroke-opacity=".27"/>
+    <text x="18" y="155" fill="#93A8DD" font-family="Arial,sans-serif" font-size="10" letter-spacing="1.8">GENERATED PROJECT</text>
+    <g font-family="monospace" font-size="11" fill="#DAE5FF"><text x="18" y="183">pages/recorded_page.py</text><text x="18" y="207">tests/test_journey.py</text><text x="18" y="231">conftest.py</text><text x="18" y="255">run_tests.py</text></g>
+    <circle cx="300" cy="177" r="4" fill="#62F2C3"/><circle cx="300" cy="201" r="4" fill="#62F2C3"/><circle cx="300" cy="225" r="4" fill="#62F2C3"/><circle cx="300" cy="249" r="4" fill="#62F2C3"/>
+  </g>
+</g>
+<g transform="translate(690 85)">
+  <g transform="translate(120 15) rotate(-8 140 140)">
+    <path d="M140 0L263 70V212L140 284L17 212V70L140 0Z" fill="#6558FF" fill-opacity=".12" stroke="#8E9CFF" stroke-opacity=".55" stroke-width="1.5"/>
+    <path d="M140 28L238 84V198L140 254L42 198V84L140 28Z" fill="#3E8DFF" fill-opacity=".11" stroke="#7FDFF4" stroke-opacity=".65"/>
+    <path d="M140 58L212 99V183L140 224L68 183V99L140 58Z" fill="#5E5BFF" fill-opacity=".18" stroke="#A6A1FF" stroke-width="1.5"/>
+    <circle cx="140" cy="141" r="55" fill="#4CE7DC" fill-opacity=".13" stroke="url(#cyan)" stroke-width="2"/>
+    <path d="M114 141L132 159L169 119" stroke="#A6FFF2" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="140" cy="141" r="74" stroke="#7B92FF" stroke-opacity=".5" stroke-dasharray="4 8"/>
+  </g>
+  <g transform="translate(4 238) rotate(5 82 53)">
+    <rect width="174" height="105" rx="15" fill="url(#glass)" stroke="#72EDE2" stroke-opacity=".55"/>
+    <text x="17" y="27" fill="#A4B5E7" font-family="Arial,sans-serif" font-size="9" letter-spacing="1.5">LIVE CAPTURE</text>
+    <circle cx="20" cy="52" r="5" fill="#58E9C9"/><text x="34" y="56" fill="#F3F7FF" font-family="Arial,sans-serif" font-size="11">Event recorded</text>
+    <circle cx="20" cy="76" r="5" fill="#8B7BFF"/><text x="34" y="80" fill="#F3F7FF" font-family="Arial,sans-serif" font-size="11">Locator ranked</text>
+  </g>
+</g>
+<g transform="translate(72 27)"><text x="0" y="0" fill="#6DECE2" font-family="Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="4">UNIVERSAL AUTOMATION STUDIO</text></g>
+</svg>
