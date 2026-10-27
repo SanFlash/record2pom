@@ -73,7 +73,11 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   const testButton = fileButtons.find(item => item.dataset.path === "tests/test_recorded_journey.py");
   assert.ok(testButton?.onclick, "generated test module should be listed");
   testButton.onclick();
-  return {code, runner, test:el("code").textContent, conftest:generated.files["tests/conftest.py"] || "", status:el("status").textContent};
+  const testSource = el("code").textContent;
+  const conftestButton = fileButtons.find(item => item.dataset.path === "tests/conftest.py");
+  let conftest = "";
+  if (conftestButton?.onclick) { conftestButton.onclick(); conftest = el("code").textContent; }
+  return {code, runner, test:testSource, conftest, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
