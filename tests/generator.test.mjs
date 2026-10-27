@@ -227,6 +227,9 @@ test("Playwright generated project captures failure screenshots", async () => {
   assert.match(result.code, /def _step/);
   assert.match(result.code, /steps\.json/);
   assert.match(result.code, /durationMs/);
+  assert.match(result.runner, /steps\.html/);
+  assert.match(result.runner, /Step execution timeline/);
+  assert.match(result.runner, /reports\/steps\.html/);
   assert.match(result.runner, /screenshots/, "runner should prepare a screenshot output directory");
   assert.match(result.runner, /glob\(/, "runner should discover generated screenshot files");
   assert.match(result.runner, /Failure screenshots/);
@@ -242,6 +245,8 @@ test("generated Selenium project Python files parse", async (t) => {
   assert.match(result.code, /def _step/);
   assert.match(result.code, /steps\.json/);
   assert.match(result.code, /durationMs/);
+  assert.match(result.runner, /steps\.html/);
+  assert.match(result.runner, /Step execution timeline/);
   let python = "python3";
   let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
   if (probe.error?.code === "ENOENT") {
