@@ -92,6 +92,14 @@ def main():
         print("Cannot identify a supported generated test project.", file=sys.stderr)
         return 2
     REPORTS.mkdir(parents=True, exist_ok=True)
+    if engine == "playwright":
+        stale_junit = REPORTS / "junit.xml"
+        if stale_junit.exists():
+            stale_junit.unlink()
+    screenshot_dir = REPORTS / "screenshots"
+    if screenshot_dir.exists():
+        for stale_image in screenshot_dir.glob("*.png"):
+            stale_image.unlink()
     started = utc_now()
     start = time.monotonic()
     status = "error"
@@ -222,6 +230,9 @@ def main():
                 "The test process exited successfully; this is not proof of complete application correctness.",
                 ["Review assertions and artifacts to confirm they cover the intended journey."])
     diagnostics["repairSuggestions"] = suggestions
+    screenshot_files = sorted(screenshot_dir.glob("*.png")) if screenshot_dir.exists() else []
+    diagnostics["screenshots"] = [str(path.relative_to(ROOT)) for path in screenshot_files]
+    diagnostics["artifacts"].extend(diagnostics["screenshots"])
     (REPORTS / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
     diagnostics["artifacts"].append("reports/diagnostics.json")
     html_escape = __import__("html").escape
@@ -239,7 +250,8 @@ def main():
     if not rows:
         rows = ["<article><h2>" + ("All tests passed" if status == "passed" else "No structured test failure found") +
                 "</h2><p>" + html_escape(diagnostics["summary"]) + "</p></article>"]
-    html_report = "<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Record2POM Diagnostics</title><style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:0 18px;color:#202633}article{border:1px solid #ccd3df;border-radius:10px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f9;padding:12px;border-radius:6px}.status{font-weight:700}code{overflow-wrap:anywhere}</style><h1>Record2POM execution diagnostics</h1><p class='status'>Status: " + html_escape(status.upper()) + "</p><p>" + html_escape(diagnostics["summary"]) + "</p><p>Duration: " + html_escape(str(result["durationSeconds"])) + " seconds · Engine: " + html_escape(engine) + "</p><h2>Failures</h2>" + "".join(rows) + "<h2>Locator fallback hints</h2><ul>" + (locator_rows or "<li>No locator fallback errors were detected in captured output.</li>") + "</ul><h2>Suggested next steps</h2>" + "".join(suggestion_cards) + "<p>Generated locally from test process output. Review before relying on results.</p></html>"
+    screenshot_cards = "".join("<figure><a href='" + html_escape(path.relative_to(REPORTS).as_posix()) + "'><img loading='lazy' style='max-width:100%;height:auto;border:1px solid #ccd3df;border-radius:8px' src='" + html_escape(path.relative_to(REPORTS).as_posix()) + "' alt='Screenshot captured for a failed test'></a><figcaption>" + html_escape(path.name) + "</figcaption></figure>" for path in screenshot_files)
+    html_report = "<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Record2POM Diagnostics</title><style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:0 18px;color:#202633}article{border:1px solid #ccd3df;border-radius:10px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f9;padding:12px;border-radius:6px}.status{font-weight:700}code{overflow-wrap:anywhere}</style><h1>Record2POM execution diagnostics</h1><p class='status'>Status: " + html_escape(status.upper()) + "</p><p>" + html_escape(diagnostics["summary"]) + "</p><p>Duration: " + html_escape(str(result["durationSeconds"])) + " seconds · Engine: " + html_escape(engine) + "</p><h2>Failures</h2>" + "".join(rows) + "<h2>Locator fallback hints</h2><ul>" + (locator_rows or "<li>No locator fallback errors were detected in captured output.</li>") + "</ul><h2>Suggested next steps</h2>" + "".join(suggestion_cards) + "<h2>Failure screenshots</h2>" + (screenshot_cards or "<p>No failure screenshots were captured for this run.</p>") + "<p>Generated locally from test process output. Review before relying on results.</p></html>"
     (REPORTS / "diagnostics.html").write_text(html_report, encoding="utf-8")
     diagnostics["artifacts"].append("reports/diagnostics.html")
     (REPORTS / "run-results.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
