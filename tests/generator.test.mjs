@@ -163,7 +163,7 @@ test("Selenium label locators resolve associated controls, not the label node", 
 
 test("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
-  assert.match(select.code, /Select\(self\.driver\.find_element/);
+  assert.match(select.code, /Select\(self\._resolve_locator/);
   assert.match(select.code, /select_by_visible_text\("India"\)/);
   const press = await generateFromFixture("selenium", "press");
   assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
