@@ -73,7 +73,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   const testButton = fileButtons.find(item => item.dataset.path === "tests/test_recorded_journey.py");
   assert.ok(testButton?.onclick, "generated test module should be listed");
   testButton.onclick();
-  return {code, runner, test:el("code").textContent, status:el("status").textContent};
+  return {code, runner, test:el("code").textContent, conftest:generated.files["tests/conftest.py"] || "", status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -141,7 +141,8 @@ test("generated Python files parse when Python is installed", async (t) => {
   const sources = [
     ["pages/recorded_page.py", result.code],
     ["run_tests.py", result.runner],
-    ["tests/test_recorded_journey.py", result.test]
+    ["tests/test_recorded_journey.py", result.test],
+    ...(result.conftest ? [["tests/conftest.py", result.conftest]] : [])
   ];
   let python = "python3";
   let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
@@ -223,6 +224,9 @@ test("Playwright generated project captures failure screenshots", async () => {
   assert.match(result.runner, /screenshots\.png|glob\("\*\.png"\)/);
   assert.match(result.runner, /Failure screenshots/);
   assert.match(result.runner, /diagnostics\["screenshots"\]/);
+  assert.match(result.conftest, /pytest_runtest_makereport/);
+  assert.match(result.conftest, /page\.screenshot/);
+  assert.match(result.test, /save_screenshot/);
 });
 
 test("generated Selenium project Python files parse", async (t) => {
