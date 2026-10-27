@@ -224,6 +224,9 @@ test("canonical recording IR removes sensitive values and bounds event data", as
 test("Playwright generated project captures failure screenshots", async () => {
   const result = await generateFromFixture("playwright");
   assert.match(result.code, /def _resolve_locator/);
+  assert.match(result.code, /def _step/);
+  assert.match(result.code, /steps\.json/);
+  assert.match(result.code, /durationMs/);
   assert.match(result.runner, /screenshots/, "runner should prepare a screenshot output directory");
   assert.match(result.runner, /glob\(/, "runner should discover generated screenshot files");
   assert.match(result.runner, /Failure screenshots/);
@@ -236,6 +239,9 @@ test("generated Selenium project Python files parse", async (t) => {
   const result = await generateFromFixture("selenium");
   assert.match(result.test, /save_screenshot/);
   assert.match(result.test, /reports\/screenshots/);
+  assert.match(result.code, /def _step/);
+  assert.match(result.code, /steps\.json/);
+  assert.match(result.code, /durationMs/);
   let python = "python3";
   let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
   if (probe.error?.code === "ENOENT") {
