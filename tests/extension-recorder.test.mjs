@@ -54,6 +54,8 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
       if (selector === "label") return elements.filter(e => e.tagName === "LABEL");
       if (selector === "[placeholder]") return elements.filter(e => e.getAttribute("placeholder"));
       if (selector.startsWith("#")) return elements.filter(e => e.id === selector.slice(1));
+      const attributeMatch = selector.match(/^\\[(data-test|data-qa|data-testid)="(.*)"\\]$/);
+      if (attributeMatch) return elements.filter(e => e.getAttribute(attributeMatch[1]) === attributeMatch[2]);
       if (selector.startsWith("button,") || selector === "[role]") return elements.filter(e =>
         ["BUTTON", "A", "INPUT", "TEXTAREA", "SELECT"].includes(e.tagName) || e.getAttribute("role"));
       return elements;
@@ -170,4 +172,15 @@ test("recorder ignores invalid navigation protocols and tolerates missing compos
   assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
   h.control({ type: "R2POM_NAVIGATION", url: "javascript:alert(1)" });
   assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+});
+
+
+test("recorder does not mislabel data-test/data-qa attributes as data-testid locators", async () => {
+  const custom = new FakeElement("button", { "aria-label": "Open", "data-test": "open-control" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [custom] });
+  h.fire("click", { composedPath: () => [custom], target: custom });
+  const event = h.sent.find(message => message.type === "R2POM_EVENT")?.event;
+  assert.equal(event.target.testId, "");
+  assert.ok(event.locators.some(locator => locator.strategy === "css" && locator.value === '[data-test="open-control"]'));
+  assert.ok(!event.locators.some(locator => locator.strategy === "testId"));
 });
