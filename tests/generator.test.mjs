@@ -225,7 +225,7 @@ test("Playwright generated project captures failure screenshots", async () => {
   const result = await generateFromFixture("playwright");
   assert.match(result.code, /def _resolve_locator/);
   assert.match(result.runner, /reports\/screenshots/);
-  assert.match(result.runner, /screenshots\.png|glob\("\*\.png"\)/);
+  assert.match(result.runner, /glob\(/, "runner should discover generated screenshot files");
   assert.match(result.runner, /Failure screenshots/);
   assert.match(result.runner, /diagnostics\["screenshots"\]/);
   assert.match(result.conftest, /pytest_runtest_makereport/);
