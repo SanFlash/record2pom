@@ -229,3 +229,18 @@ test("generator emits explicit assertion actions for both engines", async () => 
     assert.match(text.code, engine === "playwright" ? /get_by_text/ : /By\.TAG_NAME/);
   }
 });
+
+
+test("dashboard includes actionable readiness pre-flight for URL, locators, assertions and redaction", async () => {
+  const html = await readFile("index.html", "utf8");
+  const source = await readFile("app.js", "utf8");
+  const css = await readFile("styles.css", "utf8");
+  assert.match(html, /id="checkReadiness"/);
+  assert.match(html, /id="readinessList"/);
+  assert.match(source, /function checkReadiness\(\)/);
+  assert.match(source, /Required actions have locators/);
+  assert.match(source, /No explicit assertions found/);
+  assert.match(source, /sensitive input\(s\) need environment variables/);
+  assert.match(source, /Execution happens on your machine/);
+  assert.match(css, /\.readiness-summary\.has-blockers/);
+});
