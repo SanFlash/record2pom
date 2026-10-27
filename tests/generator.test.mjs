@@ -226,11 +226,12 @@ test("Playwright generated project captures failure screenshots", async () => {
   assert.match(result.runner, /diagnostics\["screenshots"\]/);
   assert.match(result.conftest, /pytest_runtest_makereport/);
   assert.match(result.conftest, /page\.screenshot/);
-  assert.match(result.test, /save_screenshot/);
 });
 
 test("generated Selenium project Python files parse", async (t) => {
   const result = await generateFromFixture("selenium");
+  assert.match(result.test, /save_screenshot/);
+  assert.match(result.test, /reports\/screenshots/);
   let python = "python3";
   let probe = spawnSync(python, ["--version"], {encoding:"utf8"});
   if (probe.error?.code === "ENOENT") {
