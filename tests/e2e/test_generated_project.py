@@ -128,7 +128,6 @@ def test_dashboard_generates_and_executes_real_playwright_project(page: Page, tm
         assert (project_dir / "tests" / "test_recorded_journey.py").is_file()
         env = os.environ.copy()
         env["BASE_URL"] = fixture_url
-        env["PLAYWRIGHT_BROWSERS_PATH"] = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "")
         run = subprocess.run(
             [sys.executable, "-m", "pytest", "-q", "tests"],
             cwd=project_dir,
