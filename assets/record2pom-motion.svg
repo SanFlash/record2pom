@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" fill="none">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1200" y2="260" gradientUnits="userSpaceOnUse"><stop stop-color="#071024"/><stop offset=".55" stop-color="#141b3b"/><stop offset="1" stop-color="#29114b"/></linearGradient><linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8FFFF0"/><stop offset="1" stop-color="#5C83FF"/></linearGradient><radialGradient id="sphere"><stop stop-color="#B4FFF5"/><stop offset=".35" stop-color="#5D9EFF"/><stop offset=".75" stop-color="#6548D9"/><stop offset="1" stop-color="#111832"/></radialGradient><filter id="blur"><feGaussianBlur stdDeviation="15"/></filter></defs>
+<rect width="1200" height="260" rx="22" fill="url(#g)"/>
+<g opacity=".17" stroke="#9AB1FF"><path d="M0 52H1200M0 104H1200M0 156H1200M0 208H1200"/><path d="M60 0V260M120 0V260M180 0V260M240 0V260M300 0V260M360 0V260M420 0V260M480 0V260M540 0V260M600 0V260M660 0V260M720 0V260M780 0V260M840 0V260M900 0V260M960 0V260M1020 0V260M1080 0V260M1140 0V260"/></g>
+<circle cx="1000" cy="125" r="85" fill="#7865FF" opacity=".18" filter="url(#blur)"/>
+<g transform="translate(60 48)"><rect width="72" height="72" rx="22" fill="#6CF5E6" fill-opacity=".09" stroke="#6CF5E6" stroke-opacity=".8"/><path d="M22 37L32 47L51 25" stroke="url(#c)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="94" y="26" fill="#75F2E4" font-family="Arial,sans-serif" font-size="11" letter-spacing="3">UNIVERSAL AUTOMATION STUDIO</text><text x="94" y="65" fill="#F5F7FF" font-family="Arial,sans-serif" font-size="35" font-weight="700" letter-spacing="-1.6">Record2POM</text><text x="95" y="91" fill="#A8B2D5" font-family="Arial,sans-serif" font-size="13">Capture journeys. Rank locators. Generate reliable tests.</text></g>
+<g transform="translate(865 28)">
+<ellipse cx="126" cy="105" rx="119" ry="42" transform="rotate(-20 126 105)" stroke="#77F2E5" stroke-opacity=".8" stroke-width="1.4" stroke-dasharray="7 7"><animateTransform attributeName="transform" type="rotate" from="-20 126 105" to="340 126 105" dur="26s" repeatCount="indefinite"/></ellipse>
+<ellipse cx="126" cy="105" rx="119" ry="42" transform="rotate(45 126 105)" stroke="#9A8AFF" stroke-opacity=".7" stroke-width="1.4" stroke-dasharray="4 8"><animateTransform attributeName="transform" type="rotate" from="45 126 105" to="-315 126 105" dur="34s" repeatCount="indefinite"/></ellipse>
+<circle cx="126" cy="105" r="59" fill="url(#sphere)"><animate attributeName="r" values="56;61;56" dur="4s" repeatCount="indefinite"/></circle>
+<path d="M101 106L119 124L153 86" stroke="#E4FFF9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="126" cy="105" r="75" stroke="#9B9BFF" stroke-opacity=".28"><animate attributeName="r" values="72;84;72" dur="4.8s" repeatCount="indefinite"/></circle>
+</g>
+<path d="M0 233C210 200 350 267 560 230S900 210 1200 236" stroke="url(#c)" stroke-opacity=".65" stroke-width="1.5" stroke-dasharray="8 8"><animate attributeName="stroke-dashoffset" from="0" to="-160" dur="9s" repeatCount="indefinite"/></path>
+</svg>
