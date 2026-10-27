@@ -132,6 +132,8 @@ test("generated runner uses no shell, applies timeout and documents result files
   assert.match(result.runner, /repairSuggestions/);
   assert.match(result.runner, /locator-not-unique/);
   assert.match(result.runner, /Suggested next steps/);
+  assert.match(result.runner, /screenshots/);
+  assert.match(result.runner, /Failure screenshots/);
 });
 
 test("generated Python files parse when Python is installed", async (t) => {
@@ -213,6 +215,15 @@ test("canonical recording IR removes sensitive values and bounds event data", as
   assert.equal(result.recording.events[0].milliseconds, 30000);
 });
 
+
+test("Playwright generated project captures failure screenshots", async () => {
+  const result = await generateFromFixture("playwright");
+  assert.match(result.code, /def _resolve_locator/);
+  assert.match(result.runner, /reports\/screenshots/);
+  assert.match(result.runner, /screenshots\.png|glob\("\*\.png"\)/);
+  assert.match(result.runner, /Failure screenshots/);
+  assert.match(result.runner, /diagnostics\["screenshots"\]/);
+});
 
 test("generated Selenium project Python files parse", async (t) => {
   const result = await generateFromFixture("selenium");
