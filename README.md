@@ -76,6 +76,9 @@ The generated `run_tests.py` invokes the declared pytest or unittest command wit
 
 ## Supported generator combinations
 
+- Playwright + Python + pytest.
+- Selenium WebDriver + Python + unittest.
+
 | Engine | Language | Test framework | Status |
 |---|---|---|---|
 | Playwright | Python | pytest | MVP generator |
