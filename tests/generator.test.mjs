@@ -27,7 +27,7 @@ test("dashboard and extension scripts parse", async () => {
   }
 });
 
-async function generateFromFixture(engine, kind = "click") {
+async function generateFromFixture(engine, kind = "click", strategy = "role") {
   const source = await readFile("app.js", "utf8");
   const elements = new Map();
   let fileButtons = [];
@@ -58,7 +58,7 @@ async function generateFromFixture(engine, kind = "click") {
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:{role,name},locators:[{strategy:"role",value:role,name}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"}] : [{strategy:"role",value:role,name}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -86,6 +86,7 @@ test("Playwright generator binds recorded locator to the page object", async () 
 test("Selenium generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("selenium");
   assert.match(result.code, /self\.driver\.find_element/);
+  assert.match(result.code, /self::button/, "Selenium role locators must support native HTML buttons");
   assert.match(result.status, /tests have NOT been executed/);
   assert.match(result.runner, /unittest.*discover/s);
   assert.match(result.runner, /pytest-playwright/);
@@ -148,7 +149,7 @@ test("core recorder and generator remain website-agnostic", async () => {
   }
 });
 
-test("Selenium generator emits real select and keyboard APIs", async () => {
+test("Selenium label locators resolve associated controls, not the label node", async () => {\n  const result = await generateFromFixture("selenium", "fill", "label");\n  assert.match(result.code, /descendant-or-self::/);\n  assert.match(result.code, /self::input or self::textarea or self::select/);\n});\n\ntest("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
   assert.match(select.code, /Select\(self\.driver\.find_element/);
   assert.match(select.code, /select_by_visible_text\("India"\)/);
