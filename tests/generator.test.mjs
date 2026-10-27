@@ -251,13 +251,13 @@ test("GSAP Motion Lab includes responsive 3D visuals and reduced-motion fallback
   const showcase = await readFile("showcase/index.html", "utf8");
   const banner = await readFile("assets/record2pom-motion.svg", "utf8");
   const visual = await readFile("assets/record2pom-banner.svg", "utf8");
-  assert.match(showcase, /gsap\\.min\\.js/);
+  assert.match(showcase, /gsap\.min\.js/);
   assert.match(showcase, /prefers-reduced-motion/);
-  assert.match(showcase, /perspective:\\s*1200px/);
+  assert.match(showcase, /perspective:\s*1200px/);
   assert.match(showcase, /pointermove/);
   assert.match(showcase, /IntersectionObserver/);
   assert.match(showcase, /Launch Record2POM/);
-  assert.match(showcase, /@media\\(max-width:560px\\)/);
+  assert.match(showcase, /@media\(max-width:560px\)/);
   assert.match(banner, /<animateTransform/);
   assert.match(visual, /Record2POM/);
 });
