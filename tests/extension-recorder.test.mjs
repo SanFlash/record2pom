@@ -54,7 +54,7 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
       if (selector === "label") return elements.filter(e => e.tagName === "LABEL");
       if (selector === "[placeholder]") return elements.filter(e => e.getAttribute("placeholder"));
       if (selector.startsWith("#")) return elements.filter(e => e.id === selector.slice(1));
-      const attributeMatch = selector.match(/^\\[(data-test|data-qa|data-testid)="(.*)"\\]$/);
+      const attributeMatch = selector.match(/^\[(data-test|data-qa|data-testid)="(.*)"\]$/);
       if (attributeMatch) return elements.filter(e => e.getAttribute(attributeMatch[1]) === attributeMatch[2]);
       if (selector.startsWith("button,") || selector === "[role]") return elements.filter(e =>
         ["BUTTON", "A", "INPUT", "TEXTAREA", "SELECT"].includes(e.tagName) || e.getAttribute("role"));
