@@ -129,6 +129,9 @@ test("generated runner uses no shell, applies timeout and documents result files
   assert.match(result.runner, /diagnostics\.html/);
   assert.match(result.runner, /failureCount/);
   assert.match(result.runner, /Locator fallback hints/);
+  assert.match(result.runner, /repairSuggestions/);
+  assert.match(result.runner, /locator-not-unique/);
+  assert.match(result.runner, /Suggested next steps/);
 });
 
 test("generated Python files parse when Python is installed", async (t) => {
