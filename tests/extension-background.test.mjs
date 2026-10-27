@@ -82,6 +82,20 @@ test("extension start, pause, resume, stop and clear enforce the recording lifec
   assert.equal(cleared.session.events.length, 0);
 });
 
+test("pause and resume cannot accidentally start an idle session", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  const pause = await h.dispatch({ type: "R2POM_PAUSE" });
+  const resume = await h.dispatch({ type: "R2POM_RESUME" });
+  assert.equal(pause.ok, false);
+  assert.equal(resume.ok, false);
+  assert.match(pause.error, /No active recording/);
+  assert.match(resume.error, /No active recording/);
+  const session = (await h.dispatch({ type: "R2POM_GET_SESSION" })).session;
+  assert.equal(session.recording, false);
+  assert.equal(session.paused, false);
+});
+
 test("extension assigns monotonic sequence and session identity to captured events", async () => {
   const h = await harness();
   await h.dispatch({ type: "R2POM_START", url: "https://example.test/" });
