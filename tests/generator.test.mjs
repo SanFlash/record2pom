@@ -157,8 +157,9 @@ test("Selenium generator emits real select and keyboard APIs", async () => {
 
 test("recorder redacts sensitive select values before export", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
-  assert.match(source, /HTMLSelectElement&&!extra\.redacted/);
-  assert.match(source, /extra\.redacted=true/);
+  assert.match(source, /element instanceof HTMLSelectElement/);
+  assert.match(source, /if \(sensitive\(element\)\)/);
+  assert.match(source, /extra\.redacted = true/);
 });
 
 
