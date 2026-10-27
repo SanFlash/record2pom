@@ -149,7 +149,13 @@ test("core recorder and generator remain website-agnostic", async () => {
   }
 });
 
-test("Selenium label locators resolve associated controls, not the label node", async () => {\n  const result = await generateFromFixture("selenium", "fill", "label");\n  assert.match(result.code, /descendant-or-self::/);\n  assert.match(result.code, /self::input or self::textarea or self::select/);\n});\n\ntest("Selenium generator emits real select and keyboard APIs", async () => {
+test("Selenium label locators resolve associated controls, not the label node", async () => {
+  const result = await generateFromFixture("selenium", "fill", "label");
+  assert.match(result.code, /descendant-or-self::/);
+  assert.match(result.code, /self::input or self::textarea or self::select/);
+});
+
+test("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
   assert.match(select.code, /Select\(self\.driver\.find_element/);
   assert.match(select.code, /select_by_visible_text\("India"\)/);
