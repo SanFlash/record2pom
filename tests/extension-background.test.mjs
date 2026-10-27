@@ -96,6 +96,33 @@ test("pause and resume cannot accidentally start an idle session", async () => {
   assert.equal(session.paused, false);
 });
 
+test("extension rejects unsupported and oversized event payloads", async () => {
+  const h = await harness();
+  await h.dispatch({ type: "R2POM_START", url: "https://example.test/" });
+  const unsupported = await h.dispatch({ type: "R2POM_EVENT", event: { kind: "run-shell" } });
+  assert.equal(unsupported.ok, false);
+  assert.match(unsupported.error, /Unsupported event kind/);
+  const oversized = await h.dispatch({ type: "R2POM_EVENT", event: { kind: "fill", value: "x".repeat(33000) } });
+  assert.equal(oversized.ok, false);
+  assert.match(oversized.error, /32 KB limit/);
+  assert.equal((await h.dispatch({ type: "R2POM_GET_SESSION" })).session.events.length, 0);
+});
+
+test("extension strips sensitive values before persisting events", async () => {
+  const h = await harness();
+  await h.dispatch({ type: "R2POM_START", url: "https://example.test/login" });
+  const result = await h.dispatch({
+    type: "R2POM_EVENT",
+    event: { kind: "fill", value: "secret-password", target: { inputType: "password", name: "userPassword" } }
+  });
+  assert.equal(result.ok, true);
+  const stored = (await h.dispatch({ type: "R2POM_GET_SESSION" })).session.events[0];
+  assert.equal("value" in stored, false);
+  assert.equal(stored.redacted, true);
+  assert.equal(stored.sensitivity, "sensitive");
+  assert.equal(stored.envVar, "USERPASSWORD");
+});
+
 test("extension assigns monotonic sequence and session identity to captured events", async () => {
   const h = await harness();
   await h.dispatch({ type: "R2POM_START", url: "https://example.test/" });
