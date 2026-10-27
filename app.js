@@ -136,6 +136,65 @@ def main():
         "junitReport": "reports/junit.xml" if engine == "playwright" else None,
         "note": "This report reflects the local process exit status; review output and artifacts."
     }
+    diagnostics = {
+        "schemaVersion": 1,
+        "status": status,
+        "generatedAt": finished,
+        "summary": "Tests passed." if status == "passed" else (
+            error or ("The test process timed out." if timed_out else "One or more tests failed; inspect the evidence below.")
+        ),
+        "failureCount": 0,
+        "failures": [],
+        "locatorHints": [],
+        "artifacts": ["reports/run-results.json", "reports/run.log"],
+    }
+    junit_path = REPORTS / "junit.xml"
+    if junit_path.exists():
+        try:
+            import xml.etree.ElementTree as ET
+            root = ET.parse(junit_path).getroot()
+            for case in root.iter("testcase"):
+                problem = case.find("failure")
+                if problem is None:
+                    problem = case.find("error")
+                if problem is not None:
+                    diagnostics["failures"].append({
+                        "test": case.get("name", "unknown test"),
+                        "class": case.get("classname", ""),
+                        "message": problem.get("message", ""),
+                        "details": (problem.text or "")[-12000:],
+                    })
+            diagnostics["failureCount"] = len(diagnostics["failures"])
+            diagnostics["artifacts"].append("reports/junit.xml")
+        except (OSError, ValueError, ET.ParseError) as exc:
+            diagnostics["failures"].append({"test": "JUnit parsing", "message": str(exc), "details": ""})
+    combined_output = (stdout + "\\n" + stderr + "\\n" + (error or ""))
+    for line in combined_output.splitlines():
+        if "No locator candidate matched exactly one element" in line or "LookupError:" in line:
+            diagnostics["locatorHints"].append(line[-2000:])
+    if status != "passed" and not diagnostics["failures"]:
+        tail = (stderr or stdout or error or "No process output was captured.")[-12000:]
+        diagnostics["failures"].append({
+            "test": "Test process",
+            "message": error or f"Process exited with status {status} (exit code {exit_code}).",
+            "details": tail,
+        })
+        diagnostics["failureCount"] = len(diagnostics["failures"])
+    (REPORTS / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
+    diagnostics["artifacts"].append("reports/diagnostics.json")
+    html_escape = __import__("html").escape
+    rows = []
+    for failure in diagnostics["failures"]:
+        rows.append("<article class='failure'><h2>" + html_escape(failure.get("test", "Test failure")) +
+                    "</h2><p>" + html_escape(failure.get("message", "")) + "</p><pre>" +
+                    html_escape(failure.get("details", "")) + "</pre></article>")
+    locator_rows = "".join("<li><code>" + html_escape(item) + "</code></li>" for item in diagnostics["locatorHints"])
+    if not rows:
+        rows = ["<article><h2>" + ("All tests passed" if status == "passed" else "No structured test failure found") +
+                "</h2><p>" + html_escape(diagnostics["summary"]) + "</p></article>"]
+    html_report = "<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Record2POM Diagnostics</title><style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:0 18px;color:#202633}article{border:1px solid #ccd3df;border-radius:10px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f9;padding:12px;border-radius:6px}.status{font-weight:700}code{overflow-wrap:anywhere}</style><h1>Record2POM execution diagnostics</h1><p class='status'>Status: " + html_escape(status.upper()) + "</p><p>" + html_escape(diagnostics["summary"]) + "</p><p>Duration: " + html_escape(str(result["durationSeconds"])) + " seconds · Engine: " + html_escape(engine) + "</p><h2>Failures</h2>" + "".join(rows) + "<h2>Locator fallback hints</h2><ul>" + (locator_rows or "<li>No locator fallback errors were detected in captured output.</li>") + "</ul><p>Generated locally from test process output. Review before relying on results.</p></html>"
+    (REPORTS / "diagnostics.html").write_text(html_report, encoding="utf-8")
+    diagnostics["artifacts"].append("reports/diagnostics.html")
     (REPORTS / "run-results.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     (REPORTS / "run.log").write_text(
         "COMMAND: " + json.dumps(command) + "\nSTATUS: " + status + "\n\nSTDOUT:\n" + stdout +
