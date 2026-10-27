@@ -49,7 +49,7 @@
       name,
       label: label(element),
       placeholder: element.placeholder || "",
-      testId: element.getAttribute("data-testid") || element.getAttribute("data-test") || element.getAttribute("data-qa") || "",
+      testId: element.getAttribute("data-testid") || "",
       text: clean(element.innerText || element.textContent),
       inputType: element.type || "",
       visible: visible(element),
@@ -62,9 +62,18 @@
     const output = [];
     const info = target(element);
     if (info.testId) {
-      const count = Array.from(document.querySelectorAll("[data-testid], [data-test], [data-qa]"))
-        .filter(item => (item.getAttribute("data-testid") || item.getAttribute("data-test") || item.getAttribute("data-qa")) === info.testId).length;
+      const count = Array.from(document.querySelectorAll("[data-testid]"))
+        .filter(item => item.getAttribute("data-testid") === info.testId).length;
       output.push({ strategy: "testId", value: info.testId, matchCount: count, confidence: count === 1 ? "high" : "low" });
+    }
+    for (const attribute of ["data-test", "data-qa"]) {
+      const attributeValue = element.getAttribute(attribute);
+      if (attributeValue) {
+        const selector = "[" + attribute + "=" + JSON.stringify(attributeValue) + "]";
+        let count = 0;
+        try { count = document.querySelectorAll(selector).length; } catch { /* ignore invalid custom attributes */ }
+        output.push({ strategy: "css", value: selector, matchCount: count, confidence: count === 1 ? "high" : "low" });
+      }
     }
     const selectors = {
       button: "button,input[type=button],input[type=submit],input[type=reset],[role=button]",
