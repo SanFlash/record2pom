@@ -1,101 +1,175 @@
+<div align="center">
+
+<img src="assets/record2pom-motion.svg" alt="Record2POM animated automation banner" width="100%">
+
 # Record2POM — Universal POM Automation Studio
 
-Record2POM is a website-agnostic browser recorder and Page Object Model (POM) project generator. It pairs a static dashboard with a separately installed Chrome/Chromium extension, then generates Python automation projects from reviewed recordings.
+**Capture browser journeys. Review locator health. Generate portable Python automation projects.**
 
-**Production:** https://record2pom.vercel.app/  
-**Repository:** https://github.com/SanFlash/record2pom
+[![Production](https://img.shields.io/badge/production-live-6cf5e6?style=for-the-badge&labelColor=0b1020)](https://record2pom.vercel.app/)
+[![CI](https://img.shields.io/github/actions/workflow/status/SanFlash/record2pom/test.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/SanFlash/record2pom/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-check%20repository-9a8bff?style=for-the-badge&labelColor=0b1020)](https://github.com/SanFlash/record2pom)
 
-> **Project status:** MVP foundation. Generation, Node tests, and the browser-based fixture workflow are covered by GitHub Actions. Vercel reports production deployments as READY. This does not imply the extension has been manually smoke-tested on every browser or website; perform the local checks below before relying on a recording.
+[🚀 Open Studio](https://record2pom.vercel.app/) · [✨ GSAP 3D Motion Lab](https://record2pom.vercel.app/showcase/) · [🧪 Latest CI run](https://github.com/SanFlash/record2pom/actions) · [📦 Source code](https://github.com/SanFlash/record2pom)
 
-## Features
+</div>
 
-- User-supplied HTTP/HTTPS target URLs; no website-specific production branches.
-- Chrome Manifest V3 recorder for supported clicks, form changes, select changes, checkbox/radio changes, Enter presses, and navigation metadata.
-- Semantic role detection for buttons, links, textboxes, comboboxes, checkboxes, and radio buttons.
-- Locator candidates for `data-testid`, role/name, label, placeholder, CSS IDs, and compatible `data-test`/`data-qa` attributes.
-- Sensitive field value redaction in the content recorder and a second validation/redaction pass in the background service worker.
-- File-input values are not recorded; action kinds, payload sizes, field lengths, and the 5,000-event session limit are validated.
-- Local extension storage with explicit JSON export/import.
-- Action timeline, manual action entry, action editing, and user-authored assertions.
-- Pre-flight readiness report for missing configuration, uncertain locators, missing assertions, redacted values, and steps requiring local verification.
-- Canonical versioned recording intermediate representation (IR), legacy event normalization, and bounded fields.
-- Locator health labels: unique, ambiguous, unverified, or missing.
-- Deterministic Python + Playwright + pytest and Python + Selenium + unittest project generators.
-- Client-side ZIP export; generated tests run locally after download, not on the dashboard.
-- Generated local runner with timeout, captured output, JSON results, log file, and pytest JUnit output.
+---
 
-## Local development and verification
+## ✦ The Motion Lab
+
+A dedicated GSAP-powered showcase explores Record2POM with layered glass panels, a 3D automation core, floating locator cards, parallax tilt, animated grid geometry, and scroll-reveal transitions.
+
+<div align="center">
+
+[**OPEN THE INTERACTIVE 3D SHOWCASE ↗**](https://record2pom.vercel.app/showcase/)
+
+<img src="assets/record2pom-banner.svg" alt="Record2POM interface and automation core visual" width="100%">
+
+</div>
+
+> **GitHub rendering note:** GitHub README Markdown cannot execute arbitrary JavaScript or GSAP. The SVG banner provides an in-README visual, while the actual GSAP motion runs on the linked static webpage in [showcase/index.html](showcase/index.html). The showcase respects the reduced-motion browser preference and has responsive layouts.
+
+## ✦ What it does
+
+Record2POM is a website-agnostic browser recording and Page Object Model (POM) project generator. It combines a static dashboard with a separately installed Chrome/Chromium Manifest V3 extension.
+
+| Capability | What it provides |
+|---|---|
+| Browser recorder | Supported clicks, input changes, select changes, checkbox/radio changes, Enter, and navigation metadata |
+| Locator intelligence | Candidate locators for data-testid, accessible role/name, labels, placeholders, CSS IDs, and compatible data-test / data-qa attributes |
+| Recording normalization | Versioned intermediate representation, legacy alias normalization, bounded fields, and event-count limits |
+| Safer recordings | Heuristic sensitive-value redaction, background re-validation, payload limits, and no file-input path capture |
+| Readiness checks | Highlights missing URL/configuration, uncertain locators, missing assertions, and environment-dependent values |
+| Code generation | Python + Playwright + pytest, or Python + Selenium + unittest |
+| Project export | Client-side ZIP download of generated files |
+| Local execution | Generated runner captures output and writes JSON/log/JUnit reports |
+
+## ✦ How the workflow moves
+
+<div align="center">
+
+**RECORD** &nbsp; ⟶ &nbsp; **NORMALIZE** &nbsp; ⟶ &nbsp; **REVIEW** &nbsp; ⟶ &nbsp; **GENERATE** &nbsp; ⟶ &nbsp; **RUN LOCALLY**
+
+</div>
+
+1. **Record** an interaction journey on a website you are authorized to test.
+2. **Import** the recording JSON into the dashboard.
+3. **Review** actions, locator confidence, redaction, and assertions.
+4. **Generate** the Page Object Model project and download its ZIP.
+5. **Inspect and run locally** with the generated instructions, then review the result artifacts.
+
+Generation is not test execution. The hosted dashboard does not run the generated tests or claim that they passed just because project files were created.
+
+## ✦ Technology
+
+<div align="center">
+
+![JavaScript](https://img.shields.io/badge/JavaScript-ESM-f7df1e?style=flat-square&logo=javascript&logoColor=111)
+![Chrome Extension](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-Python-2ead66?style=flat-square&logo=playwright&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-Python-43b02a?style=flat-square&logo=selenium&logoColor=white)
+![GSAP](https://img.shields.io/badge/GSAP-3D%20Motion-88ce02?style=flat-square&logo=greensock&logoColor=111)
+![Vercel](https://img.shields.io/badge/Vercel-Static%20hosting-111?style=flat-square&logo=vercel&logoColor=white)
+
+</div>
+
+- **Dashboard:** HTML, CSS, JavaScript, local-first workflow
+- **Browser extension:** Chrome Manifest V3
+- **Generated projects:** Python + Playwright + pytest; Python + Selenium + unittest
+- **Motion showcase:** GSAP 3, CSS 3D transforms, responsive glassmorphism, reduced-motion support
+- **Hosting:** Vercel static deployment
+- **Verification:** Node test suite + Playwright Chromium end-to-end fixture tests
+
+## ✦ Local development
 
 Requires Node.js 20+.
 
 ```bash
+git clone https://github.com/SanFlash/record2pom.git
+cd record2pom
 npm test
 npm start
-```
+`ZTICKZ`
 
-Open `http://localhost:3000`.
+Open http://localhost:3000.
 
-The GitHub Actions workflow runs the Node test suite, installs Chromium, and runs the browser-based fixture and generated-project workflow:
+The npm test suite includes generator, recording-schema, redaction, locator, background lifecycle, and recorder-harness tests. The GitHub Actions workflow additionally installs Chromium and runs the browser-based fixture and generated-project tests:
 
 ```bash
 python -m pip install "pytest-playwright>=0.5,<1"
 python -m playwright install --with-deps chromium
 python -m pytest -q tests/e2e
-```
+`ZTICKZ`
 
-The Node suite includes mocked Chrome extension tests for background lifecycle handling and recorder event capture. These tests provide repeatable coverage, but they are not a substitute for a manual Chrome extension smoke test.
+## ✦ Install the browser extension
 
-## Install and smoke-test the extension
+1. Open chrome://extensions in Chrome or a compatible Chromium browser.
+2. Enable **Developer mode**.
+3. Choose **Load unpacked** and select the repository's extension/ directory.
+4. Open an authorized HTTP/HTTPS test website and reload the page.
+5. Start recording and try a safe fixture journey; test pause/resume and stop.
+6. Export the recording and verify that password-like values and file paths are not present.
+7. Import the JSON into the dashboard and review the generated project.
 
-1. Open `chrome://extensions` and enable **Developer mode**.
-2. Select **Load unpacked** and choose this repository's `extension/` directory.
-3. Open an authorized HTTP/HTTPS test site and reload the page after installing the extension.
-4. Start recording, interact with a safe test form, pause/resume, stop, and export the JSON.
-5. Confirm password-like values and file paths are absent from the exported recording.
-6. Import the JSON into the dashboard, review locators and assertions, generate a project, download the ZIP, and execute it locally against a test target.
+Some browser surfaces, closed shadow roots, cross-origin frames, popups, and highly customized widgets may require manual handling. Browser extension behavior should be manually smoke-tested in the target browser before depending on it for important test work.
 
-Use a neutral fixture or a system you are authorized to test. Browser extensions cannot inject into every browser-internal page, and some websites restrict content scripts.
+## ✦ Generate and run a project
 
-## Deploy to Vercel
+1. Set a project name and target URL.
+2. Import the reviewed recording JSON.
+3. Correct ambiguous locators and add explicit assertions where appropriate.
+4. Generate the project and download the ZIP.
+5. Extract it, create a Python virtual environment, install requirements, and install browser prerequisites for Playwright if needed.
+6. Read the generated README and inspect the code before executing it.
+7. Run the generated runner and review reports/run-results.json, reports/run.log, and JUnit output when applicable.
 
-Import `SanFlash/record2pom` in Vercel. Use framework preset **Other**, repository root as the root directory, no build command, and repository root as the output directory. No environment variables are required for the static dashboard.
+The generated runner uses an argument array rather than shell interpolation and applies a timeout. **It is not an operating-system sandbox.** Inspect generated code before running it.
 
-After a deployment reports READY, open the URL and manually verify dashboard load, recording JSON import, generated file preview, and ZIP download. A READY deployment alone is not an end-to-end smoke test.
+## ✦ Supported generator combinations
 
-## Generate and run a project
+| Engine | Language | Test framework |
+|---|---|---|
+| Playwright | Python | pytest |
+| Selenium WebDriver | Python | unittest |
+| Other engines/languages | — | Not implemented |
 
-1. Import a recording and review every action and locator.
-2. Add explicit assertions where appropriate and resolve uncertain locators.
-3. Generate the project and download its ZIP.
-4. Extract it, create a Python virtual environment, and install the generated requirements.
-5. Install browser prerequisites for Playwright if using that adapter.
-6. Read the generated README and inspect the code before running tests.
-7. Execute the generated runner and review `reports/run-results.json`, `reports/run.log`, and JUnit output where applicable.
+## ✦ Security and scope
 
-The generated `run_tests.py` invokes the declared pytest or unittest command with an argument array rather than a shell, enforces a timeout, and writes local reports. It is **not** an operating-system sandbox. Generation is not test execution, and the dashboard never claims generated tests passed merely because files were created.
+- Sensitive-value detection is heuristic and cannot guarantee that all secrets or personal information will be identified. Inspect recordings before sharing them.
+- Use test credentials and synthetic data. Never commit secrets or record sensitive production sessions.
+- The extension uses broad HTTP/HTTPS host permissions to support user-selected targets; review the permission request before installation.
+- The dashboard has no accounts, database, hosted runner, server-side test execution, or cloud queue.
+- Authentication, CAPTCHA, MFA, and access controls are not bypassed.
+- Use the framework only on systems you own or have explicit permission to test.
 
-## Supported generator combinations
+## ✦ Project verification status
 
-- Playwright + Python + pytest.
-- Selenium WebDriver + Python + unittest.
+- Automated Node suite: tracked by GitHub Actions.
+- Browser-based fixture and generated-project E2E tests: tracked by GitHub Actions.
+- Production deployment: inspect the live site and deployment status; a Vercel READY state alone is not a manual browser smoke test.
+- Installed-extension smoke test on your own Chrome profile: follow the steps above before relying on it.
 
-| Engine | Language | Test framework | Status |
-|---|---|---|---|
-| Playwright | Python | pytest | MVP generator |
-| Selenium WebDriver | Python | unittest | MVP generator |
-| Other engines/languages | — | — | Not implemented |
+## ✦ Roadmap
 
-## Known limitations and security
+- [x] Versioned recording format and bounded event normalization
+- [x] Recorder/background lifecycle test harnesses
+- [x] Sensitive-value redaction and event payload limits
+- [x] Playwright and Selenium project generators
+- [x] Browser fixture and generated-project E2E coverage
+- [x] GSAP 3D Motion Lab and animated README visuals
+- [ ] Real Chrome extension smoke-test checklist with recorded evidence
+- [ ] Locator uniqueness re-measurement and correction workflow
+- [ ] Broader fixture journeys for dynamic controls and navigation
 
-- Dynamic widgets, closed shadow roots, cross-origin frames, popups, file transfers, and highly customized controls may require manual locator or workflow adjustments.
-- The extension is scoped to HTTP/HTTPS pages but uses broad host permissions to support user-selected targets; review permissions before installation.
-- Sensitive-value detection is heuristic, not a guarantee. Inspect recordings before sharing and never use production credentials or personal data in test recordings.
-- The dashboard has no accounts, database, server-side execution, cloud queue, hosted runner, or AI integration.
-- The local runner is not sandboxed. Review generated code before running it.
-- Authentication, CAPTCHA, MFA, access controls, or other security mechanisms are not bypassed.
+---
 
-## Architecture and roadmap
+<div align="center">
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/PHASE-6-LOCAL-EXECUTION.md](docs/PHASE-6-LOCAL-EXECUTION.md).
+**Record the journey. Review the signal. Ship repeatable tests.**
 
-Next milestone: improve locator correction and live uniqueness re-measurement, add broader real-browser extension smoke coverage, and validate generated projects across representative fixture journeys before adding new generator adapters.
+[Open Studio](https://record2pom.vercel.app/) · [Launch Motion Lab](https://record2pom.vercel.app/showcase/) · [Browse Repository](https://github.com/SanFlash/record2pom)
+
+<sub>Record2POM · Universal POM Automation Studio</sub>
+
+</div>
