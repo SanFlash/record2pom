@@ -115,7 +115,6 @@ main{position:relative;z-index:1}.hero{max-width:1180px;margin:auto;min-height:6
   gsap.to(".orb.two", {x:-75,y:-50,duration:15,repeat:-1,yoyo:true,ease:"sine.inOut"});
   cards.forEach((card,i) => gsap.to(card,{y:i%2===0?-9:10,rotateZ:i%2===0?1:-1,duration:2.7+i*.3,repeat:-1,yoyo:true,ease:"sine.inOut",delay:i*.17}));
   gsap.to(".ticker-track",{xPercent:-50,duration:32,repeat:-1,ease:"none"});
-  gsap.from(".feature",{scrollTrigger:undefined,opacity:0,y:24,duration:.7,stagger:.12,ease:"power2.out",paused:true});
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
       if (!entry.isIntersecting) return;
