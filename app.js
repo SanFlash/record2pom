@@ -126,3 +126,52 @@ function preview(path){selectedFile=path;$("preview").hidden=false;$("filename")
 $("download").onclick=()=>{let b=zip(generated.files),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=generated.name+".zip";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 function crc(a){let c=-1;for(let b of a){c^=b;for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^-1)>>>0;}function u16(n){return[n&255,n>>>8&255]}function u32(n){return[n&255,n>>>8&255,n>>>16&255,n>>>24&255]}function zip(files){let enc=new TextEncoder(),local=[],central=[],offset=0;for(let [name,content] of Object.entries(files)){let n=enc.encode(name),d=enc.encode(content),c=crc(d);local.push(new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(c),...u32(d.length),...u32(d.length),...u16(n.length),...u16(0),...n,...d]));central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(c),...u32(d.length),...u32(d.length),...u16(n.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...n]));offset+=local[local.length-1].length;}let size=central.reduce((s,x)=>s+x.length,0),end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(central.length),...u16(central.length),...u32(size),...u32(offset),...u16(0)]);return new Blob([...local,...central,end],{type:"application/zip"});}
 render();
+
+
+// Readiness pre-flight: explains blockers and risks before code generation.
+function checkReadiness(){
+  const p=proj(),items=[];
+  const addItem=(level,label,detail)=>items.push({level,label,detail});
+  if(!p.name)addItem("block","Project name is missing","Enter a name for the generated ZIP and project folder.");
+  else if(!/^[a-zA-Z0-9_-]+$/.test(p.name))addItem("warn","Project name will be sanitized","Use letters, numbers, hyphens or underscores for a predictable folder name.");
+  else addItem("pass","Project name is set",p.name);
+  try{
+    const u=new URL(p.url);
+    if(!["http:","https:"].includes(u.protocol))addItem("block","Target URL must use HTTP or HTTPS","Use a full URL such as https://example.test.");
+    else addItem("pass","Target URL is valid",u.origin);
+  }catch{addItem("block","Target URL is missing or invalid","Enter a full URL beginning with https:// or http://.");}
+  if((p.engine==="playwright"&&p.framework==="pytest")||(p.engine==="selenium"&&p.framework==="unittest"))addItem("pass","Engine and framework match",p.engine+" + "+p.framework);
+  else addItem("block","Engine and framework do not match","Choose Playwright + pytest or Selenium + unittest.");
+  if(!events.length)addItem("block","No recorded actions","Import a recording JSON, use Add action, or install the extension and record a journey.");
+  else addItem("pass",events.length+" action(s) loaded","Review the action timeline in sequence before generating.");
+  let missing=0,ambiguous=0,unverified=0,redacted=0,assertions=0;
+  const needsLocator=new Set(["click","fill","select","check","uncheck","press","assert-visible","assert-value"]);
+  events.forEach((e,i)=>{
+    if(needsLocator.has(e.kind)){
+      const candidates=(window.Record2POMCore?.rankLocators(e.locators)||[]).filter(c=>["testId","role","label","placeholder","css"].includes(c.strategy));
+      const chosen=candidates[0];
+      if(!chosen||(!chosen.value)|| (chosen.strategy==="role"&&!chosen.name&&p.engine==="selenium"))missing++;
+      else if(chosen.matchCount>1)ambiguous++;
+      else if(typeof chosen.matchCount!=="number")unverified++;
+    }
+    if(e.redacted&&e.kind==="fill")redacted++;
+    if(String(e.kind).startsWith("assert-"))assertions++;
+  });
+  if(missing)addItem("block",missing+" action(s) need a usable locator","Select an action in the timeline and correct its locator before generating.");
+  else addItem("pass","Required actions have locators","This is a structural check, not proof that selectors still match the live page.");
+  if(ambiguous)addItem("warn",ambiguous+" locator(s) were ambiguous","Choose a more specific test ID, role/name, label, placeholder or CSS selector.");
+  if(unverified)addItem("warn",unverified+" locator(s) are unverified","Their uniqueness was not measured. Verify the locator in the target site before running.");
+  if(redacted)addItem("warn",redacted+" sensitive input(s) need environment variables","Set the generated RECORDED_INPUT_* variable(s) locally; passwords and other secrets are not exported.");
+  if(!assertions)addItem("warn","No explicit assertions found","Add Assert visible, Assert text, Assert URL or Assert value so the test verifies an outcome.");
+  else addItem("pass",assertions+" assertion(s) included","Assertions provide checks beyond simply replaying actions.");
+  addItem("note","Execution happens on your machine","The dashboard only generates files; it does not run tests or verify the target site.");
+  const blockers=items.filter(x=>x.level==="block").length,warnings=items.filter(x=>x.level==="warn").length;
+  $("readinessSummary").textContent=blockers?blockers+" blocker(s) · "+warnings+" warning(s)":"Ready to generate · "+warnings+" warning(s)";
+  $("readinessSummary").className="readiness-summary "+(blockers?"has-blockers":warnings?"has-warnings":"is-ready");
+  $("readinessList").innerHTML=items.map(x=>'<li class="'+x.level+'"><span class="readiness-icon">'+({pass:"✓",block:"!",warn:"△",note:"i"}[x.level]||"•")+'</span><div><strong>'+esc(x.label)+'</strong><small>'+esc(x.detail)+'</small></div></li>').join("");
+  if(blockers)msg("Readiness check found "+blockers+" blocker(s). Fix them before generating.","error");
+  else msg("Readiness check complete. Review warnings and locators; generation still does not execute tests.",warnings?"":"success");
+  return {blockers,warnings,items};
+}
+$("checkReadiness").onclick=checkReadiness;
+
