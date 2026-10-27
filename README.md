@@ -7,7 +7,8 @@ A website-agnostic browser recording and Page Object Model generation MVP. It co
 ## Features
 - Runtime user-supplied HTTP/HTTPS target URL; no website-specific production branches.
 - Browser extension records clicks, form changes, select changes, checkbox/radio changes, Enter and navigation metadata.
-- Sensitive field values are redacted by the extension.
+- Sensitive field values are redacted by the extension and re-checked by the background service worker before persistence.
+- Extension event storage validates action kinds, caps payload size and field lengths, and enforces the 5,000-event session limit.
 - Local extension storage and explicit JSON export/import.
 - Action timeline, manual action entry, editing and user-authored assertions.
 - Pre-flight readiness report that explains missing URL/configuration, unusable or uncertain locators, missing assertions, redacted inputs, and what still requires local verification.
