@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b18">
+<meta name="description" content="Record2POM — a cinematic GSAP-powered 3D showcase for browser recording and Page Object Model test generation.">
+<title>Record2POM — Motion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#080b18;--panel:rgba(19,25,50,.68);--line:rgba(173,193,255,.17);--text:#f4f6ff;--muted:#a4accb;--cyan:#6cf5e6;--blue:#5f8cff;--violet:#a28bff;--ease:cubic-bezier(.2,.75,.2,1)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;cursor:pointer}.noise{position:fixed;inset:0;pointer-events:none;opacity:.12;z-index:10;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E")}
+.ambient{position:fixed;inset:0;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 12%,#283b7930,transparent 55%),linear-gradient(180deg,#0a1022 0%,#080b18 65%)}.orb{position:absolute;border-radius:50%;filter:blur(1px);will-change:transform}.orb.one{width:420px;height:420px;top:10%;left:-180px;background:radial-gradient(circle at 35% 30%,#64f4df5c,#5c72ff0c 62%,transparent 72%);filter:blur(22px)}.orb.two{width:520px;height:520px;right:-230px;top:25%;background:radial-gradient(circle at 40% 40%,#9c75ff4c,#654eff05 66%,transparent 72%);filter:blur(28px)}
+nav{position:relative;z-index:4;max-width:1180px;margin:auto;padding:24px 28px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em}.brand-mark{display:grid;place-items:center;width:35px;height:35px;border:1px solid #7ef6e777;border-radius:11px;color:var(--cyan);background:#6cf5e610;box-shadow:0 0 28px #6cf5e61b}.brand span:last-child{font-size:15px}.navlinks{display:flex;gap:26px;color:var(--muted);font-size:12px}.navlinks a:hover{color:var(--cyan)}.nav-cta{border:1px solid #6cf5e65a;background:#6cf5e610;border-radius:999px;padding:10px 16px;font-size:12px;font-weight:700}
+main{position:relative;z-index:1}.hero{max-width:1180px;margin:auto;min-height:650px;padding:84px 28px 60px;display:grid;grid-template-columns:1fr 1.03fr;gap:30px;align-items:center}.eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--cyan);font:11px "DM Mono",monospace;letter-spacing:.18em;text-transform:uppercase}.pulse{width:7px;height:7px;background:var(--cyan);border-radius:50%;box-shadow:0 0 18px var(--cyan)}h1{font-size:clamp(45px,6.5vw,82px);line-height:.99;letter-spacing:-.075em;margin:25px 0 22px;font-weight:800;max-width:620px}.gradient{background:linear-gradient(110deg,#f6f7ff 5%,#a4b6ff 38%,#70f1e4 70%,#a28bff 100%);background-size:200% auto;color:transparent;background-clip:text;-webkit-background-clip:text}.hero-copy{font-size:15px;line-height:1.8;color:var(--muted);max-width:510px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{border-radius:12px;padding:13px 18px;font-size:12px;font-weight:800;transition:transform .25s var(--ease),border-color .25s,background .25s}.btn:hover{transform:translateY(-3px)}.primary{color:#07121b;background:linear-gradient(100deg,var(--cyan),#9cf4e8);border:1px solid #b0fff4;box-shadow:0 12px 35px #6cf5e61e}.secondary{background:#ffffff06;border:1px solid var(--line)}.microstats{display:flex;gap:25px;margin-top:35px;color:var(--muted);font-size:10px;letter-spacing:.03em}.microstats b{display:block;color:var(--text);font:500 17px "DM Mono",monospace;margin-bottom:5px}
+.stage{height:480px;position:relative;perspective:1200px;display:grid;place-items:center;isolation:isolate}.stage-grid{position:absolute;inset:8% -8% 2%;background-image:linear-gradient(#7e96ff1a 1px,transparent 1px),linear-gradient(90deg,#7e96ff1a 1px,transparent 1px);background-size:34px 34px;transform:rotateX(64deg) rotateZ(-17deg) translateY(40px);mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 75%,transparent);opacity:.7}.core-orb{position:absolute;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#a4fff4,#4f90ff 24%,#5743d9 56%,#111638 76%);box-shadow:inset -18px -20px 36px #020617a8,0 0 70px #5e8cff4a,0 0 150px #7d5cff22;transform-style:preserve-3d}.core-orb:before,.core-orb:after{content:"";position:absolute;inset:-27px;border:1px solid #80eae966;border-radius:50%;transform:rotateX(70deg) rotateZ(20deg)}.core-orb:after{inset:-47px;border-color:#9c8bff70;transform:rotateX(72deg) rotateZ(-30deg)}.orb-label{position:absolute;z-index:2;text-align:center;transform:translateY(1px);font:10px "DM Mono",monospace;letter-spacing:.16em;text-shadow:0 2px 12px #071126}.orb-label b{display:block;font:800 17px Manrope,sans-serif;letter-spacing:-.03em;margin-top:8px}.float-card{position:absolute;z-index:3;min-width:175px;border:1px solid #9baeff35;border-radius:15px;background:linear-gradient(145deg,#ffffff12,#101731c9);backdrop-filter:blur(16px);box-shadow:0 25px 70px #0005;transform-style:preserve-3d;padding:15px}.float-card .cap{display:flex;align-items:center;justify-content:space-between;font:9px "DM Mono",monospace;color:#9aa9d8;letter-spacing:.12em}.tiny-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}.float-card strong{display:block;font-size:14px;margin:12px 0 6px}.float-card small{font-size:10px;color:var(--muted)}.barline{display:flex;gap:4px;margin-top:13px}.barline i{height:4px;flex:1;border-radius:4px;background:#6cf5e6}.barline i:nth-child(4),.barline i:nth-child(5){background:#ffffff20}.card-a{top:56px;left:1%;width:190px}.card-b{top:105px;right:0;width:200px}.card-c{bottom:47px;left:4%;width:205px}.card-d{bottom:28px;right:4%;width:190px}.checkmark{color:var(--cyan);font-size:17px}
+.ticker{position:relative;overflow:hidden;border-block:1px solid var(--line);padding:17px 0;background:#ffffff03}.ticker-track{display:flex;width:max-content;gap:30px;animation:marquee 30s linear infinite;color:#9ca8ce;font:10px "DM Mono",monospace;letter-spacing:.17em;text-transform:uppercase}.ticker-track span{display:flex;align-items:center;gap:30px}.ticker-track i{width:5px;height:5px;border-radius:50%;background:var(--cyan)}@keyframes marquee{to{transform:translateX(-50%)}}
+.section{max-width:1180px;margin:auto;padding:105px 28px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:36px}.section-kicker{color:var(--cyan);font:10px "DM Mono",monospace;letter-spacing:.2em;text-transform:uppercase}.section h2{font-size:clamp(30px,4vw,49px);line-height:1.05;letter-spacing:-.065em;margin:12px 0 0}.section-head p{max-width:350px;font-size:12px;line-height:1.8;color:var(--muted);margin:0}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.feature{position:relative;min-height:245px;padding:24px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#ffffff09,#ffffff02);overflow:hidden;transform-style:preserve-3d;transition:border-color .3s,background .3s}.feature:hover{border-color:#6cf5e65c;background:linear-gradient(145deg,#6cf5e610,#ffffff03)}.feature-icon{display:grid;place-items:center;width:40px;height:40px;border:1px solid #7bf2e642;border-radius:12px;color:var(--cyan);background:#6cf5e60b;font-size:18px}.feature h3{font-size:16px;letter-spacing:-.03em;margin:27px 0 9px}.feature p{font-size:11px;color:var(--muted);line-height:1.8;max-width:270px}.feature .number{position:absolute;right:18px;top:18px;font:10px "DM Mono",monospace;color:#7181b0}
+.workflow{display:grid;grid-template-columns:.85fr 1.15fr;gap:28px;align-items:center}.flow-list{display:grid;gap:12px}.flow-step{display:grid;grid-template-columns:42px 1fr;gap:15px;align-items:start;padding:18px;border:1px solid var(--line);border-radius:15px;background:#ffffff04;transition:transform .25s,border-color .25s}.flow-step:hover{transform:translateX(5px);border-color:#6cf5e65c}.flow-num{display:grid;place-items:center;width:35px;height:35px;border-radius:11px;background:#6cf5e611;border:1px solid #6cf5e64a;color:var(--cyan);font:12px "DM Mono",monospace}.flow-step h3{font-size:13px;margin:1px 0 6px}.flow-step p{font-size:11px;line-height:1.7;color:var(--muted);margin:0}.code-window{min-height:370px;border:1px solid #99aaff33;border-radius:20px;background:linear-gradient(145deg,#121a35d9,#090d1de8);box-shadow:0 35px 100px #0004;overflow:hidden;transform-style:preserve-3d}.code-head{display:flex;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);color:#9aa9d4;font:10px "DM Mono",monospace}.code-dots{display:flex;gap:5px}.code-dots i{width:7px;height:7px;border-radius:50%;background:#ff738e}.code-dots i:nth-child(2){background:#ffce75}.code-dots i:nth-child(3){background:#64e8c0}.code-body{padding:25px 24px;font:11px/2 "DM Mono",monospace;color:#a8b4d7;white-space:pre-wrap}.kw{color:#c6a5ff}.fn{color:#7af2e4}.str{color:#ffce93}.ok{color:#62eac4}
+.cta{max-width:1124px;margin:10px auto 105px;padding:0 28px}.cta-inner{position:relative;overflow:hidden;text-align:center;padding:68px 28px;border:1px solid #8f9dff3d;border-radius:24px;background:radial-gradient(ellipse at 50% 0%,#6f70ff25,transparent 65%),linear-gradient(135deg,#151b39,#0b1024)}.cta-inner:before{content:"";position:absolute;inset:-70%;background:conic-gradient(from 180deg,transparent,#6cf5e612,transparent,#a28bff14,transparent);animation:spin 22s linear infinite;pointer-events:none}@keyframes spin{to{transform:rotate(360deg)}}.cta-inner>*{position:relative}.cta h2{font-size:clamp(32px,4.4vw,52px);letter-spacing:-.07em;margin:0 0 14px}.cta p{max-width:530px;margin:0 auto;color:var(--muted);font-size:12px;line-height:1.8}.cta .actions{justify-content:center}footer{max-width:1180px;margin:auto;padding:24px 28px 36px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;color:#7884a9;font:10px "DM Mono",monospace}footer a:hover{color:var(--cyan)}
+.reveal{opacity:1;transform:none}.js-motion .reveal{opacity:0;transform:translateY(22px)}.js-motion .hero-copyblock{opacity:0;transform:translateY(18px)}.js-motion .float-card{opacity:0}.js-motion .core-orb{opacity:0;transform:scale(.7)}.js-motion .stage-grid{opacity:0}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:60px;gap:10px}.hero-copyblock{max-width:680px}.stage{height:440px;margin-top:5px}.feature-grid{grid-template-columns:repeat(2,1fr)}.workflow{grid-template-columns:1fr}.code-window{min-height:300px}.section-head{align-items:start;flex-direction:column}.section-head p{max-width:580px}}
+@media(max-width:560px){nav{padding:17px 18px}.navlinks{display:none}.nav-cta{padding:9px 12px;font-size:10px}.hero{padding:48px 18px 35px;min-height:auto}h1{font-size:clamp(43px,13vw,64px)}.hero-copy{font-size:13px}.microstats{gap:18px;flex-wrap:wrap}.stage{height:365px;transform:scale(.96);margin-inline:-16px}.core-orb{width:150px;height:150px}.orb-label b{font-size:13px}.float-card{min-width:0;padding:11px;width:148px!important}.float-card strong{font-size:11px;margin:8px 0 4px}.float-card small{font-size:9px}.card-a{left:3%;top:32px}.card-b{right:2%;top:72px}.card-c{left:3%;bottom:22px}.card-d{right:3%;bottom:12px}.section{padding:72px 18px}.feature-grid{grid-template-columns:1fr}.feature{min-height:205px}.cta{padding:0 18px;margin-bottom:65px}.cta-inner{padding:52px 18px}footer{padding:20px 18px 28px;flex-direction:column}.ticker-track{animation-duration:42s}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.js-motion .reveal,.js-motion .hero-copyblock,.js-motion .float-card,.js-motion .core-orb,.js-motion .stage-grid{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><div class="orb one"></div><div class="orb two"></div></div><div class="noise" aria-hidden="true"></div>
+<nav><a class="brand" href="/"><span class="brand-mark">R</span><span>Record2POM <span style="color:#7785b0;font-weight:500">/ MOTION LAB</span></span></a><div class="navlinks"><a href="#capabilities">Capabilities</a><a href="#workflow">Workflow</a><a href="https://github.com/SanFlash/record2pom">Source</a></div><a class="nav-cta" href="https://record2pom.vercel.app/">OPEN STUDIO ↗</a></nav>
+<main>
+<section class="hero">
+<div class="hero-copyblock">
+<div class="eyebrow"><span class="pulse"></span> WEBSITE-AGNOSTIC AUTOMATION</div>
+<h1 class="reveal">Capture the flow.<br><span class="gradient">Generate the future.</span></h1>
+<p class="hero-copy reveal">A cinematic look at Record2POM: record browser journeys, rank resilient locators, and shape reviewed interactions into portable Python Page Object Model projects.</p>
+<div class="actions reveal"><a class="btn primary" href="https://record2pom.vercel.app/">Launch Record2POM ↗</a><a class="btn secondary" href="https://github.com/SanFlash/record2pom">Explore the source ↗</a></div>
+<div class="microstats reveal"><div><b>01 / RECORD</b>Capture journeys</div><div><b>02 / REVIEW</b>Check locator health</div><div><b>03 / GENERATE</b>Export test code</div></div>
+</div>
+<div class="stage" id="stage" aria-label="Animated 3D recording and locator visualization">
+<div class="stage-grid"></div><div class="core-orb"></div><div class="orb-label">R2POM<b>Automation Core</b></div>
+<div class="float-card card-a"><div class="cap">LIVE CAPTURE <span class="tiny-dot"></span></div><strong>Event recorded</strong><small>click · submit-form</small><div class="barline"><i></i><i></i><i></i><i></i><i></i></div></div>
+<div class="float-card card-b"><div class="cap">LOCATOR HEALTH <span class="checkmark">✓</span></div><strong>Role + accessible name</strong><small>Unique candidate detected</small><div class="barline"><i></i><i></i><i></i><i></i><i></i></div></div>
+<div class="float-card card-c"><div class="cap">PROJECT EXPORT <span class="checkmark">↗</span></div><strong>Page Object Model</strong><small>Python · Playwright · pytest</small></div>
+<div class="float-card card-d"><div class="cap">TEST READINESS <span class="tiny-dot"></span></div><strong>Pre-flight review</strong><small>Assertions · secrets · setup</small></div>
+</div>
+</section>
+<div class="ticker"><div class="ticker-track"><span><i></i> BROWSER RECORDING <i></i> SEMANTIC LOCATORS <i></i> PAGE OBJECT MODEL <i></i> PLAYWRIGHT + PYTEST <i></i> SELENIUM + UNITTEST <i></i> LOCAL-FIRST EXPORT <i></i></span><span aria-hidden="true"><i></i> BROWSER RECORDING <i></i> SEMANTIC LOCATORS <i></i> PAGE OBJECT MODEL <i></i> PLAYWRIGHT + PYTEST <i></i> SELENIUM + UNITTEST <i></i> LOCAL-FIRST EXPORT <i></i></span></div></div>
+<section class="section" id="capabilities">
+<div class="section-head reveal"><div><div class="section-kicker">ENGINEERED FOR CLARITY</div><h2>From interaction<br>to implementation.</h2></div><p>Motion is the presentation layer. The real product stays practical: review your recording, fix uncertain selectors, and run generated tests locally.</p></div>
+<div class="feature-grid">
+<article class="feature reveal"><span class="number">01 / INPUT</span><div class="feature-icon">⌁</div><h3>Capture the journey</h3><p>Record supported clicks, form changes, select options, keyboard actions, and navigation metadata in the browser.</p></article>
+<article class="feature reveal"><span class="number">02 / SIGNAL</span><div class="feature-icon">◎</div><h3>Rank locator candidates</h3><p>Inspect role/name, test IDs, labels, placeholders, and CSS candidates with measured confidence where available.</p></article>
+<article class="feature reveal"><span class="number">03 / SAFETY</span><div class="feature-icon">◇</div><h3>Review before export</h3><p>Redact sensitive-looking inputs, cap recording payloads, and surface readiness issues before generating a project.</p></article>
+<article class="feature reveal"><span class="number">04 / OUTPUT</span><div class="feature-icon">⤓</div><h3>Portable project files</h3><p>Generate Python Page Objects and tests for Playwright + pytest or Selenium + unittest, then download a ZIP.</p></article>
+<article class="feature reveal"><span class="number">05 / CONTROL</span><div class="feature-icon">▤</div><h3>Local test execution</h3><p>Review generated code and execute it on your own machine. The hosted dashboard does not claim that generation equals passing tests.</p></article>
+<article class="feature reveal"><span class="number">06 / EXTEND</span><div class="feature-icon">↗</div><h3>Open foundation</h3><p>Explore the repository, fixtures, tests, and extension source to adapt the workflow for authorized test environments.</p></article>
+</div>
+</section>
+<section class="section" id="workflow">
+<div class="section-head reveal"><div><div class="section-kicker">THE PIPELINE</div><h2>A cleaner route<br>to repeatable tests.</h2></div><p>Every stage is explicit. Inspect the recording and generated code before running it against your target.</p></div>
+<div class="workflow">
+<div class="flow-list">
+<div class="flow-step reveal"><span class="flow-num">01</span><div><h3>Record</h3><p>Capture a supported browser journey on an authorized site.</p></div></div>
+<div class="flow-step reveal"><span class="flow-num">02</span><div><h3>Normalize</h3><p>Convert events to a versioned recording format and remove sensitive values.</p></div></div>
+<div class="flow-step reveal"><span class="flow-num">03</span><div><h3>Review</h3><p>Check locator ambiguity, missing assertions, and environment-dependent values.</p></div></div>
+<div class="flow-step reveal"><span class="flow-num">04</span><div><h3>Generate + run locally</h3><p>Export the project, inspect the code, and execute tests in your own environment.</p></div></div>
+</div>
+<div class="code-window reveal" id="codeWindow"><div class="code-head"><span class="code-dots"><i></i><i></i><i></i></span><span>pages/recorded_page.py</span><span>PYTHON</span></div><div class="code-body"><span class="kw">class</span> <span class="fn">RecordedPage</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, page):
+        self.page = page
+
+    <span class="kw">def</span> <span class="fn">continue_button</span>(self):
+        <span class="kw">return</span> self.page.get_by_role(
+            <span class="str">"button"</span>, name=<span class="str">"Continue"</span>
+        )
+
+    <span class="kw">def</span> <span class="fn">submit_journey</span>(self):
+        self.continue_button().click()
+
+<span class="ok"># Review generated selectors and assertions.</span>
+<span class="ok"># Run locally after installing requirements.</span></div></div>
+</div>
+</section>
+<section class="cta"><div class="cta-inner reveal"><div class="section-kicker">YOUR NEXT TEST STARTS HERE</div><h2>Make every journey<br><span class="gradient">repeatable.</span></h2><p>Open the studio to import a recording, review locator health, and generate a portable automation project. Use the GitHub repository for code, tests, and contribution details.</p><div class="actions"><a class="btn primary" href="https://record2pom.vercel.app/">Open the studio ↗</a><a class="btn secondary" href="https://github.com/SanFlash/record2pom">View GitHub ↗</a></div></div></section>
+</main>
+<footer><span>RECORD2POM / MOTION LAB · BUILT FOR TEST ENGINEERS</span><span><a href="https://github.com/SanFlash/record2pom">SOURCE ↗</a> · <a href="/">BACK TO STUDIO ↗</a></span></footer>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script>
+(() => {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const stage = document.querySelector("#stage");
+  const cards = [...document.querySelectorAll(".float-card")];
+  const reveal = [...document.querySelectorAll(".reveal")];
+  const orb = document.querySelector(".core-orb");
+  const grid = document.querySelector(".stage-grid");
+  if (!window.gsap || reduced) {
+    document.body.classList.remove("js-motion");
+    reveal.forEach(el => { el.style.opacity = "1"; el.style.transform = "none"; });
+    cards.forEach(el => { el.style.opacity = "1"; el.style.transform = "none"; });
+    if (orb) { orb.style.opacity = "1"; orb.style.transform = "none"; }
+    if (grid) grid.style.opacity = ".7";
+    return;
+  }
+  document.body.classList.add("js-motion");
+  gsap.registerPlugin();
+  const intro = gsap.timeline({defaults:{ease:"power3.out"}});
+  intro.to(".hero-copyblock", {opacity:1,y:0,duration:.8})
+    .to(".core-orb", {opacity:1,scale:1,duration:1.15,ease:"elastic.out(1,.72)"}, "-=.35")
+    .to(".stage-grid", {opacity:.7,duration:1}, "-=.75")
+    .to(cards, {opacity:1,duration:.55,stagger:.13,y:0,ease:"back.out(1.4)"}, "-=.7");
+  gsap.to(".core-orb", {rotateY:360,rotateZ:12,duration:22,repeat:-1,ease:"none"});
+  gsap.to(".orb.one", {x:90,y:55,duration:12,repeat:-1,yoyo:true,ease:"sine.inOut"});
+  gsap.to(".orb.two", {x:-75,y:-50,duration:15,repeat:-1,yoyo:true,ease:"sine.inOut"});
+  cards.forEach((card,i) => gsap.to(card,{y:i%2===0?-9:10,rotateZ:i%2===0?1:-1,duration:2.7+i*.3,repeat:-1,yoyo:true,ease:"sine.inOut",delay:i*.17}));
+  gsap.to(".ticker-track",{xPercent:-50,duration:32,repeat:-1,ease:"none"});
+  gsap.from(".feature",{scrollTrigger:undefined,opacity:0,y:24,duration:.7,stagger:.12,ease:"power2.out",paused:true});
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      gsap.to(entry.target,{opacity:1,y:0,duration:.72,ease:"power3.out",overwrite:true});
+      observer.unobserve(entry.target);
+    }),{threshold:.12});
+    reveal.forEach(el => { if (!el.closest(".hero")) observer.observe(el); });
+  } else reveal.forEach(el => gsap.set(el,{opacity:1,y:0}));
+  let bounds;
+  stage?.addEventListener("pointermove",event=>{
+    bounds ||= stage.getBoundingClientRect();
+    const x=(event.clientX-bounds.left)/bounds.width-.5;
+    const y=(event.clientY-bounds.top)/bounds.height-.5;
+    gsap.to(stage,{rotateY:x*7,rotateX:-y*5,transformPerspective:1200,duration:.55,ease:"power2.out"});
+    cards.forEach((card,i)=>gsap.to(card,{x:x*(i%2?12:-12),duration:.65,ease:"power2.out"}));
+  });
+  stage?.addEventListener("pointerleave",()=>{
+    gsap.to(stage,{rotateY:0,rotateX:0,duration:.7,ease:"power3.out"});
+    cards.forEach(card=>gsap.to(card,{x:0,duration:.7,ease:"power3.out"}));
+  });
+  const codeWindow=document.querySelector("#codeWindow");
+  codeWindow?.addEventListener("pointermove",event=>{
+    const rect=codeWindow.getBoundingClientRect(),x=(event.clientX-rect.left)/rect.width-.5,y=(event.clientY-rect.top)/rect.height-.5;
+    gsap.to(codeWindow,{rotateY:x*3,rotateX:-y*3,transformPerspective:1000,duration:.5,ease:"power2.out"});
+  });
+  codeWindow?.addEventListener("pointerleave",()=>gsap.to(codeWindow,{rotateY:0,rotateX:0,duration:.6,ease:"power2.out"}));
+})();
+</script>
+</body>
+</html>
