@@ -79,6 +79,7 @@ async function generateFromFixture(engine, kind = "click") {
 test("Playwright generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("playwright");
   assert.match(result.code, /self\.page\.get_by_role/);
+  assert.match(result.code, /exact=True/, "Playwright role names must be exact to preserve measured uniqueness");
   assert.match(result.status, /tests have NOT been executed/);
 });
 
