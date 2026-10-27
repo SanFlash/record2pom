@@ -58,7 +58,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"}] : [{strategy:"role",value:role,name}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -80,6 +80,9 @@ test("Playwright generator binds recorded locator to the page object", async () 
   const result = await generateFromFixture("playwright");
   assert.match(result.code, /self\.page\.get_by_role/);
   assert.match(result.code, /exact=True/, "Playwright role names must be exact to preserve measured uniqueness");
+  assert.match(result.code, /def _resolve_locator/);
+  assert.match(result.code, /lambda: self\.page\.get_by_role/);
+  assert.match(result.code, /lambda: self\.page\.locator/);
   assert.match(result.status, /tests have NOT been executed/);
 });
 
@@ -87,6 +90,9 @@ test("Selenium generator binds recorded locator to the page object", async () =>
   const result = await generateFromFixture("selenium");
   assert.match(result.code, /self\.driver\.find_element/);
   assert.match(result.code, /self::button/, "Selenium role locators must support native HTML buttons");
+  assert.match(result.code, /def _resolve_locator/);
+  assert.match(result.code, /find_elements\(By\.XPATH/);
+  assert.match(result.code, /find_elements\(By\.CSS_SELECTOR/);
   assert.match(result.status, /tests have NOT been executed/);
   assert.match(result.runner, /unittest.*discover/s);
   assert.match(result.runner, /pytest-playwright/);
