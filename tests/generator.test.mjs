@@ -402,3 +402,12 @@ test("extension stop flow hands recorded sessions to Studio for automatic POM ge
   assert.match(studio, /addEventListener\(["']record2pom:import-recording["']/);
   assert.match(studio, /generatedButton\.click\(\)/);
 });
+
+
+test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
+  const select = await generateFromFixture("playwright", "select");
+  assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
+  assert.match(select.code, /self\._resolve_select_locator\("India"\)\.select_option\(label="India"\)/);
+  assert.match(select.code, /select\.locator\("option"\)\.all_text_contents\(\)/);
+  assert.match(select.code, /Expected exactly one native select containing option/);
+});
