@@ -257,7 +257,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Icon-rich README module overview and expanded motion-design documentation
 - [x] Automated checks for README SVG references, accessibility metadata, animation, and script-free assets
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
-- [ ] Locator uniqueness re-measurement and correction workflow
+- [x] Locator recovery re-measures matches after waits, rejects ambiguous/hidden elements, and emits actionable repair diagnostics\n- [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Broader fixture journeys for dynamic controls and navigation
 
 ---
