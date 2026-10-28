@@ -18,7 +18,7 @@
 
 ## ✦ The Motion Lab — GSAP + 3D
 
-The Motion Lab is the animated product experience—not a static mockup. Its GSAP timeline reveals the hero, brings the 3D automation core into view, and staggers floating glass panels. Continuous ambient movement, a looping capability ticker, pointer-driven parallax, perspective tilt, and scroll-triggered reveals make the page feel alive while keeping the product workflow front and center.
+The Motion Lab is the animated product experience—not a static mockup. Its GSAP timeline reveals the hero, brings the 3D automation core into view, and staggers floating glass panels. Rotating scan rings, orbiting satellites, an ambient particle network, animated gradient typography, pulsing status lights, floating feature icons, a looping ticker, pointer-driven parallax, perspective tilt, and scroll-triggered reveals create a layered motion system while keeping the product workflow front and center.
 
 **Motion design highlights**
 
@@ -27,6 +27,8 @@ The Motion Lab is the animated product experience—not a static mockup. Its GSA
 - **Interactive depth:** pointer-responsive stage and code-window tilt, with floating cards that respond to movement.
 - **Continuous motion:** smooth capability marquee and low-amplitude card levitation.
 - **Scroll storytelling:** GSAP ScrollTrigger adds scroll-linked ambient parallax, section-heading entrances, and a scrubbed workflow sequence.
+- **Layered graphics:** A capped, DPR-limited canvas particle network, rotating scan ring, orbiting satellites, animated gradient headline, pulsing status light, and gently floating feature icons add depth without WebGL.
+- **Motion polish:** Hover shimmer, interactive feature-card tilt, magnetic CTA movement, animated code-window perspective, and pause-on-hover ticker interactions respond to pointer input.
 - **Responsive by design:** desktop composition adapts to tablet and mobile layouts, with pointer interactions kept off touch-only devices by design.
 - **Performance-aware motion:** scroll progress updates are animation-frame coalesced, and all GSAP timelines pause while the browser tab is hidden.
 - **Accessible fallback:** `prefers-reduced-motion` disables continuous movement and reveals content without animation; core content remains readable if GSAP or ScrollTrigger fails to load.
@@ -176,7 +178,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - Mobile styles reduce the stage and card sizes and collapse feature layouts to a single column.
 - GSAP and ScrollTrigger are loaded from a CDN; if either motion library is unavailable, the showcase falls back to visible content and the core product workflow remains usable.
 - Background-tab visibility pauses the GSAP global timeline; returning to the tab refreshes ScrollTrigger and scroll progress.
-- The Node regression suite parses the inline JavaScript and checks for reduced-motion fallback, ScrollTrigger hooks, pointer interactions, and visibility/performance guards.
+- The Node regression suite parses the inline JavaScript and checks for reduced-motion fallback, ScrollTrigger hooks, pointer interactions, particle-canvas and layered-motion hooks, and visibility/performance guards.
 
 ## ✦ Project verification status
 
@@ -195,6 +197,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] GSAP 3D Motion Lab and animated SVG README visuals
 - [x] Motion Lab inline-script syntax, reduced-motion fallback, and interaction regression tests
 - [x] ScrollTrigger parallax, workflow motion, and background-tab performance handling
+- [x] Layered particle graphics, orbiting satellites, scan-ring animation, gradient motion, and floating feature icons
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Locator uniqueness re-measurement and correction workflow
 - [ ] Broader fixture journeys for dynamic controls and navigation
