@@ -284,7 +284,7 @@ test("POM ZIP download validates archive signatures before saving", async () => 
   const source = await readFile("app.js", "utf8");
   assert.match(source, /ZIP validation failed: local file header is missing/);
   assert.match(source, /ZIP validation failed: end-of-central-directory record is missing/);
-  assert.match(source, /Validated ZIP archive and started download/);
+  assert.match(source, /Project integrity and ZIP structure validated/);
   assert.match(source, /Download blocked:/);
 });
 test("reviewed recording export uses canonical normalization and redaction", async () => {
