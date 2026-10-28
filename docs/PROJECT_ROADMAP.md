@@ -20,7 +20,7 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] CI extracts and validates the generated Selenium archive and checks Python syntax.
 - [x] Diagnostics regression coverage for JSON/HTML reports, step timelines, logs and repair hints.
 - [x] Multi-step journey covering dynamic tab state, text input, select, checkbox, submission and outcome assertion.
-- [ ] Failure-injection coverage for missing/ambiguous locators and failure artifact assertions.
+- [ ] Failure-injection E2E coverage for missing/ambiguous locators, non-zero exit status, step diagnostics and screenshots (CI pending).
 - [ ] Per-step screenshot capture with secret-aware evidence handling.
 - [ ] Recovery recommendations that never silently change test meaning.
 - [ ] Installed Chrome smoke-test evidence collected and reviewed.
