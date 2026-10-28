@@ -177,7 +177,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 
 ## ✦ Project verification status
 
-- Automated Node suite: tracked by GitHub Actions.
+- Automated Node suite: tracked by GitHub Actions, including inline GSAP JavaScript syntax, reduced-motion fallback, responsive hooks, and interaction regression checks.
 - Browser-based fixture and generated-project E2E tests: tracked by GitHub Actions.
 - Production deployment: inspect the live site and deployment status; a Vercel READY state alone is not a manual browser smoke test.
 - Installed-extension smoke test on your own Chrome profile: follow the steps above before relying on it.
@@ -190,6 +190,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Playwright and Selenium project generators
 - [x] Browser fixture and generated-project E2E coverage
 - [x] GSAP 3D Motion Lab and animated SVG README visuals
+- [x] Motion Lab inline-script syntax, reduced-motion fallback, and interaction regression tests
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Locator uniqueness re-measurement and correction workflow
 - [ ] Broader fixture journeys for dynamic controls and navigation
