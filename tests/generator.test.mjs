@@ -386,3 +386,19 @@ test("extension branding assets exist and all manifest references resolve", asyn
   assert.match(popup, /id="export"/);
   assert.match(popup, /id="clear"/);
 });
+
+
+test("extension stop flow hands recorded sessions to Studio for automatic POM generation", async () => {
+  const background = await readFile("extension/background.js", "utf8");
+  const popup = await readFile("extension/popup.js", "utf8");
+  const popupHtml = await readFile("extension/popup.html", "utf8");
+  const studio = await readFile("app.js", "utf8");
+
+  assert.match(background, /R2POM_GENERATE_POM/);
+  assert.match(background, /record2pom:import-recording/);
+  assert.match(background, /chrome\.scripting\.executeScript/);
+  assert.match(popup, /R2POM_STOP[\s\S]*?R2POM_GENERATE_POM/);
+  assert.match(popupHtml, /id="generatePom"/);
+  assert.match(studio, /addEventListener\(["']record2pom:import-recording["']/);
+  assert.match(studio, /generatedButton\.click\(\)/);
+});
