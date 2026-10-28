@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "targetUrl": "http://127.0.0.1:3000/fixtures/universal-demo/index.html",
+  "metadata": {
+    "name": "Synthetic contact form journey",
+    "purpose": "Documentation and local fixture testing",
+    "containsSyntheticData": true
+  },
+  "events": [
+    {
+      "id": "example-open-details",
+      "sequence": 1,
+      "kind": "click",
+      "description": "Open the Details tab",
+      "target": {
+        "role": "tab",
+        "name": "Details",
+        "testId": "details-tab"
+      },
+      "locators": [
+        {
+          "strategy": "testId",
+          "value": "details-tab",
+          "matchCount": 1
+        },
+        {
+          "strategy": "role",
+          "value": "tab",
+          "name": "Details",
+          "matchCount": 1
+        }
+      ],
+      "source": "example"
+    },
+    {
+      "id": "example-fill-name",
+      "sequence": 2,
+      "kind": "fill",
+      "description": "Enter synthetic name",
+      "target": {
+        "label": "Full name",
+        "id": "full-name"
+      },
+      "locators": [
+        {
+          "strategy": "label",
+          "value": "Full name",
+          "matchCount": 1
+        },
+        {
+          "strategy": "css",
+          "value": "#full-name",
+          "matchCount": 1
+        }
+      ],
+      "value": "Example User",
+      "source": "example"
+    },
+    {
+      "id": "example-select-country",
+      "sequence": 3,
+      "kind": "select",
+      "description": "Choose India",
+      "target": {
+        "label": "Country",
+        "id": "country"
+      },
+      "locators": [
+        {
+          "strategy": "label",
+          "value": "Country",
+          "matchCount": 1
+        }
+      ],
+      "value": "India",
+      "source": "example"
+    },
+    {
+      "id": "example-check-updates",
+      "sequence": 4,
+      "kind": "check",
+      "description": "Opt in to synthetic updates",
+      "target": {
+        "label": "Send updates",
+        "id": "updates"
+      },
+      "locators": [
+        {
+          "strategy": "css",
+          "value": "#updates",
+          "matchCount": 1
+        }
+      ],
+      "source": "example"
+    },
+    {
+      "id": "example-submit",
+      "sequence": 5,
+      "kind": "click",
+      "description": "Submit the fixture form",
+      "target": {
+        "testId": "submit-form"
+      },
+      "locators": [
+        {
+          "strategy": "testId",
+          "value": "submit-form",
+          "matchCount": 1
+        }
+      ],
+      "source": "example"
+    },
+    {
+      "id": "example-assert",
+      "sequence": 6,
+      "kind": "assert-text",
+      "description": "Confirm the form result",
+      "value": "Submitted: Example User",
+      "assertion": {
+        "expected": "Submitted: Example User"
+      },
+      "source": "example"
+    }
+  ]
+}
