@@ -149,3 +149,110 @@ def test_dashboard_generates_and_executes_real_playwright_project(page: Page, tm
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=5)
+
+
+
+def test_dashboard_generates_and_preflights_real_selenium_project(page: Page, tmp_path: Path) -> None:
+    """Validate the Selenium ZIP contents and generated Python files without claiming browser execution."""
+    port = _free_port()
+    server = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    base = f"http://127.0.0.1:{port}"
+    fixture_url = base + FIXTURE_PATH
+    try:
+        _wait_for_server(base + "/index.html", server)
+        page.goto(base + "/index.html")
+        page.get_by_label("Project name").fill("selenium-generated-fixture")
+        page.get_by_label("Target URL").fill(fixture_url)
+        page.get_by_label("Engine").select_option("selenium")
+        expect(page.get_by_label("Test framework")).to_have_value("unittest")
+
+        recording = {
+            "schemaVersion": 1,
+            "targetUrl": fixture_url,
+            "events": [
+                {
+                    "id": "selenium-fixture-click",
+                    "sequence": 1,
+                    "kind": "click",
+                    "description": "Submit the fixture form",
+                    "target": {"testId": "submit-form"},
+                    "locators": [
+                        {"strategy": "testId", "value": "submit-form", "matchCount": 1}
+                    ],
+                    "source": "selenium-e2e-fixture",
+                }
+            ],
+        }
+        recording_file = tmp_path / "selenium-recording.json"
+        recording_file.write_text(json.dumps(recording), encoding="utf-8")
+        page.locator("#file").set_input_files(str(recording_file))
+        expect(page.locator("#count")).to_have_text("1")
+        page.get_by_role("button", name="Generate project").click()
+        expect(page.locator("#files")).to_contain_text("validate_project.py")
+        expect(page.locator("#files")).to_contain_text("pages/recorded_page.py")
+
+        with page.expect_download() as download_info:
+            page.get_by_role("button", name="Download ZIP").click()
+        archive_path = tmp_path / "selenium-generated-project.zip"
+        download_info.value.save_as(archive_path)
+
+        project_dir = tmp_path / "selenium-project"
+        project_dir.mkdir()
+        with zipfile.ZipFile(archive_path) as archive:
+            names = archive.namelist()
+            bad_member = next(
+                (name for name in names if Path(name).is_absolute() or ".." in Path(name).parts),
+                None,
+            )
+            assert bad_member is None, f"Unexpected unsafe ZIP member: {bad_member}"
+            assert len(names) == len(set(names)), "ZIP must not contain duplicate paths"
+            assert "pages/recorded_page.py" in names
+            assert "tests/test_recorded_journey.py" in names
+            assert "validate_project.py" in names
+            archive.extractall(project_dir)
+
+        validation = subprocess.run(
+            [sys.executable, "validate_project.py"],
+            cwd=project_dir,
+            text=True,
+            capture_output=True,
+            timeout=20,
+            check=False,
+        )
+        assert validation.returncode == 0, (
+            "Generated Selenium project preflight failed.\\n"
+            f"stdout:\\n{validation.stdout}\\nstderr:\\n{validation.stderr}"
+        )
+        assert "preflight PASSED" in validation.stdout
+        compile_check = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import ast; from pathlib import Path; "
+                "files=['config.py','pages/recorded_page.py',"
+                "'tests/test_recorded_journey.py','run_tests.py']; "
+                "[ast.parse(Path(p).read_text(encoding='utf-8'), filename=p) for p in files]; "
+                "print('All generated Selenium Python modules parsed.')",
+            ],
+            cwd=project_dir,
+            text=True,
+            capture_output=True,
+            timeout=20,
+            check=False,
+        )
+        assert compile_check.returncode == 0, compile_check.stderr
+        assert "All generated Selenium Python modules parsed." in compile_check.stdout
+        assert (project_dir / "data" / "recorded_test_data.json").is_file()
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait(timeout=5)
