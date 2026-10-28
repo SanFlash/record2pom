@@ -367,3 +367,121 @@ def test_generated_playwright_project_handles_dynamic_tabs_and_complete_form_jou
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=5)
+
+
+
+import pytest
+
+
+@pytest.mark.parametrize(
+    ("locator_value", "expected_match_text"),
+    [
+        ("#record2pom-missing-target", "matched 0 elements"),
+        ("button", "matched"),
+    ],
+    ids=["missing-locator", "ambiguous-locator"],
+)
+def test_generated_runner_fails_safely_and_writes_failure_evidence(
+    page: Page,
+    tmp_path: Path,
+    locator_value: str,
+    expected_match_text: str,
+) -> None:
+    """Inject locator failures and verify truthful exit status plus diagnostic artifacts."""
+    port = _free_port()
+    server = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    base = f"http://127.0.0.1:{port}"
+    fixture_url = base + FIXTURE_PATH
+    try:
+        _wait_for_server(base + "/index.html", server)
+        page.goto(base + "/index.html")
+        page.get_by_label("Project name").fill("failure-injection-project")
+        page.get_by_label("Target URL").fill(fixture_url)
+
+        recording = {
+            "schemaVersion": 1,
+            "targetUrl": fixture_url,
+            "events": [
+                {
+                    "id": "injected-locator-failure",
+                    "sequence": 1,
+                    "kind": "click",
+                    "description": "Injected locator failure must stop safely",
+                    "target": {"css": locator_value},
+                    "locators": [
+                        {"strategy": "css", "value": locator_value}
+                    ],
+                    "source": "failure-injection-e2e",
+                }
+            ],
+        }
+        recording_file = tmp_path / "failure-recording.json"
+        recording_file.write_text(json.dumps(recording), encoding="utf-8")
+        page.locator("#file").set_input_files(str(recording_file))
+        expect(page.locator("#count")).to_have_text("1")
+        page.get_by_role("button", name="Generate project").click()
+
+        with page.expect_download() as download_info:
+            page.get_by_role("button", name="Download ZIP").click()
+        archive_path = tmp_path / "failure-project.zip"
+        download_info.value.save_as(archive_path)
+        project_dir = tmp_path / "failure-project"
+        project_dir.mkdir()
+        with zipfile.ZipFile(archive_path) as archive:
+            names = archive.namelist()
+            assert len(names) == len(set(names)), "Generated ZIP must not contain duplicate paths"
+            assert all(
+                not Path(name).is_absolute() and ".." not in Path(name).parts
+                for name in names
+            ), "Generated ZIP must not contain unsafe paths"
+            archive.extractall(project_dir)
+
+        env = os.environ.copy()
+        env["BASE_URL"] = fixture_url
+        env["RECORD2POM_TIMEOUT_SECONDS"] = "45"
+        run = subprocess.run(
+            [sys.executable, "run_tests.py"],
+            cwd=project_dir,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=60,
+            check=False,
+        )
+        assert run.returncode == 1, (
+            "The generated runner must return a non-zero code for a failed journey.\n"
+            f"stdout:\n{run.stdout}\nstderr:\n{run.stderr}"
+        )
+
+        reports = project_dir / "reports"
+        result = json.loads((reports / "run-results.json").read_text(encoding="utf-8"))
+        diagnostics = json.loads((reports / "diagnostics.json").read_text(encoding="utf-8"))
+        steps = json.loads((reports / "steps.json").read_text(encoding="utf-8"))
+        assert result["status"] == "failed"
+        assert result["exitCode"] == 1
+        assert diagnostics["status"] == "failed"
+        assert diagnostics["failureCount"] >= 1
+        assert diagnostics["repairSuggestions"], "Failure should include repair suggestions"
+        assert steps and steps[-1]["status"] == "failed"
+        assert "Locator recovery stopped safely" in steps[-1].get("error", "")
+        assert expected_match_text in steps[-1]["error"]
+        assert (reports / "run.log").is_file()
+        assert (reports / "diagnostics.html").is_file()
+        assert (reports / "steps.html").is_file()
+        screenshots = list((reports / "screenshots").glob("*.png"))
+        assert screenshots, "Failed generated Playwright test should capture a screenshot"
+        assert any(Path(path).is_file() for path in diagnostics["screenshots"])
+        assert "No click was attempted" in steps[-1]["error"]
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait(timeout=5)
