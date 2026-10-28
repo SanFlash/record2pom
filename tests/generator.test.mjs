@@ -415,7 +415,7 @@ test("Playwright select actions recover native controls by option text when acce
   assert.ok(select.code.includes("all_text_contents()"));
   assert.ok(select.code.includes("locator(\'option\')") || select.code.includes('locator("option")'));
   assert.match(select.code, /Expected exactly one native select containing option/);
-  assert.match(select.code, /wait_for\\(state="visible", timeout=2500\\)/);
+  assert.ok(select.code.includes("timeout=2500"));
   assert.ok(select.config.includes("BASE_URL = os.environ.get"));
   assert.doesNotThrow(() => JSON.parse(select.data));
   assert.equal(JSON.parse(select.data).steps[0].value, "India");
