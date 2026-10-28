@@ -33,4 +33,11 @@ test("Motion Lab includes responsive and interactive motion hooks", () => {
   assert.match(html, /scrollTrigger:\s*\{/);
   assert.match(html, /visibilitychange/);
   assert.match(html, /requestAnimationFrame/);
+  assert.match(html, /id="particleField"/);
+  assert.match(html, /gsap\.ticker\.add\(drawParticles\)/);
+  assert.match(html, /class="scan-ring"/);
+  assert.match(html, /class="satellite s1"/);
+  assert.match(html, /gsap\.to\("\.gradient"/);
+  assert.match(html, /feature-icon/);
+  assert.match(html, /\.particle-field\{display:none!important\}/);
 });
