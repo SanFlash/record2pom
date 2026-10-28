@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import socket
@@ -477,6 +478,24 @@ def test_generated_runner_fails_safely_and_writes_failure_evidence(
         screenshots = list((reports / "screenshots").glob("*.png"))
         assert screenshots, "Failed generated Playwright test should capture a screenshot"
         assert any((project_dir / path).is_file() for path in diagnostics["screenshots"])
+        index_path = reports / "evidence-index.json"
+        assert index_path.is_file(), "Generated runner must write an evidence index"
+        evidence = json.loads(index_path.read_text(encoding="utf-8"))
+        assert evidence["schemaVersion"] == 1
+        assert evidence["integrity"]["algorithm"] == "sha256"
+        assert evidence["integrity"]["pathFormat"] == "POSIX relative to project root"
+        assert evidence["artifactCount"] == len(evidence["artifacts"])
+        indexed_paths = {item["path"] for item in evidence["artifacts"]}
+        assert "reports/run-results.json" in indexed_paths
+        assert "reports/diagnostics.json" in indexed_paths
+        assert any(item["category"] == "screenshot" for item in evidence["artifacts"])
+        for item in evidence["artifacts"]:
+            artifact = project_dir / item["path"]
+            assert artifact.is_file(), f"Indexed artifact is missing: {item['path']}"
+            payload = artifact.read_bytes()
+            assert len(payload) == item["sizeBytes"], f"Size mismatch: {item['path']}"
+            assert hashlib.sha256(payload).hexdigest() == item["sha256"], f"Hash mismatch: {item['path']}"
+            assert "\\\\" not in item["path"], "Manifest paths must use POSIX separators"
         assert "No click was attempted" in steps[-1]["error"]
     finally:
         server.terminate()
