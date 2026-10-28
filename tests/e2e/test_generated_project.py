@@ -476,7 +476,7 @@ def test_generated_runner_fails_safely_and_writes_failure_evidence(
         assert (reports / "steps.html").is_file()
         screenshots = list((reports / "screenshots").glob("*.png"))
         assert screenshots, "Failed generated Playwright test should capture a screenshot"
-        assert any(Path(path).is_file() for path in diagnostics["screenshots"])
+        assert any((project_dir / path).is_file() for path in diagnostics["screenshots"])
         assert "No click was attempted" in steps[-1]["error"]
     finally:
         server.terminate()
