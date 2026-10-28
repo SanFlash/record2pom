@@ -80,5 +80,33 @@
     if (typeof candidate.matchCount === "number" && candidate.matchCount > 1) return {status:"ambiguous", message:"Locator matched " + candidate.matchCount + " elements when recorded."};
     return {status:"unverified", message:"Locator uniqueness was not measured; verify it before running tests."};
   }
-  root.Record2POMCore = Object.freeze({validateRecording, normalizeRecording, rankLocators, assessLocator, MAX_EVENTS});
+
+  function explainLocatorRanking(candidates) {
+    return rankLocators(candidates).map((candidate, index) => {
+      const assessment = assessLocator(candidate);
+      const strategy = String(candidate.strategy || "unknown");
+      const reasons = [];
+      if (assessment.status === "unique") reasons.push("measured unique match");
+      else if (assessment.status === "ambiguous") reasons.push("measured ambiguous match");
+      else reasons.push("uniqueness unverified");
+      if (STRATEGY_WEIGHT[strategy]) reasons.push("strategy priority " + STRATEGY_WEIGHT[strategy]);
+      if (index > 0) reasons.push("ranked below " + String(rankLocators(candidates)[0].strategy || "top candidate"));
+      return {
+        rank: index + 1,
+        strategy,
+        value: String(candidate.value || ""),
+        matchCount: typeof candidate.matchCount === "number" ? candidate.matchCount : null,
+        status: assessment.status,
+        score: (assessment.status === "unique" ? 1000 : 0) + (STRATEGY_WEIGHT[strategy] || 0),
+        reasons,
+        recommendation: assessment.status === "unique"
+          ? "Candidate was measured unique when recorded; re-check against the current page."
+          : assessment.status === "ambiguous"
+            ? "Narrow this selector until it matches one intended element."
+            : "Measure uniqueness and visibility before using this candidate."
+      };
+    });
+  }
+
+  root.Record2POMCore = Object.freeze({validateRecording, normalizeRecording, rankLocators, assessLocator, explainLocatorRanking, MAX_EVENTS});
 })(typeof globalThis !== "undefined" ? globalThis : this);
