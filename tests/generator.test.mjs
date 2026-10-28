@@ -313,3 +313,49 @@ test("GSAP Motion Lab includes responsive 3D visuals and reduced-motion fallback
   assert.match(banner, /<animateTransform/);
   assert.match(visual, /Record2POM/);
 });
+
+
+test("extension background lifecycle persists sessions and redacts sensitive values", async () => {
+  const storage = {};
+  let messageListener;
+  const chrome = {
+    runtime: {
+      onInstalled: { addListener() {} },
+      onMessage: { addListener(fn) { messageListener = fn; } }
+    },
+    storage: {
+      local: {
+        async get(key) { return {[key]: storage[key]}; },
+        async set(value) { Object.assign(storage, value); }
+      }
+    },
+    tabs: { onUpdated: { addListener() {} }, async sendMessage() {} }
+  };
+  const context = {chrome, console, Date, JSON, Error, String, RegExp};
+  vm.runInNewContext(await readFile("extension/background.js", "utf8"), context);
+  const send = message => new Promise(resolve => {
+    const keepAlive = messageListener(message, {tab:{url:"https://fixture.test"}}, resolve);
+    assert.equal(keepAlive, true);
+  });
+  let result = await send({type:"R2POM_START", url:"https://fixture.test"});
+  assert.equal(result.ok, true);
+  assert.equal(result.session.recording, true);
+  result = await send({type:"R2POM_EVENT", event:{kind:"fill", value:"do-not-store", target:{inputType:"password",name:"password"}}});
+  assert.equal(result.ok, true);
+  let session = (await send({type:"R2POM_GET_SESSION"})).session;
+  assert.equal(session.events.length, 1);
+  assert.equal(session.events[0].redacted, true);
+  assert.equal("value" in session.events[0], false);
+  await send({type:"R2POM_PAUSE"});
+  await send({type:"R2POM_EVENT", event:{kind:"click", description:"paused click"}});
+  session = (await send({type:"R2POM_GET_SESSION"})).session;
+  assert.equal(session.events.length, 1, "paused sessions must not collect events");
+  await send({type:"R2POM_STOP"});
+  session = (await send({type:"R2POM_GET_SESSION"})).session;
+  assert.equal(session.recording, false);
+  assert.ok(session.stoppedAt);
+  result = await send({type:"R2POM_CLEAR"});
+  assert.equal(result.session.events.length, 0);
+  result = await send({type:"R2POM_EVENT", event:{kind:"unsupported"}});
+  assert.equal(result.ok, false);
+});
