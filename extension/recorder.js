@@ -54,6 +54,9 @@
       testId: element.getAttribute("data-testid") || "",
       text: clean(element.innerText || element.textContent),
       inputType: element.type || "",
+      id: element.id || "",
+      name: element.name || "",
+      autocomplete: element.getAttribute("autocomplete") || "",
       visible: visible(element),
       enabled: !element.disabled,
       css: element.id ? "#" + CSS.escape(element.id) : ""
