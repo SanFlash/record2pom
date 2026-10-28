@@ -130,6 +130,17 @@ test("selector ranking prefers measured unique candidates and reports ambiguity"
   ]);
   assert.equal(ranked[0].value, "#continue");
   assert.equal(context.Record2POMCore.assessLocator(ranked[1]).status, "ambiguous");
+  const explained = context.Record2POMCore.explainLocatorRanking([
+    {strategy:"testId",value:"continue",matchCount:2},
+    {strategy:"css",value:"#continue",matchCount:1},
+    {strategy:"label",value:"Continue"}
+  ]);
+  assert.equal(explained[0].status, "unique");
+  assert.equal(explained[0].value, "#continue");
+  assert.equal(explained[0].rank, 1);
+  assert.match(explained[1].recommendation, /Narrow this selector/);
+  assert.match(explained[2].recommendation, /Measure uniqueness/);
+  assert.ok(explained.every(item => Array.isArray(item.reasons) && item.reasons.length));
 });
 
 test("generated runner uses no shell, applies timeout and documents result files", async () => {
