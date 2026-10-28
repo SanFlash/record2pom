@@ -122,6 +122,17 @@ test("recorder captures ordinary input changes and redacts sensitive fields", as
   assert.equal(events[1].envVar, "USERPASSWORD");
 });
 
+test("recorder redacts sensitive values identified by placeholder before messaging background", async () => {
+  const card = new FakeInput("input", { placeholder: "Credit card number" }, { type: "text", value: "4111111111111111", placeholder: "Credit card number" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [card] });
+  h.fire("change", { target: card });
+  const event = h.sent.find(message => message.type === "R2POM_EVENT")?.event;
+  assert.equal(event.kind, "fill");
+  assert.equal(event.redacted, true);
+  assert.equal(event.sensitivity, "sensitive");
+  assert.equal("value" in event, false, "sensitive value must never be sent to background");
+});
+
 test("recorder captures checkbox state, select labels, Enter, and respects pause", async () => {
   const checkbox = new FakeInput("input", { type: "checkbox", "aria-label": "Accept terms" }, { type: "checkbox", checked: true });
   const select = new FakeSelect("select", { "aria-label": "Country" }, { value: "in", selectedOptions: [{ label: "India" }] });
