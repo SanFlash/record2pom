@@ -387,7 +387,9 @@ window.addEventListener("record2pom:import-recording", event => {
     generatedButton.click();
     msg("Imported " + events.length + " recorded action(s) and generated the POM project. Review the actions and download the ZIP.", "success");
     $("download").scrollIntoView({behavior:"smooth", block:"center"});
+    window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:true, sessionId:event.detail?.metadata?.sessionId || null, eventCount:events.length}}));
   } catch (error) {
     msg("Automatic POM generation failed: " + error.message + ". You can still import the recording JSON manually.", "error");
+    window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:false, sessionId:event.detail?.metadata?.sessionId || null, error:error.message}}));
   }
 });
