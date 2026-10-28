@@ -82,7 +82,9 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
-  const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");\n  let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }\n  return {code, runner, test:testSource, conftest, config, data, validator, status:el("status").textContent};
+  const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
+  let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
+  return {code, runner, test:testSource, conftest, config, data, validator, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
