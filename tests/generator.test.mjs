@@ -52,7 +52,8 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
     createElement() { return {click(){}}; }
   };
   class FakeURL { constructor(value) { this.protocol = String(value).startsWith("https:") ? "https:" : "invalid:"; } }
-  const context = {document, prompt:(_message, fallback)=>fallback ?? "", confirm:()=>true, setTimeout:()=>{}, URL:FakeURL, window:{}};
+  const window = {addEventListener(){}, dispatchEvent(){}};
+  const context = {document, prompt:(_message, fallback)=>fallback ?? "", confirm:()=>true, setTimeout:()=>{}, URL:FakeURL, window};
   vm.runInNewContext(await readFile("core.js", "utf8"), context);
   context.window.Record2POMCore = context.Record2POMCore;
   vm.runInNewContext(source, context);
