@@ -399,7 +399,99 @@ test("extension background lifecycle persists sessions and redacts sensitive val
 });
 
 
-test("extension branding assets exist and all manifest references resolve", async () => {
+
+
+
+test("extension integration handoff delivers a stopped recording and records Studio acknowledgement", async () => {
+  const storage = {};
+  let messageListener;
+  const updateListeners = [];
+  let openedTab = null;
+  let injected = null;
+  const chrome = {
+    runtime: {
+      onInstalled: { addListener() {} },
+      onMessage: { addListener(fn) { messageListener = fn; } }
+    },
+    storage: {
+      local: {
+        async get(key) { return {[key]: storage[key]}; },
+        async set(value) { Object.assign(storage, value); }
+      }
+    },
+    tabs: {
+      onUpdated: {
+        addListener(fn) { updateListeners.push(fn); },
+        removeListener(fn) {
+          const index = updateListeners.indexOf(fn);
+          if (index >= 0) updateListeners.splice(index, 1);
+        }
+      },
+      async create(options) { openedTab = {id: 42, ...options}; return openedTab; },
+      async update() { return openedTab; },
+      async sendMessage() {}
+    },
+    scripting: {
+      async executeScript(details) { injected = details; return [{result: true}]; }
+    }
+  };
+  class CustomEventMock {
+    constructor(type, init = {}) { this.type = type; this.detail = init.detail; }
+  }
+  const dispatched = [];
+  const context = {
+    chrome, console, Date, JSON, Error, String, RegExp, URL, URLSearchParams,
+    CustomEvent: CustomEventMock,
+    window: {dispatchEvent(event) { dispatched.push(event); }}
+  };
+  vm.runInNewContext(await readFile("extension/background.js", "utf8"), context);
+  const send = message => new Promise(resolve => {
+    const keepAlive = messageListener(message, {tab:{url:"https://fixture.test"}}, resolve);
+    assert.equal(keepAlive, true);
+  });
+
+  let result = await send({type:"R2POM_START", url:"https://fixture.test"});
+  assert.equal(result.ok, true);
+  await send({type:"R2POM_EVENT", event:{
+    kind:"click", description:"Fixture submit",
+    target:{testId:"submit", role:"button", name:"Submit"},
+    locators:[{strategy:"testId", value:"submit", matchCount:1}]
+  }});
+  result = await send({type:"R2POM_STOP"});
+  assert.equal(result.session.recording, false);
+  assert.equal(result.session.events.length, 1);
+
+  result = await send({type:"R2POM_GENERATE_POM"});
+  assert.equal(result.ok, true);
+  assert.equal(openedTab.url, "https://record2pom.vercel.app/");
+  assert.equal(storage.record2pom_import_status_v1.ok, null);
+  assert.equal(storage.record2pom_import_status_v1.eventCount, 1);
+
+  const completedListener = updateListeners.find(fn => fn !== undefined);
+  assert.ok(completedListener, "handoff should register a tab-load listener");
+  completedListener(42, {status:"complete"}, openedTab);
+  for (let attempt = 0; attempt < 5 && !injected; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  assert.ok(injected, "handoff should inject the recording into Studio");
+  assert.equal(injected.target.tabId, 42);
+  assert.equal(injected.args[0].events.length, 1);
+  assert.equal(injected.args[0].events[0].description, "Fixture submit");
+  injected.func(injected.args[0]);
+  assert.equal(dispatched.length, 1);
+  assert.equal(dispatched[0].type, "record2pom:import-recording");
+  assert.equal(dispatched[0].detail.events[0].description, "Fixture submit");
+
+  result = await send({
+    type:"R2POM_IMPORT_ACK", sessionId:injected.args[0].metadata.sessionId,
+    ok:true, eventCount:1
+  });
+  assert.equal(result.ok, true);
+  assert.equal(storage.record2pom_import_status_v1.ok, true);
+  assert.equal(storage.record2pom_import_status_v1.eventCount, 1);
+  assert.ok(storage.record2pom_import_status_v1.receivedAt);
+});
+\ntest("extension branding assets exist and all manifest references resolve", async () => {
   const manifest = JSON.parse(await readFile("extension/manifest.json", "utf8"));
   const popup = await readFile("extension/popup.html", "utf8");
   const assets = new Set([
