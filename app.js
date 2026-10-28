@@ -369,7 +369,14 @@ $("checkReadiness").onclick=checkReadiness;
 
 
 // Extension hand-off: import the stopped browser session directly and generate the POM project.
+const handledRecordingSessions = new Set();
 window.addEventListener("record2pom:import-recording", event => {
+  const sessionId = String(event.detail?.metadata?.sessionId || "");
+  if (sessionId && handledRecordingSessions.has(sessionId)) {
+    window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:true, sessionId, eventCount:events.length, duplicate:true}}));
+    msg("This recording session was already imported in this Studio tab; kept the existing generated project.", "success");
+    return;
+  }
   try {
     const normalized = window.Record2POMCore?.normalizeRecording(event.detail);
     if (!normalized?.ok) throw Error(normalized?.errors?.join("; ") || "Recording could not be normalized.");
@@ -385,9 +392,11 @@ window.addEventListener("record2pom:import-recording", event => {
     render();
     const generatedButton = $("generate");
     generatedButton.click();
-    msg("Imported " + events.length + " recorded action(s) and generated the POM project. Review the actions and download the ZIP.", "success");
+    if (!generated || !generated.files || !Object.keys(generated.files).length) throw Error("POM generation did not produce project files.");
+    if (sessionId) handledRecordingSessions.add(sessionId);
+    msg("Imported " + events.length + " recorded action(s) and generated " + Object.keys(generated.files).length + " project files. Review the actions and download the ZIP.", "success");
     $("download").scrollIntoView({behavior:"smooth", block:"center"});
-    window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:true, sessionId:event.detail?.metadata?.sessionId || null, eventCount:events.length}}));
+    window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:true, sessionId:sessionId || null, eventCount:events.length, fileCount:Object.keys(generated.files).length}}));
   } catch (error) {
     msg("Automatic POM generation failed: " + error.message + ". You can still import the recording JSON manually.", "error");
     window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:false, sessionId:event.detail?.metadata?.sessionId || null, error:error.message}}));
