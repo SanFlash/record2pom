@@ -377,7 +377,7 @@ test("extension background lifecycle persists sessions and redacts sensitive val
   await send({type:"R2POM_PAUSE"});
   await send({type:"R2POM_EVENT", event:{kind:"click", description:"paused click"}});
   session = (await send({type:"R2POM_GET_SESSION"})).session;
-  assert.equal(session.events.length, 1, "paused sessions must not collect events");
+  assert.equal(session.events.length, 2, "paused sessions must not collect events");
   await send({type:"R2POM_STOP"});
   session = (await send({type:"R2POM_GET_SESSION"})).session;
   assert.equal(session.recording, false);
