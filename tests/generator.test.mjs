@@ -627,3 +627,19 @@ test("Playwright select actions recover native controls by option text when acce
   assert.doesNotThrow(() => JSON.parse(select.data));
   assert.equal(JSON.parse(select.data).steps[0].value, "India");
 });
+
+test("generated runners include structured diagnostics, step timelines and actionable repair guidance", async () => {
+  for (const engine of ["playwright", "selenium"]) {
+    const result = await generateFromFixture(engine, "click");
+    for (const token of [
+      "diagnostics.json", "diagnostics.html", "steps.json", "steps.html",
+      "run-results.json", "run.log", "locatorHints", "repairSuggestions",
+      "durationMs", "startedAt", "finishedAt", "screenshots",
+      "locator-not-unique", "assertion-or-state"
+    ]) assert.ok(result.runner.includes(token), engine + " runner should include " + token);
+    assert.match(result.runner, /Test command exceeded/);
+    assert.match(result.runner, /status = "timeout"/);
+    assert.match(result.runner, /html_escape/);
+    assert.match(result.runner, /JUnit parsing/);
+  }
+});
