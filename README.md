@@ -16,9 +16,21 @@
 
 ---
 
-## ✦ The Motion Lab
+## ✦ The Motion Lab — GSAP + 3D
 
-A dedicated GSAP-powered showcase explores Record2POM with layered glass panels, a 3D automation core, floating locator cards, parallax tilt, animated grid geometry, and scroll-reveal transitions.
+The Motion Lab is the animated product experience—not a static mockup. Its GSAP timeline reveals the hero, brings the 3D automation core into view, and staggers floating glass panels. Continuous ambient movement, a looping capability ticker, pointer-driven parallax, perspective tilt, and scroll-triggered reveals make the page feel alive while keeping the product workflow front and center.
+
+**Motion design highlights**
+
+- **Cinematic intro:** sequenced GSAP timeline with eased entrances and staggered cards.
+- **Living 3D core:** rotating automation orb, orbit rings, perspective grid, and ambient gradient orbs.
+- **Interactive depth:** pointer-responsive stage and code-window tilt, with floating cards that respond to movement.
+- **Continuous motion:** smooth capability marquee and low-amplitude card levitation.
+- **Scroll storytelling:** feature and workflow sections reveal as they enter the viewport.
+- **Responsive by design:** desktop composition adapts to tablet and mobile layouts.
+- **Accessible fallback:** `prefers-reduced-motion` disables continuous movement and reveals content without animation; core content remains readable if GSAP fails to load.
+
+> GitHub README Markdown cannot execute GSAP JavaScript. The animated SVG banner below is the in-README visual; the live interactions run on the linked showcase page.
 
 <div align="center">
 
@@ -83,6 +95,8 @@ Generation is not test execution. The hosted dashboard does not run the generate
 
 ## ✦ Local development
 
+### Run the dashboard locally
+
 Requires Node.js 20+.
 
 ```bash
@@ -90,7 +104,7 @@ git clone https://github.com/SanFlash/record2pom.git
 cd record2pom
 npm test
 npm start
-`ZTICKZ`
+```
 
 Open http://localhost:3000.
 
@@ -100,7 +114,11 @@ The npm test suite includes generator, recording-schema, redaction, locator, bac
 python -m pip install "pytest-playwright>=0.5,<1"
 python -m playwright install --with-deps chromium
 python -m pytest -q tests/e2e
-`ZTICKZ`
+```
+
+### Run the browser-based fixture tests
+
+The CI workflow installs Chromium and runs the fixture journeys and generated-project checks. Run the commands above from the repository root.
 
 ## ✦ Install the browser extension
 
@@ -146,6 +164,17 @@ The generated runner uses an argument array rather than shell interpolation and 
 - Authentication, CAPTCHA, MFA, and access controls are not bypassed.
 - Use the framework only on systems you own or have explicit permission to test.
 
+## ✦ Motion implementation details
+
+The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D transforms. The main animation groups are the hero intro timeline, the ambient background orbs, the 3D core, floating status cards, the ticker, pointer-based parallax, and IntersectionObserver-driven section reveals. Motion is decorative: all navigation, copy, feature descriptions, and workflow details remain ordinary HTML content.
+
+**Accessibility and performance notes**
+
+- The page checks `prefers-reduced-motion` and falls back to visible, non-animated content.
+- Pointer effects are attached to the 3D stage and code preview, not the entire page.
+- Mobile styles reduce the stage and card sizes and collapse feature layouts to a single column.
+- GSAP is loaded from a CDN; if it is unavailable, the showcase intentionally leaves content visible.
+
 ## ✦ Project verification status
 
 - Automated Node suite: tracked by GitHub Actions.
@@ -160,7 +189,7 @@ The generated runner uses an argument array rather than shell interpolation and 
 - [x] Sensitive-value redaction and event payload limits
 - [x] Playwright and Selenium project generators
 - [x] Browser fixture and generated-project E2E coverage
-- [x] GSAP 3D Motion Lab and animated README visuals
+- [x] GSAP 3D Motion Lab and animated SVG README visuals
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Locator uniqueness re-measurement and correction workflow
 - [ ] Broader fixture journeys for dynamic controls and navigation
