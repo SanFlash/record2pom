@@ -150,7 +150,7 @@ npm start
 
 Open http://localhost:3000.
 
-The npm test suite includes generator, recording-schema, redaction, locator, background lifecycle, and recorder-harness tests. The GitHub Actions workflow additionally installs Chromium and runs the browser-based fixture and generated-project tests:
+The npm test suite includes generator, recording-schema, redaction, locator, background lifecycle, recorder-harness, GSAP showcase, and README animated-SVG regression tests. The SVG checks confirm that each referenced motion asset exists, includes accessible title/description metadata, contains animation, and does not embed scripts. The GitHub Actions workflow additionally installs Chromium and runs the browser-based fixture and generated-project tests:
 
 ```bash
 python -m pip install "pytest-playwright>=0.5,<1"
@@ -253,6 +253,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Layered particle graphics, orbiting satellites, scan-ring animation, gradient motion, and floating feature icons
 - [x] Animated README capability grid, workflow pipeline, and technology orbit SVGs
 - [x] Icon-rich README module overview and expanded motion-design documentation
+- [x] Automated checks for README SVG references, accessibility metadata, animation, and script-free assets
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Locator uniqueness re-measurement and correction workflow
 - [ ] Broader fixture journeys for dynamic controls and navigation
