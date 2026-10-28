@@ -23,11 +23,11 @@ main{position:relative;z-index:1}.hero{max-width:1180px;margin:auto;min-height:6
 .reveal{opacity:1;transform:none}.js-motion .reveal{opacity:0;transform:translateY(22px)}.js-motion .hero-copyblock{opacity:0;transform:translateY(18px)}.js-motion .float-card{opacity:0}.js-motion .core-orb{opacity:0;transform:scale(.7)}.js-motion .stage-grid{opacity:0}
 @media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:60px;gap:10px}.hero-copyblock{max-width:680px}.stage{height:440px;margin-top:5px}.feature-grid{grid-template-columns:repeat(2,1fr)}.workflow{grid-template-columns:1fr}.code-window{min-height:300px}.section-head{align-items:start;flex-direction:column}.section-head p{max-width:580px}}
 @media(max-width:560px){.stage{overflow:clip}nav{padding:17px 18px}.navlinks{display:none}.nav-cta{padding:9px 12px;font-size:10px}.hero{padding:48px 18px 35px;min-height:auto}h1{font-size:clamp(43px,13vw,64px)}.hero-copy{font-size:13px}.microstats{gap:18px;flex-wrap:wrap}.stage{height:365px;transform:scale(.96);margin-inline:-16px}.core-orb{width:150px;height:150px}.orb-label b{font-size:13px}.float-card{min-width:0;padding:11px;width:148px!important}.float-card strong{font-size:11px;margin:8px 0 4px}.float-card small{font-size:9px}.card-a{left:3%;top:32px}.card-b{right:2%;top:72px}.card-c{left:3%;bottom:22px}.card-d{right:3%;bottom:12px}.section{padding:72px 18px}.feature-grid{grid-template-columns:1fr}.feature{min-height:205px}.cta{padding:0 18px;margin-bottom:65px}.cta-inner{padding:52px 18px}footer{padding:20px 18px 28px;flex-direction:column}.ticker-track{animation-duration:42s}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.js-motion .reveal,.js-motion .hero-copyblock,.js-motion .float-card,.js-motion .core-orb,.js-motion .stage-grid{opacity:1!important;transform:none!important}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.particle-field{display:none!important}.js-motion .reveal,.js-motion .hero-copyblock,.js-motion .float-card,.js-motion .core-orb,.js-motion .stage-grid{opacity:1!important;transform:none!important}}
 </style>
 </head>
 <body>
-<div class="ambient" aria-hidden="true"><div class="orb one"></div><div class="orb two"></div></div><div class="noise" aria-hidden="true"></div>
+<div class="ambient" aria-hidden="true"><canvas class="particle-field" id="particleField"></canvas><div class="orb one"></div><div class="orb two"></div></div><div class="noise" aria-hidden="true"></div>
 <nav><a class="brand" href="/"><span class="brand-mark">R</span><span>Record2POM <span style="color:#7785b0;font-weight:500">/ MOTION LAB</span></span></a><div class="navlinks"><a href="#capabilities">Capabilities</a><a href="#workflow">Workflow</a><a href="https://github.com/SanFlash/record2pom">Source</a></div><a class="nav-cta" href="https://record2pom.vercel.app/">OPEN STUDIO ↗</a></nav>
 <main>
 <section class="hero">
@@ -140,7 +140,7 @@ main{position:relative;z-index:1}.hero{max-width:1180px;margin:auto;min-height:6
 
   gsap.to(".core-orb", {rotateY:360,rotateZ:12,duration:22,repeat:-1,ease:"none"});
   gsap.to(".scan-ring", {rotateZ:338,duration:28,repeat:-1,ease:"none"});
-  gsap.to(".satellite.s1", {x:155,y:0,keyframes:[{x:0,y:-155,duration:0},{x:155,y:0,duration:2.25},{x:0,y:155,duration:2.25},{x:-155,y:0,duration:2.25},{x:0,y:-155,duration:2.25}],duration:9,repeat:-1,ease:"none"});
+  gsap.to(".satellite.s1", {keyframes:[{x:0,y:-155,duration:0},{x:155,y:0,duration:2.25},{x:0,y:155,duration:2.25},{x:-155,y:0,duration:2.25},{x:0,y:-155,duration:2.25}],duration:9,repeat:-1,ease:"none"});
   gsap.to(".satellite.s2", {keyframes:[{x:0,y:128,duration:0},{x:-128,y:0,duration:3},{x:0,y:-128,duration:3},{x:128,y:0,duration:3},{x:0,y:128,duration:3}],duration:12,repeat:-1,ease:"none"});
   gsap.to(".gradient", {backgroundPosition:"200% center",duration:7,repeat:-1,yoyo:true,ease:"sine.inOut"});
   gsap.to(".pulse", {scale:1.45,opacity:.55,boxShadow:"0 0 28px #6cf5e6",duration:1.1,repeat:-1,yoyo:true,ease:"sine.inOut"});
