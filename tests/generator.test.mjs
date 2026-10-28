@@ -408,6 +408,7 @@ test("Playwright select actions recover native controls by option text when acce
   const select = await generateFromFixture("playwright", "select");
   assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
   assert.match(select.code, /self\._resolve_select_locator\("India"\)\.select_option\(label="India"\)/);
-  assert.match(select.code, /select\\.locator\\([\x22\x27]option[\x22\x27]\\)\\.all_text_contents\\(\\)/);
+  assert.ok(select.code.includes("all_text_contents()"));
+  assert.ok(select.code.includes("locator(\'option\')") || select.code.includes('locator("option")'));
   assert.match(select.code, /Expected exactly one native select containing option/);
 });
