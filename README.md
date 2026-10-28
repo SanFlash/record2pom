@@ -260,6 +260,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Extension integration harness verifies stopped-session transfer, Studio injection, and acknowledgement
 - [x] Generated Playwright ZIP executes against the browser fixture in CI
 - [x] Generated Selenium ZIP is extracted, preflighted, and Python-syntax validated in CI
+- [x] Regression coverage verifies structured JSON/HTML diagnostics, step timelines, bounded-run failure handling, screenshot indexing, and actionable repair suggestions for both generated engines
 - [ ] Manual installed-Chrome smoke test with captured screenshots/evidence
 - [ ] Broader fixture journeys for dynamic controls and navigation
 ---
