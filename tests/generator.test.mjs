@@ -464,7 +464,7 @@ test("generated assertions use explicit waits for dynamic page state", async () 
         assert.match(result.code, /timeout=10000/);
         assert.match(result.test, /Page, expect/);
       } else {
-        assert.match(result.code, /WebDriverWait\(driver, 10\)/);
+        assert.match(result.code, /WebDriverWait\(self\.driver, 10\)/);
         assert.match(result.code, /expected_conditions as EC/);
         assert.match(result.code, /WebDriverWait/);
       }
