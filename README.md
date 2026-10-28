@@ -174,7 +174,7 @@ The CI workflow installs Chromium and runs the fixture journeys and generated-pr
 6. Export the recording and verify that password-like values and file paths are not present.
 7. Import the JSON into the dashboard and review the generated project.
 
-Some browser surfaces, closed shadow roots, cross-origin frames, popups, and highly customized widgets may require manual handling. Browser extension behavior should be manually smoke-tested in the target browser before depending on it for important test work.
+Some browser surfaces, closed shadow roots, cross-origin frames, popups, and highly customized widgets may require manual handling. The Node integration harness simulates the extension-to-Studio message contract; it is not a real installed-Chrome test. Before relying on the extension, manually verify Start → Pause/Resume → Stop → Studio import acknowledgement → Generate → ZIP download in Chrome and save screenshots with the test date, browser version, and result. Do not include secrets or real personal data in evidence.
 
 ## ✦ Generate and run a project
 
