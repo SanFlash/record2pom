@@ -272,6 +272,7 @@ The repository now includes implementation-focused guides and contributor workfl
 - **Generated-project checks:** CI executes a generated Playwright project and preflights the generated Selenium archive.
 - **Manual extension checks:** the installed-Chrome smoke test remains a separate task; simulation is not proof of a real browser installation.
 - **Honest reporting:** a generated ZIP is not a passing test, a successful CI run is not a manual smoke test, and deployment status is not a substitute for reviewing the live workflow.
+- **Evidence integrity:** generated runs write `reports/evidence-index.json` with normalized project-relative paths, artifact sizes, MIME types, and SHA-256 hashes. See [Evidence Index documentation](docs/EVIDENCE_INDEX.md) for local verification and privacy cautions.
 
 ## ✦ Roadmap
 
