@@ -368,6 +368,12 @@ test("extension background lifecycle persists sessions and redacts sensitive val
   assert.equal(session.events.length, 1);
   assert.equal(session.events[0].redacted, true);
   assert.equal("value" in session.events[0], false);
+  result = await send({type:"R2POM_EVENT", event:{kind:"fill", value:"4111111111111111", target:{placeholder:"Credit card number"}}});
+  assert.equal(result.ok, true);
+  session = (await send({type:"R2POM_GET_SESSION"})).session;
+  assert.equal(session.events.length, 2);
+  assert.equal(session.events[1].redacted, true, "sensitive placeholders must trigger redaction");
+  assert.equal("value" in session.events[1], false);
   await send({type:"R2POM_PAUSE"});
   await send({type:"R2POM_EVENT", event:{kind:"click", description:"paused click"}});
   session = (await send({type:"R2POM_GET_SESSION"})).session;
