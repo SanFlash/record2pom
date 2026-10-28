@@ -19,3 +19,15 @@ jobs:
       - run: python -m pip install "pytest-playwright>=0.5,<1"
       - run: python -m playwright install --with-deps chromium
       - run: python -m pytest -q tests/e2e
+      - name: Package Chrome extension
+        run: |
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('extension/manifest.json','utf8')); for(const p of [m.background.service_worker,m.action.default_popup,...Object.values(m.icons),...Object.values(m.action.default_icon),...m.content_scripts.flatMap(s=>s.js),'popup.css']) if(!fs.existsSync('extension/'+p)) throw new Error('Missing extension asset: '+p)"
+          cd extension
+          zip -r ../record2pom-extension.zip .
+      - uses: actions/upload-artifact@v4
+        name: Upload installable Chrome extension
+        with:
+          name: record2pom-chrome-extension
+          path: record2pom-extension.zip
+          if-no-files-found: error
+          retention-days: 30
