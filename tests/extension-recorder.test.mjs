@@ -69,7 +69,7 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
       return Promise.resolve({ ok: true });
     }
   }};
-  const window = {};
+  const windowListeners = {};\n  const window = { addEventListener(type, fn) { (windowListeners[type] ??= []).push(fn); } };
   const context = {
     window, document, chrome, location: { href: "https://fixture.test/login", origin: "https://fixture.test" },
     URL, Date, Math, String, Array, RegExp, CSS: { escape: value => value },
