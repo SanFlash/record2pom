@@ -6,6 +6,8 @@
 
 **Capture browser journeys. Review locator health. Generate portable Python automation projects.**
 
+**Framework creator:** Satyendra Kumar Namdeo
+
 [![Production](https://img.shields.io/badge/production-live-6cf5e6?style=for-the-badge&labelColor=0b1020)](https://record2pom.vercel.app/)
 [![CI](https://img.shields.io/github/actions/workflow/status/SanFlash/record2pom/test.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/SanFlash/record2pom/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-check%20repository-9a8bff?style=for-the-badge&labelColor=0b1020)](https://github.com/SanFlash/record2pom)
