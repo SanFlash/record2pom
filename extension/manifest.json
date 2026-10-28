@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Record2POM Universal Recorder",
   "version": "0.1.0",
-  "description": "Record authorized browser journeys and export JSON for POM generation.",
+  "description": "Record browser journeys and generate portable Record2POM automation projects.",
   "permissions": [
     "activeTab",
     "scripting",
