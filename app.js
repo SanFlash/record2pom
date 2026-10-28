@@ -85,7 +85,9 @@ if __name__ == "__main__": raise SystemExit(main())
 const runnerPy = String.raw`#!/usr/bin/env python3
 """Run this generated project's declared test framework and write truthful local reports."""
 from __future__ import annotations
+import hashlib
 import json
+import mimetypes
 import os
 import subprocess
 import sys
@@ -266,7 +268,7 @@ def main():
                 ["Review assertions and artifacts to confirm they cover the intended journey."])
     diagnostics["repairSuggestions"] = suggestions
     screenshot_files = sorted(screenshot_dir.glob("*.png")) if screenshot_dir.exists() else []
-    diagnostics["screenshots"] = [str(path.relative_to(ROOT)) for path in screenshot_files]
+    diagnostics["screenshots"] = [path.relative_to(ROOT).as_posix() for path in screenshot_files]
     diagnostics["artifacts"].extend(diagnostics["screenshots"])
     (REPORTS / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
     diagnostics["artifacts"].append("reports/diagnostics.json")
@@ -300,6 +302,41 @@ def main():
     (REPORTS / "run.log").write_text(
         "COMMAND: " + json.dumps(command) + "\nSTATUS: " + status + "\n\nSTDOUT:\n" + stdout +
         "\nSTDERR:\n" + stderr + ("\nERROR:\n" + error if error else ""), encoding="utf-8")
+    # Stable POSIX-relative paths and SHA-256 hashes make artifacts verifiable.
+    # The index deliberately excludes itself to avoid recursive hashing.
+    evidence_entries = []
+    manifest_path = REPORTS / "evidence-index.json"
+    for artifact_path in sorted(REPORTS.rglob("*")):
+        if not artifact_path.is_file() or artifact_path == manifest_path:
+            continue
+        try:
+            relative_path = artifact_path.relative_to(ROOT).as_posix()
+            artifact_path.resolve().relative_to(ROOT.resolve())
+            data = artifact_path.read_bytes()
+        except (OSError, ValueError):
+            continue
+        evidence_entries.append({
+            "path": relative_path,
+            "category": "screenshot" if "screenshots/" in relative_path else "report",
+            "mediaType": mimetypes.guess_type(artifact_path.name)[0] or "application/octet-stream",
+            "sizeBytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
+        })
+    evidence_index = {
+        "schemaVersion": 1,
+        "generatedAt": finished,
+        "project": ROOT.name,
+        "runStatus": status,
+        "integrity": {
+            "algorithm": "sha256",
+            "pathFormat": "POSIX relative to project root",
+            "manifestSelfHash": "omitted to avoid recursive hashing",
+        },
+        "artifactCount": len(evidence_entries),
+        "artifacts": evidence_entries,
+    }
+    manifest_path.write_text(json.dumps(evidence_index, indent=2), encoding="utf-8")
+    print(f"Evidence index: {manifest_path}")
     print(f"Record2POM run status: {status}")
     print(f"Report: {REPORTS / 'run-results.json'}")
     if engine == "playwright":
