@@ -301,7 +301,7 @@ test("reviewed recording export uses canonical normalization and redaction", asy
 test("generator emits explicit assertion actions for both engines", async () => {
   for (const engine of ["playwright", "selenium"]) {
     const visible = await generateFromFixture(engine, "assert-visible");
-    assert.match(visible.code, /is_visible\(\)|is_displayed\(\)/);
+    assert.match(visible.code, engine === "playwright" ? /to_be_visible\(timeout=10000\)/ : /WebDriverWait\(self\.driver, 10\).*visibility_of/s);
     const text = await generateFromFixture(engine, "assert-text");
     assert.match(text.code, engine === "playwright" ? /get_by_text/ : /By\.TAG_NAME/);
   }
