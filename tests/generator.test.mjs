@@ -417,7 +417,9 @@ test("generated project includes a preflight validator for files, JSON and Pytho
   assert.match(result.validator, /redacted/);
   assert.match(result.validator, /Python syntax checked/);
 });
-\n\ntest("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
+
+
+test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
   const select = await generateFromFixture("playwright", "select");
   assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
   assert.match(select.code, /self\._resolve_select_locator\("India"\)\.select_option\(label="India"\)/);
