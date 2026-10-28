@@ -78,7 +78,11 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   const conftestButton = fileButtons.find(item => item.dataset.path === "tests/conftest.py");
   let conftest = "";
   if (conftestButton?.onclick) { conftestButton.onclick(); conftest = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, status:el("status").textContent};
+  const configButton = fileButtons.find(item => item.dataset.path === "config.py");
+  let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
+  const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
+  let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
+  return {code, runner, test:testSource, conftest, config, data, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -411,4 +415,8 @@ test("Playwright select actions recover native controls by option text when acce
   assert.ok(select.code.includes("all_text_contents()"));
   assert.ok(select.code.includes("locator(\'option\')") || select.code.includes('locator("option")'));
   assert.match(select.code, /Expected exactly one native select containing option/);
+  assert.match(select.code, /wait_for\\(state="visible", timeout=2500\\)/);
+  assert.ok(select.config.includes("BASE_URL = os.environ.get"));
+  assert.doesNotThrow(() => JSON.parse(select.data));
+  assert.equal(JSON.parse(select.data).steps[0].value, "India");
 });
