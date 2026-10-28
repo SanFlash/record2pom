@@ -1,32 +1,92 @@
-# Record2POM MVP architecture
+# Record2POM Architecture
 
-## Components
-- index.html, styles.css, app.js: static Vercel dashboard. Imports and exports normalized JSON, allows action/locator review, generates project files, and builds a ZIP in the browser.
-- extension/manifest.json: Chrome Manifest V3 extension.
-- extension/recorder.js: captures supported interaction events and locator metadata.
-- extension/background.js: session lifecycle and chrome.storage.local persistence.
-- extension/popup.*: controls recording and exports JSON.
-- core.js: versioned recording validation, canonical intermediate-representation (IR) normalization, sensitive-value removal, and locator-candidate ranking.
-- fixtures/universal-demo/: neutral fixture site for manual recorder smoke testing.
-- generated run_tests.py: local, bounded-time execution of the generated project and structured JSON/log reporting.
-- tests/generator.test.mjs: Node built-in generator, schema, selector and Python-syntax checks.
-- vercel.json: static hosting and basic security headers.
+**Product:** Record2POM Universal POM Automation Studio  
+**Creator attribution:** Satyendra Kumar Namdeo
 
-## Data flow
-User-selected target → extension content recorder → local extension storage → explicit JSON export → schema validation and canonical IR normalization → dashboard review → locator ranking → deterministic generator → client-side ZIP export → generated local runner → test process → JSON/log report (plus pytest JUnit XML for the Playwright adapter).
+## Product boundaries
 
-## Trust boundaries
-Target-page content and attributes are untrusted data. Recordings are not uploaded automatically. Sensitive input values are redacted where detected. The Vercel dashboard has no server-side recording store or test execution service. The generated runner executes only after download on the user's machine; it is not a sandbox.
+Record2POM is a local-first browser journey recorder and Python Page Object Model (POM) project generator. It is split into three execution zones:
 
-## Limitations
-This MVP supports Python + Playwright + pytest and Python + Selenium + unittest only. Complex custom widgets, closed shadow roots, cross-origin frames, file transfers and popups need further implementation. Review generated selectors and assertions before execution.
+1. **Browser extension** captures supported interactions on a user-selected HTTP/HTTPS page.
+2. **Studio dashboard** validates and reviews a recording, then generates a downloadable project archive.
+3. **Generated project** runs locally on the user's machine.
 
-## Next milestones
-1. Improve lifecycle and navigation capture reliability.
-2. Expand locator correction with live re-measurement after editing, and add coverage for every supported locator strategy.
-3. Run the documented neutral fixture workflow in a real Chrome/Chromium session and retain observed evidence.
-4. Add a controlled local runner bridge only if the user explicitly needs dashboard-triggered execution; do not expose arbitrary commands over HTTP.
-5. Add a canonical typed intermediate representation before expanding generator adapters.
-6. Add language adapters only after compile/run validation.
-7. Add optional AI with explicit consent and redaction.
-8. Add a genuinely isolated cloud runner if justified.
+The hosted Studio does not execute customer tests. A generated ZIP is an artifact, not proof that a test passed.
+
+## High-level data flow
+
+```mermaid
+flowchart TD
+  A[Authorized test page] --> B[MV3 content recorder]
+  B --> C[Background service worker]
+  C --> D[Browser local storage]
+  D --> E[Reviewed recording JSON]
+  E --> F[Studio normalization and validation]
+  F --> G[Locator ranking and readiness review]
+  G --> H[Python POM generator]
+  H --> I[Downloadable ZIP]
+  I --> J[Local virtual environment]
+  J --> K[Playwright + pytest or Selenium + unittest]
+  K --> L[Logs, step results, diagnostics and screenshots]
+```
+
+## Repository map
+
+| Path | Responsibility |
+|---|---|
+| `index.html`, `styles.css`, `app.js` | Studio UI, review workflow, project generation and downloads |
+| `core.js` | Recording validation, normalization, aliases and locator ranking |
+| `extension/manifest.json` | Manifest V3 permissions and extension entry points |
+| `extension/recorder.js` | DOM event capture, accessible-name hints and sensitive-field handling |
+| `extension/background.js` | Session lifecycle, storage, event validation and Studio handoff |
+| `extension/popup.*` | Recorder controls and import acknowledgement UI |
+| `tests/generator.test.mjs` | Fast Node regression suite for schemas, generation and extension contracts |
+| `tests/e2e/` | Browser-driven Studio and generated-project integration tests |
+| `fixtures/universal-demo/` | Synthetic HTML target used by automated tests |
+| `showcase/` | GSAP motion showcase and product storytelling |
+| `assets/` | README graphics, branded banners and motion SVGs |
+| `docs/` | Architecture, recording contract, locator guidance, extension test plan and roadmap |
+| `examples/` | Synthetic recording examples |
+
+## Recording contract
+
+A recording is versioned JSON with `schemaVersion`, `targetUrl`, optional non-sensitive `metadata`, and ordered `events`. Each event can contain an action kind, target hints, locator candidates and optional value/assertion data.
+
+The canonical normalizer accepts selected legacy aliases and produces a consistent intermediate representation. The shared core caps recordings at 5,000 events and validates supported event kinds and string lengths. Schema changes should update the example, tests and [recording format guide](RECORDING_FORMAT.md).
+
+## Generation pipeline
+
+1. Validate and normalize imported data.
+2. Review action count, locator quality, redaction and missing assertions.
+3. Convert supported actions to engine-specific page-object calls.
+4. Package source, tests, configuration, test data, local runner, validation helper and generated README.
+5. Inspect the ZIP and run it locally.
+6. Review diagnostics and test reports produced by that local run.
+
+Supported outputs: **Python + Playwright + pytest** and **Python + Selenium WebDriver + unittest**. Other engines and languages are not implemented.
+
+## Trust boundaries and data handling
+
+- Target-page content and attributes are untrusted input.
+- Extension sessions are held in browser local storage until cleared or exported.
+- Sensitive-field and URL redaction is heuristic; inspect exports before sharing.
+- Generated reports, screenshots and logs may contain page content or synthetic test values.
+- The generated runner uses bounded execution but is not an operating-system sandbox. Inspect generated code and dependencies before running.
+- Use systems you own or have explicit permission to test. Do not record production secrets or personal data.
+
+## Diagnostics contract
+
+The generated runner can emit structured result data, step timing/status, logs, HTML summaries and JUnit data (engine-dependent). Diagnostics should identify the failed action and provide repair guidance without exposing secrets. A future improvement is per-step screenshot capture with deliberate evidence redaction.
+
+## Design principles
+
+- **Review before execution:** generated code remains inspectable; no hidden remote execution.
+- **Accessible locators first:** prefer test IDs and semantic role/label locators over brittle positional selectors.
+- **Fail safely:** ambiguous or missing locators should produce actionable errors rather than selecting an arbitrary element.
+- **Synthetic fixtures:** automated tests use deterministic local pages and synthetic values.
+- **Progressive enhancement:** GSAP motion is decorative and must not block core functionality.
+- **Honest status:** generation, CI, production deployment and manual browser smoke tests are distinct verification claims.
+
+## Change checklist
+
+For recording schema changes, update `core.js`, tests and the sample recording. For generator changes, assert generated source and execute it against the fixture. For extension changes, update message-contract tests and complete the installed-Chrome smoke test before claiming real-browser validation. For visual changes, preserve keyboard access, responsive layouts and `prefers-reduced-motion` support.
