@@ -109,6 +109,24 @@
     return output;
   }
 
+  function sanitizeUrl(value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      url.username = "";
+      url.password = "";
+      const secretKey = /password|passwd|token|secret|authorization|auth|api.?key|access.?key|client.?secret|session|jwt|credential|otp|code|signature|(^|_)key($|_)/i;
+      for (const [key] of url.searchParams) if (secretKey.test(key)) url.searchParams.set(key, "__REDACTED__");
+      if (url.hash.includes("=")) {
+        const hashParams = new URLSearchParams(url.hash.slice(1));
+        let changed = false;
+        for (const [key] of hashParams) if (secretKey.test(key)) { hashParams.set(key, "__REDACTED__"); changed = true; }
+        if (changed) url.hash = hashParams.toString();
+      }
+      return url.href;
+    } catch { return ""; }
+  }
+
   function sensitive(element) {
     return /password|one-time|otp|token|secret|credit.?card|cc-number|cc-csc|cvv|ssn|social.?security/i
       .test([element.type, element.name, element.id, element.autocomplete, label(element)].join(" "));
@@ -130,8 +148,8 @@
       id: "event-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
       timestamp: new Date().toISOString(),
       kind,
-      url: location.href,
-      page: { url: location.href, origin: location.origin, title: document.title },
+      url: sanitizeUrl(location.href),
+      page: { url: sanitizeUrl(location.href), origin: location.origin, title: document.title },
       target: info,
       locators: locators(element),
       source: "browser-extension",
@@ -192,8 +210,9 @@
     }
     if (message?.type === "R2POM_NAVIGATION" && recording && !paused) {
       try {
-        const url = new URL(message.url);
-        if (url.protocol !== "http:" && url.protocol !== "https:") return;
+        const safeUrl = sanitizeUrl(message.url);
+        if (!safeUrl) return;
+        const url = new URL(safeUrl);
         send({
           schemaVersion: 1,
           id: "nav-" + Date.now(),
