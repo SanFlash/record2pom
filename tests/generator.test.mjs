@@ -414,6 +414,10 @@ test("extension stop flow hands recorded sessions to Studio for automatic POM ge
   assert.match(popupHtml, /id="generatePom"/);
   assert.match(studio, /addEventListener\(["']record2pom:import-recording["']/);
   assert.match(studio, /generatedButton\.click\(\)/);
+  assert.match(studio, /handledRecordingSessions = new Set\(\)/);
+  assert.match(studio, /already imported in this Studio tab/);
+  assert.match(studio, /POM generation did not produce project files/);
+  assert.match(studio, /fileCount:Object\.keys\(generated\.files\)\.length/);
 });
 
 
