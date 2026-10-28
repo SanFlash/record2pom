@@ -82,9 +82,11 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
+  const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
+  let generatedReadme = ""; if (readmeButton?.onclick) { readmeButton.onclick(); generatedReadme = el("code").textContent; }
   const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
   let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, config, data, validator, status:el("status").textContent};
+  return {code, runner, test:testSource, conftest, config, data, validator, readme:generatedReadme, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -452,6 +454,18 @@ test("extension stop flow hands recorded sessions to Studio for automatic POM ge
   assert.match(studio, /fileCount:Object\.keys\(generated\.files\)\.length/);
 });
 
+
+test("generated framework preserves creator attribution in docs, config and metadata", async () => {
+  for (const engine of ["playwright", "selenium"]) {
+    const result = await generateFromFixture(engine);
+    assert.match(result.readme, /Framework creator:\*\* Satyendra Kumar Namdeo/);
+    assert.match(result.config, /CREATOR = ['"]Satyendra Kumar Namdeo['"]/);
+    const metadata = JSON.parse(result.data);
+    assert.equal(metadata.creator, "Satyendra Kumar Namdeo");
+    assert.equal(metadata.generator, "Record2POM Universal POM Automation Studio");
+    assert.match(result.code, /class RecordedPage/);
+  }
+});
 
 test("generated project includes a preflight validator for files, JSON and Python syntax", async () => {
   const result = await generateFromFixture("playwright", "select");
