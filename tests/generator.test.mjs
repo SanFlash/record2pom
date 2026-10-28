@@ -395,6 +395,9 @@ test("extension branding assets exist and all manifest references resolve", asyn
   const background = await readFile("extension/background.js", "utf8");
   assert.match(popupScript, /renderImportStatus/);
   assert.match(popupScript, /record2pom_import_status_v1/);
+  assert.match(popupScript, /ageMs>30000/);
+  assert.match(popupScript, /No acknowledgement arrived within 30 seconds/);
+  assert.match(popupScript, /Your recording remains saved locally/);
   assert.match(popup, /id="transferState"/);
   assert.match(popup, /id="transferDetail"/);
   assert.match(background, /ok:null,eventCount:s.events.length/);
