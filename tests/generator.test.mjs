@@ -391,8 +391,9 @@ test("extension branding assets exist and all manifest references resolve", asyn
   assert.match(popup, /id="stop"/);
   assert.match(popup, /id="export"/);
   assert.match(popup, /id="clear"/);
-  assert.match(popup, /renderImportStatus/);
-  assert.match(popup, /record2pom_import_status_v1/);
+  const popupScript = await readFile("extension/popup.js", "utf8");
+  assert.match(popupScript, /renderImportStatus/);
+  assert.match(popupScript, /record2pom_import_status_v1/);
   assert.match(popupHtml, /id="transferState"/);
   assert.match(popupHtml, /id="transferDetail"/);
   assert.match(background, /ok:null,eventCount:s.events.length/);
