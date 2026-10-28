@@ -455,6 +455,23 @@ test("extension stop flow hands recorded sessions to Studio for automatic POM ge
 });
 
 
+test("generated assertions use explicit waits for dynamic page state", async () => {
+  for (const engine of ["playwright", "selenium"]) {
+    for (const kind of ["assert-url", "assert-text", "assert-visible", "assert-value"]) {
+      const result = await generateFromFixture(engine, kind);
+      if (engine === "playwright") {
+        assert.match(result.code, /expect\(page\)\.to_have_url|expect\(self\.page\)\.to_have_url|expect\(self\.page\.get_by_text/);
+        assert.match(result.code, /timeout=10000/);
+        assert.match(result.test, /Page, expect/);
+      } else {
+        assert.match(result.code, /WebDriverWait\(driver, 10\)/);
+        assert.match(result.code, /expected_conditions as EC/);
+        assert.match(result.code, /WebDriverWait/);
+      }
+    }
+  }
+});
+
 test("generated framework preserves creator attribution in docs, config and metadata", async () => {
   for (const engine of ["playwright", "selenium"]) {
     const result = await generateFromFixture(engine);
