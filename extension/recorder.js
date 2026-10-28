@@ -3,6 +3,8 @@
   if (window.__record2pomInstalled) return;
   window.__record2pomInstalled = true;
 
+  window.addEventListener("record2pom:import-ack", event => { const d=event?.detail||{}; chrome.runtime.sendMessage({type:"R2POM_IMPORT_ACK",sessionId:d.sessionId||null,ok:d.ok===true,eventCount:Number(d.eventCount||0),error:String(d.error||"").slice(0,500)}).catch(()=>{}); });
+
   let recording = false;
   let paused = false;
   const clean = value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 180);
