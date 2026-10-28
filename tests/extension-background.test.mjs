@@ -62,7 +62,7 @@ test("extension start, pause, resume, stop and clear enforce the recording lifec
   assert.ok(!started.session.targetUrl.includes("topsecret"));
   assert.match(started.session.targetUrl, /mode=edit/);
   assert.equal(started.session.paused, false);
-  assert.equal(started.session.targetUrl, "https://example.test/form");
+  assert.equal(started.session.targetUrl, "https://example.test/form?api_key=__REDACTED__&mode=edit");
   assert.ok(started.session.startedAt);
 
   await h.dispatch({ type: "R2POM_EVENT", event: { kind: "click", target: { role: "button" } } });
