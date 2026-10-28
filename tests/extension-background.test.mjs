@@ -56,8 +56,11 @@ test("extension initializes a persistent idle session and returns it", async () 
 test("extension start, pause, resume, stop and clear enforce the recording lifecycle", async () => {
   const h = await harness();
   await h.installed[0]();
-  const started = await h.dispatch({ type: "R2POM_START", url: "https://example.test/form" });
+  const started = await h.dispatch({ type: "R2POM_START", url: "https://example.test/form?api_key=topsecret&mode=edit" });
   assert.equal(started.session.recording, true);
+  assert.match(started.session.targetUrl, /api_key=__REDACTED__/);
+  assert.ok(!started.session.targetUrl.includes("topsecret"));
+  assert.match(started.session.targetUrl, /mode=edit/);
   assert.equal(started.session.paused, false);
   assert.equal(started.session.targetUrl, "https://example.test/form");
   assert.ok(started.session.startedAt);
