@@ -272,6 +272,14 @@ test("generated Selenium project Python files parse", async (t) => {
   }
 });
 
+test("POM download validates required framework files and recorded test data", async () => {
+  const source = await readFile("app.js", "utf8");
+  assert.match(source, /Project integrity check failed; missing/);
+  assert.match(source, /recorded test data is invalid JSON/);
+  assert.match(source, /recorded test data has no steps/);
+  assert.match(source, /class RecordedPage/);
+  assert.match(source, /generated journey test is missing/);
+});
 test("POM ZIP download validates archive signatures before saving", async () => {
   const source = await readFile("app.js", "utf8");
   assert.match(source, /ZIP validation failed: local file header is missing/);
