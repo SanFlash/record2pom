@@ -22,7 +22,8 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] Multi-step journey covering dynamic tab state, text input, select, checkbox, submission and outcome assertion.
 - [ ] Failure-injection E2E coverage for missing/ambiguous locators, non-zero exit status, step diagnostics and screenshots (CI pending).
 - [ ] Per-step screenshot capture with secret-aware evidence handling.
-- [ ] Recovery recommendations that never silently change test meaning.
+- [x] Explainable locator candidate rankings include measured match status, strategy score, reasons, and explicit recommendations without silently changing test meaning.
+- [ ] Per-run evidence index with normalized relative paths and artifact integrity metadata.
 - [ ] Installed Chrome smoke-test evidence collected and reviewed.
 
 ## Extension experience
