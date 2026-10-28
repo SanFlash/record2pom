@@ -256,10 +256,12 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Animated README capability grid, workflow pipeline, and technology orbit SVGs
 - [x] Icon-rich README module overview and expanded motion-design documentation
 - [x] Automated checks for README SVG references, accessibility metadata, animation, and script-free assets
-- [ ] Real Chrome extension smoke-test checklist with recorded evidence
-- [x] Locator recovery re-measures matches after waits, rejects ambiguous/hidden elements, and emits actionable repair diagnostics\n- [ ] Real Chrome extension smoke-test checklist with recorded evidence
+- [x] Locator recovery re-measures matches after waits, rejects ambiguous/hidden elements, and emits actionable repair diagnostics
+- [x] Extension integration harness verifies stopped-session transfer, Studio injection, and acknowledgement
+- [x] Generated Playwright ZIP executes against the browser fixture in CI
+- [x] Generated Selenium ZIP is extracted, preflighted, and Python-syntax validated in CI
+- [ ] Manual installed-Chrome smoke test with captured screenshots/evidence
 - [ ] Broader fixture journeys for dynamic controls and navigation
-
 ---
 
 <div align="center">
