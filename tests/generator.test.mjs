@@ -359,3 +359,29 @@ test("extension background lifecycle persists sessions and redacts sensitive val
   result = await send({type:"R2POM_EVENT", event:{kind:"unsupported"}});
   assert.equal(result.ok, false);
 });
+
+
+test("extension branding assets exist and all manifest references resolve", async () => {
+  const manifest = JSON.parse(await readFile("extension/manifest.json", "utf8"));
+  const popup = await readFile("extension/popup.html", "utf8");
+  const assets = new Set([
+    ...Object.values(manifest.icons || {}),
+    ...Object.values(manifest.action?.default_icon || {}),
+    manifest.action?.default_popup,
+    manifest.background?.service_worker,
+    ...(manifest.content_scripts || []).flatMap(script => script.js || []),
+    ...Array.from(popup.matchAll(/(?:src|href)="([^"]+\.(?:png|svg|css|js))"/g), match => match[1])
+  ].filter(Boolean));
+  for (const asset of assets) {
+    await assert.doesNotReject(
+      readFile("extension/" + asset),
+      "Extension asset referenced by manifest/popup must exist: " + asset
+    );
+  }
+  assert.match(popup, /alt="Record2POM logo"/);
+  assert.match(popup, /id="start"/);
+  assert.match(popup, /id="pause"/);
+  assert.match(popup, /id="stop"/);
+  assert.match(popup, /id="export"/);
+  assert.match(popup, /id="clear"/);
+});
