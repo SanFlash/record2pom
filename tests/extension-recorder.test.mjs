@@ -140,10 +140,14 @@ test("recorder captures checkbox state, select labels, Enter, and respects pause
 
 test("recorder reports navigation only while recording and not paused", async () => {
   const h = await recorderHarness({ session: { recording: true, paused: false } });
-  h.control({ type: "R2POM_NAVIGATION", url: "https://fixture.test/next" });
+  h.control({ type: "R2POM_NAVIGATION", url: "https://fixture.test/next?access_token=secret123&view=profile#access_token=hashsecret" });
   let event = h.sent.find(m => m.type === "R2POM_EVENT")?.event;
   assert.equal(event.kind, "navigate");
   assert.equal(event.page.origin, "https://fixture.test");
+  assert.match(event.url, /access_token=__REDACTED__/);
+  assert.match(event.url, /view=profile/);
+  assert.ok(!event.url.includes("secret123"));
+  assert.ok(!event.url.includes("hashsecret"));
   h.control({ type: "R2POM_CONTROL", recording: true, paused: true });
   h.control({ type: "R2POM_NAVIGATION", url: "https://fixture.test/paused" });
   assert.equal(h.sent.filter(m => m.type === "R2POM_EVENT").length, 1);
