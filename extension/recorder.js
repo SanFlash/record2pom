@@ -129,7 +129,7 @@
 
   function sensitive(element) {
     return /password|one-time|otp|token|secret|credit.?card|cc-number|cc-csc|cvv|ssn|social.?security/i
-      .test([element.type, element.name, element.id, element.autocomplete, label(element)].join(" "));
+      .test([element.type, element.name, element.id, element.autocomplete, element.placeholder, label(element)].join(" "));
   }
 
   function send(event) {
