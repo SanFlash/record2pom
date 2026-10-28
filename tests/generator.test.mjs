@@ -505,6 +505,23 @@ test("generated project includes a preflight validator for files, JSON and Pytho
 });
 
 
+test("generated locator recovery re-measures dynamic matches and explains safe repair steps", async () => {
+  for (const engine of ["playwright", "selenium"]) {
+    const result = await generateFromFixture(engine, "click");
+    assert.match(result.code, /Locator recovery stopped safely/);
+    assert.match(result.code, /expected exactly one/);
+    assert.match(result.code, /prefer a unique data-testid/);
+    assert.match(result.code, /No click was attempted/);
+    if (engine === "playwright") {
+      assert.match(result.code, /match count changed to/);
+      assert.match(result.code, /locator\.count\(\)/);
+    } else {
+      assert.match(result.code, /is_displayed\(\)/);
+      assert.match(result.code, /refreshed = candidate\(\)/);
+    }
+  }
+});
+
 test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
   const select = await generateFromFixture("playwright", "select");
   assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
