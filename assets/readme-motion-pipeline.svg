@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="210" viewBox="0 0 1200 210" role="img" aria-labelledby="title">
 <title id="title">Animated Record2POM workflow pipeline</title>
+ <desc id="desc">Five connected stages show a browser journey becoming a normalized, reviewed, generated, and locally executed test project.</desc>
+
 <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#080b18"/><stop offset="1" stop-color="#17183b"/></linearGradient><linearGradient id="line"><stop stop-color="#6cf5e6"/><stop offset="1" stop-color="#a28bff"/></linearGradient></defs>
 <rect width="1200" height="210" rx="24" fill="url(#bg)"/>
 <g stroke="#7e96ff" stroke-opacity=".1"><path d="M0 52H1200M0 105H1200M0 158H1200"/></g>
