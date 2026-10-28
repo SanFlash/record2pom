@@ -82,7 +82,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, config, data, status:el("status").textContent};
+  const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");\n  let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }\n  return {code, runner, test:testSource, conftest, config, data, validator, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -408,7 +408,14 @@ test("extension stop flow hands recorded sessions to Studio for automatic POM ge
 });
 
 
-test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
+test("generated project includes a preflight validator for files, JSON and Python syntax", async () => {
+  const result = await generateFromFixture("playwright", "select");
+  assert.match(result.validator, /ast\.parse/);
+  assert.match(result.validator, /recorded_test_data\.json/);
+  assert.match(result.validator, /redacted/);
+  assert.match(result.validator, /Python syntax checked/);
+});
+\n\ntest("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
   const select = await generateFromFixture("playwright", "select");
   assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
   assert.match(select.code, /self\._resolve_select_locator\("India"\)\.select_option\(label="India"\)/);
