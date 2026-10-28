@@ -242,6 +242,37 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - Production deployment: inspect the live site and deployment status; a Vercel READY state alone is not a manual browser smoke test.
 - Installed-extension smoke test on your own Chrome profile: follow the steps above before relying on it.
 
+## ✦ Developer documentation hub
+
+The repository now includes implementation-focused guides and contributor workflows—not only the product overview.
+
+| Guide | What you’ll find |
+|---|---|
+| [Architecture and data flow](docs/ARCHITECTURE.md) | Component responsibilities, trust boundaries and pipeline overview |
+| [Recording JSON format](docs/RECORDING_FORMAT.md) | Schema fields, supported actions, compatibility and safe sample-data rules |
+| [Locator strategy](docs/LOCATOR_STRATEGY.md) | Locator priority, health states, review checklist and fail-safe behavior |
+| [Chrome extension test plan](docs/EXTENSION_TEST_PLAN.md) | 15 manual smoke scenarios, expected outcomes and evidence template |
+| [Project roadmap](docs/PROJECT_ROADMAP.md) | Completed foundations, open reliability work and acceptance criteria |
+| [Contributing guide](CONTRIBUTING.md) | Local setup, quality gates and pull-request checklist |
+| [Security policy](SECURITY.md) | Responsible use, data handling, vulnerability reporting and safe defaults |
+| [Synthetic recording example](examples/recording-example.json) | A portable sample journey for import, review and test development |
+
+### Try the sample recording
+
+1. Start the Studio with `npm start`.
+2. Import [`examples/recording-example.json`](examples/recording-example.json) from the dashboard.
+3. Review locator candidates and assertions before generating.
+4. Generate the project ZIP and inspect the output.
+5. To execute browser tests, use the generated README and local Python environment. The sample's URL assumes a local fixture server; adjust it to the fixture URL actually being served.
+
+### Project quality model
+
+- **Fast checks:** `npm test` validates generator behavior, schema rules, extension contracts and static assets.
+- **Browser checks:** GitHub Actions installs Chromium and runs Playwright against deterministic local fixtures.
+- **Generated-project checks:** CI executes a generated Playwright project and preflights the generated Selenium archive.
+- **Manual extension checks:** the installed-Chrome smoke test remains a separate task; simulation is not proof of a real browser installation.
+- **Honest reporting:** a generated ZIP is not a passing test, a successful CI run is not a manual smoke test, and deployment status is not a substitute for reviewing the live workflow.
+
 ## ✦ Roadmap
 
 - [x] Versioned recording format and bounded event normalization
@@ -262,7 +293,7 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Generated Selenium ZIP is extracted, preflighted, and Python-syntax validated in CI
 - [x] Regression coverage verifies structured JSON/HTML diagnostics, step timelines, bounded-run failure handling, screenshot indexing, and actionable repair suggestions for both generated engines
 - [ ] Manual installed-Chrome smoke test with captured screenshots/evidence
-- [x] Added a generated Playwright fixture journey for dynamic tabs, text/select/checkbox controls, submission, and state assertions (CI execution pending)
+- [x] Added a generated Playwright fixture journey for dynamic tabs, text/select/checkbox controls, submission, and state assertions (CI passed on 2026-10-28)
 ---
 
 <div align="center">
