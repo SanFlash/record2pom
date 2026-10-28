@@ -12,6 +12,8 @@
 
 [🚀 Open Studio](https://record2pom.vercel.app/) · [✨ GSAP 3D Motion Lab](https://record2pom.vercel.app/showcase/) · [🧪 Latest CI run](https://github.com/SanFlash/record2pom/actions) · [📦 Source code](https://github.com/SanFlash/record2pom)
 
+![JavaScript](https://img.shields.io/badge/JavaScript-ESM-f7df1e?style=for-the-badge&logo=javascript&logoColor=111111) ![GSAP](https://img.shields.io/badge/GSAP-3D%20MOTION-88ce02?style=for-the-badge&logo=greensock&logoColor=111111) ![Playwright](https://img.shields.io/badge/Playwright-E2E-2ead66?style=for-the-badge&logo=playwright&logoColor=white) ![Python](https://img.shields.io/badge/Python-POM-3776ab?style=for-the-badge&logo=python&logoColor=white) ![Chrome](https://img.shields.io/badge/Chrome-MV3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)
+
 </div>
 
 ---
@@ -44,6 +46,43 @@ The Motion Lab is the animated product experience—not a static mockup. Its GSA
 </div>
 
 > **GitHub rendering note:** GitHub README Markdown cannot execute arbitrary JavaScript or GSAP. The SVG banner provides an in-README visual, while the actual GSAP motion runs on the linked static webpage in [showcase/index.html](showcase/index.html). The showcase respects the reduced-motion browser preference and has responsive layouts.
+
+## ✦ Motion graphics gallery
+
+<div align="center">
+
+<img src="assets/readme-motion-grid.svg" alt="Animated six-module Record2POM capability grid" width="100%">
+
+**Capture** &nbsp; ✦ &nbsp; **Analyze** &nbsp; ✦ &nbsp; **Review** &nbsp; ✦ &nbsp; **Generate** &nbsp; ✦ &nbsp; **Execute** &nbsp; ✦ &nbsp; **Report**
+
+<img src="assets/readme-motion-pipeline.svg" alt="Animated Record2POM recording-to-test workflow" width="100%">
+
+</div>
+
+### ✧ Orbiting technology ecosystem
+
+<div align="center">
+
+<img src="assets/readme-motion-orbit.svg" alt="Animated Record2POM technology ecosystem with orbiting labels" width="100%">
+
+</div>
+
+### ✦ Animated feature icons
+
+<div align="center">
+
+| Icon | Module | Purpose |
+|:---:|---|---|
+| <img src="https://img.shields.io/badge/◉-6cf5e6?style=for-the-badge" alt="Capture icon"> | **Browser capture** | Record supported interactions and navigation |
+| <img src="https://img.shields.io/badge/⌖-a28bff?style=for-the-badge" alt="Locator icon"> | **Locator intelligence** | Compare accessible roles, labels, test IDs, and CSS candidates |
+| <img src="https://img.shields.io/badge/◇-6cf5e6?style=for-the-badge" alt="Safety icon"> | **Safety review** | Inspect redaction, ambiguous selectors, and missing assertions |
+| <img src="https://img.shields.io/badge/{}-a28bff?style=for-the-badge" alt="Code generation icon"> | **Code generation** | Build Python Page Objects and test files |
+| <img src="https://img.shields.io/badge/✓-6cf5e6?style=for-the-badge" alt="Execution icon"> | **Local execution** | Run generated tests in your own environment |
+| <img src="https://img.shields.io/badge/▤-a28bff?style=for-the-badge" alt="Reports icon"> | **Reports & artifacts** | Review JSON results, logs, and JUnit output |
+
+</div>
+
+> **README animation note:** GitHub can display animated SVG assets, but it does not execute arbitrary page JavaScript. These SVG graphics use lightweight SVG animation; full GSAP pointer interactions and scroll-linked effects live in the [interactive Motion Lab](https://record2pom.vercel.app/showcase/).
 
 ## ✦ What it does
 
@@ -167,6 +206,20 @@ The generated runner uses an argument array rather than shell interpolation and 
 - Authentication, CAPTCHA, MFA, and access controls are not bypassed.
 - Use the framework only on systems you own or have explicit permission to test.
 
+## ✦ Motion design system
+
+The live showcase and README visuals use a consistent dark-cosmic design language: midnight surfaces, cyan and violet energy lines, soft glow, glass panels, thin grid structures, and high-contrast labels.
+
+| Motion layer | Visual treatment | Intent |
+|---|---|---|
+| Ambient | Particle network, gradient orbs, moving grid | Create depth without distracting from content |
+| Hero | Sequenced reveal, orbiting core, floating status cards | Establish the automation identity |
+| Interaction | Pointer tilt, magnetic CTA, hover shimmer | Give interface elements responsive feedback |
+| Scroll | ScrollTrigger parallax and scrubbed workflow | Connect movement to page progression |
+| Status | Pulsing signal lights, animated progress and line traces | Make system concepts easy to scan |
+| README graphics | Animated SVG cards, workflow rails, orbit diagram | Make the project overview more visual in GitHub |
+| Accessibility | Reduced-motion fallback and semantic HTML | Keep essential content readable without motion |
+
 ## ✦ Motion implementation details
 
 The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D transforms. The main animation groups are the hero intro timeline, the ambient background orbs, the 3D core, floating status cards, the ticker, pointer-based parallax, and IntersectionObserver-driven section reveals. Motion is decorative: all navigation, copy, feature descriptions, and workflow details remain ordinary HTML content.
@@ -198,6 +251,8 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - [x] Motion Lab inline-script syntax, reduced-motion fallback, and interaction regression tests
 - [x] ScrollTrigger parallax, workflow motion, and background-tab performance handling
 - [x] Layered particle graphics, orbiting satellites, scan-ring animation, gradient motion, and floating feature icons
+- [x] Animated README capability grid, workflow pipeline, and technology orbit SVGs
+- [x] Icon-rich README module overview and expanded motion-design documentation
 - [ ] Real Chrome extension smoke-test checklist with recorded evidence
 - [ ] Locator uniqueness re-measurement and correction workflow
 - [ ] Broader fixture journeys for dynamic controls and navigation
