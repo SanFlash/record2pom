@@ -293,6 +293,7 @@ The repository now includes implementation-focused guides and contributor workfl
 - [x] Generated Selenium ZIP is extracted, preflighted, and Python-syntax validated in CI
 - [x] Regression coverage verifies structured JSON/HTML diagnostics, step timelines, bounded-run failure handling, screenshot indexing, and actionable repair suggestions for both generated engines
 - [ ] Failure-injection E2E tests verify missing and ambiguous locators fail safely, return non-zero exit codes, and preserve diagnostics plus screenshots (CI pending)
+- [x] Explainable locator ranking returns measured status, rank/score, reasons, and safe next-step recommendations; it never auto-rewrites a recorded action.
 - [ ] Manual installed-Chrome smoke test with captured screenshots/evidence
 - [x] Added a generated Playwright fixture journey for dynamic tabs, text/select/checkbox controls, submission, and state assertions (CI passed on 2026-10-28)
 ---
