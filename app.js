@@ -331,3 +331,28 @@ function checkReadiness(){
 }
 $("checkReadiness").onclick=checkReadiness;
 
+
+
+// Extension hand-off: import the stopped browser session directly and generate the POM project.
+window.addEventListener("record2pom:import-recording", event => {
+  try {
+    const normalized = window.Record2POMCore?.normalizeRecording(event.detail);
+    if (!normalized?.ok) throw Error(normalized?.errors?.join("; ") || "Recording could not be normalized.");
+    events = normalized.recording.events.map(e => {
+      if (e.target?.accessibleName && !e.target.name) e.target.name = e.target.accessibleName;
+      return e;
+    });
+    selected = events[0]?.id || null;
+    const targetUrl = normalized.recording.targetUrl || events.find(e => e.url)?.url || "";
+    if (targetUrl) $("url").value = targetUrl;
+    const hostname = (() => { try { return new URL(targetUrl).hostname.replace(/^www\\./, "").split(".")[0]; } catch { return "recorded"; } })();
+    $("name").value = (hostname + "-pom-tests").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60) || "recorded-pom-tests";
+    render();
+    const generatedButton = $("generate");
+    generatedButton.click();
+    msg("Imported " + events.length + " recorded action(s) and generated the POM project. Review the actions and download the ZIP.", "success");
+    $("download").scrollIntoView({behavior:"smooth", block:"center"});
+  } catch (error) {
+    msg("Automatic POM generation failed: " + error.message + ". You can still import the recording JSON manually.", "error");
+  }
+});
