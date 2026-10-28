@@ -491,7 +491,8 @@ test("extension integration handoff delivers a stopped recording and records Stu
   assert.equal(storage.record2pom_import_status_v1.eventCount, 1);
   assert.ok(storage.record2pom_import_status_v1.receivedAt);
 });
-\ntest("extension branding assets exist and all manifest references resolve", async () => {
+
+test("extension branding assets exist and all manifest references resolve", async () => {
   const manifest = JSON.parse(await readFile("extension/manifest.json", "utf8"));
   const popup = await readFile("extension/popup.html", "utf8");
   const assets = new Set([
