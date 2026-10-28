@@ -330,7 +330,15 @@ test("GSAP Motion Lab includes responsive 3D visuals and reduced-motion fallback
   assert.match(showcase, /perspective:\s*1200px/);
   assert.match(showcase, /pointermove/);
   assert.match(showcase, /IntersectionObserver/);
+  assert.match(showcase, /scrollProgress/);
+  assert.match(showcase, /tickerTween/);
+  assert.match(showcase, /document\.querySelectorAll\("\.feature"\)/);
+  assert.match(showcase, /cursor-glow/);
   assert.match(showcase, /Launch Record2POM/);
+  const readme = await readFile("README.md", "utf8");
+  assert.match(readme, /GSAP \+ 3D/);
+  assert.match(readme, /prefers-reduced-motion/);
+  assert.doesNotMatch(readme, /ZTICKZ/);
   assert.match(showcase, /@media\(max-width:560px\)/);
   assert.match(banner, /<animateTransform/);
   assert.match(visual, /Record2POM/);
