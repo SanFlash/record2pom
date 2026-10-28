@@ -29,4 +29,8 @@ test("Motion Lab includes responsive and interactive motion hooks", () => {
   assert.match(html, /pointermove/);
   assert.match(html, /tickerTween\.pause\(\)/);
   assert.match(html, /tickerTween\.resume\(\)/);
+  assert.match(html, /ScrollTrigger\.min\.js/);
+  assert.match(html, /scrollTrigger:\s*\{/);
+  assert.match(html, /visibilitychange/);
+  assert.match(html, /requestAnimationFrame/);
 });
