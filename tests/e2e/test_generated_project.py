@@ -256,3 +256,114 @@ def test_dashboard_generates_and_preflights_real_selenium_project(page: Page, tm
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=5)
+
+
+
+def test_generated_playwright_project_handles_dynamic_tabs_and_complete_form_journey(
+    page: Page, tmp_path: Path
+) -> None:
+    """Run a multi-step journey covering a dynamic tab, native controls and post-submit state."""
+    port = _free_port()
+    server = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    base = f"http://127.0.0.1:{port}"
+    fixture_url = base + FIXTURE_PATH
+    try:
+        _wait_for_server(base + "/index.html", server)
+        page.goto(base + "/index.html")
+        page.get_by_label("Project name").fill("dynamic-form-journey")
+        page.get_by_label("Target URL").fill(fixture_url)
+        recording = {
+            "schemaVersion": 1,
+            "targetUrl": fixture_url,
+            "events": [
+                {
+                    "id": "journey-details-tab", "sequence": 1, "kind": "click",
+                    "description": "Open dynamic details tab",
+                    "target": {"testId": "details-tab"},
+                    "locators": [{"strategy": "testId", "value": "details-tab", "matchCount": 1}],
+                },
+                {
+                    "id": "journey-tab-assertion", "sequence": 2, "kind": "assert-text",
+                    "description": "Verify dynamic tab outcome",
+                    "value": "Details selected", "assertion": {"expected": "Details selected"},
+                },
+                {
+                    "id": "journey-fill-name", "sequence": 3, "kind": "fill",
+                    "description": "Enter form name", "target": {"label": "Full name"},
+                    "locators": [{"strategy": "label", "value": "Full name", "matchCount": 1}],
+                    "value": "Journey User",
+                },
+                {
+                    "id": "journey-select-country", "sequence": 4, "kind": "select",
+                    "description": "Choose country", "target": {"label": "Country"},
+                    "locators": [{"strategy": "label", "value": "Country", "matchCount": 1}],
+                    "value": "India",
+                },
+                {
+                    "id": "journey-check-updates", "sequence": 5, "kind": "check",
+                    "description": "Enable updates", "target": {"label": "Send updates"},
+                    "locators": [{"strategy": "label", "value": "Send updates", "matchCount": 1}],
+                },
+                {
+                    "id": "journey-fill-notes", "sequence": 6, "kind": "fill",
+                    "description": "Enter optional notes", "target": {"label": "Notes"},
+                    "locators": [{"strategy": "label", "value": "Notes", "matchCount": 1}],
+                    "value": "Generated journey completed",
+                },
+                {
+                    "id": "journey-submit", "sequence": 7, "kind": "click",
+                    "description": "Submit completed form", "target": {"testId": "submit-form"},
+                    "locators": [{"strategy": "testId", "value": "submit-form", "matchCount": 1}],
+                },
+                {
+                    "id": "journey-submit-assertion", "sequence": 8, "kind": "assert-text",
+                    "description": "Verify submitted form output",
+                    "value": "Submitted: Journey User",
+                    "assertion": {"expected": "Submitted: Journey User"},
+                },
+            ],
+        }
+        recording_file = tmp_path / "dynamic-journey.json"
+        recording_file.write_text(json.dumps(recording), encoding="utf-8")
+        page.locator("#file").set_input_files(str(recording_file))
+        expect(page.locator("#count")).to_have_text("8")
+        page.get_by_role("button", name="Generate project").click()
+        with page.expect_download() as download_info:
+            page.get_by_role("button", name="Download ZIP").click()
+        archive_path = tmp_path / "dynamic-journey.zip"
+        download_info.value.save_as(archive_path)
+        project_dir = tmp_path / "dynamic-journey"
+        project_dir.mkdir()
+        with zipfile.ZipFile(archive_path) as archive:
+            assert len(archive.namelist()) == len(set(archive.namelist()))
+            assert all(not Path(name).is_absolute() and ".." not in Path(name).parts for name in archive.namelist())
+            archive.extractall(project_dir)
+        env = os.environ.copy()
+        env["BASE_URL"] = fixture_url
+        run = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q", "tests"],
+            cwd=project_dir, env=env, text=True, capture_output=True, timeout=90, check=False,
+        )
+        assert run.returncode == 0, (
+            "Generated dynamic journey failed.\n"
+            f"stdout:\n{run.stdout}\nstderr:\n{run.stderr}"
+        )
+        assert "1 passed" in run.stdout, run.stdout
+        data = json.loads((project_dir / "data" / "recorded_test_data.json").read_text(encoding="utf-8"))
+        assert len(data["steps"]) == 8
+        assert [step["kind"] for step in data["steps"]] == [
+            "click", "assert-text", "fill", "select", "check", "fill", "click", "assert-text"
+        ]
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait(timeout=5)
