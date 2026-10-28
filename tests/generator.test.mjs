@@ -467,7 +467,7 @@ test("extension integration handoff delivers a stopped recording and records Stu
   assert.equal(storage.record2pom_import_status_v1.ok, null);
   assert.equal(storage.record2pom_import_status_v1.eventCount, 1);
 
-  const completedListener = updateListeners.find(fn => fn !== undefined);
+  const completedListener = updateListeners.at(-1);
   assert.ok(completedListener, "handoff should register a tab-load listener");
   completedListener(42, {status:"complete"}, openedTab);
   for (let attempt = 0; attempt < 5 && !injected; attempt++) {
