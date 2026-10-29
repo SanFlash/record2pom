@@ -20,10 +20,10 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] CI extracts and validates the generated Selenium archive and checks Python syntax.
 - [x] Diagnostics regression coverage for JSON/HTML reports, step timelines, logs and repair hints.
 - [x] Multi-step journey covering dynamic tab state, text input, select, checkbox, submission and outcome assertion.
-- [ ] Failure-injection E2E coverage for missing/ambiguous locators, non-zero exit status, step diagnostics and screenshots (CI pending).
+- [x] Failure-injection E2E coverage for missing/ambiguous locators, non-zero exit status, step diagnostics and screenshots (CI passed).
 - [ ] Per-step screenshot capture with secret-aware evidence handling.
 - [x] Explainable locator candidate rankings include measured match status, strategy score, reasons, and explicit recommendations without silently changing test meaning.
-- [ ] Per-run evidence index with normalized relative paths and artifact integrity metadata.
+- [x] Per-run evidence index with normalized relative paths and artifact integrity metadata; CI verifies indexed paths, sizes and SHA-256 hashes.
 - [ ] Installed Chrome smoke-test evidence collected and reviewed.
 
 ## Extension experience
@@ -32,7 +32,8 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] Studio handoff with import acknowledgement state.
 - [x] Retry affordance for a failed or stalled handoff.
 - [ ] Manual Chrome validation across a clean profile and supported Chromium version.
-- [ ] Document and test behavior when the target tab navigates or the extension reloads.
+- [x] Navigation capture rechecks persisted session state to avoid page-initialization races; automated tests cover duplicate notifications and paused sessions.
+- [ ] Manual validation of navigation and session recovery in installed Chrome (automated simulation is not a substitute).
 - [ ] Expand accessibility and keyboard checks for the popup.
 
 ## Developer experience
