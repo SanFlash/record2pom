@@ -146,7 +146,7 @@
       radio: "input[type=radio],[role=radio]"
     };
     if (info.role && info.name && selectors[info.role]) {
-      const count = Array.from(document.querySelectorAll(selectors[info.role]))
+      const count = Array.from(document.querySelectorAll("*"))
         .filter(item => roleFor(item) === info.role && accessibleName(item) === info.name).length;
       output.push({ strategy: "role", value: info.role, name: info.name, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
     }
