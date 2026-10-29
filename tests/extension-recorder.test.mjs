@@ -82,7 +82,7 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
   await Promise.resolve();
   const fire = (type, event) => (documentListeners[type] || []).forEach(fn => fn(event));
   const control = message => runtimeListeners.forEach(fn => fn(message));
-  return { sent, fire, control, documentListeners, window };
+  return { sent, fire, control, documentListeners, window, setSession(value) { session = value; } };
 }
 
 test("recorder installs listeners once and stays idle until recording starts", async () => {
@@ -161,6 +161,7 @@ test("recorder reports navigation only while recording and not paused", async ()
   assert.ok(!event.url.includes("secret123"));
   assert.ok(!event.url.includes("hashsecret"));
   h.control({ type: "R2POM_CONTROL", recording: true, paused: true });
+  h.setSession({ recording: true, paused: true });
   h.control({ type: "R2POM_NAVIGATION", url: "https://fixture.test/paused" });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.sent.filter(m => m.type === "R2POM_EVENT").length, 1);
