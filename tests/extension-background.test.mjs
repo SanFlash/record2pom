@@ -28,7 +28,7 @@ function harness() {
   const source = readFile("extension/background.js", "utf8");
   return source.then((script) => {
     vm.runInNewContext(script, { chrome, Date, Error, console, URL, URLSearchParams });
-    async function dispatch(message, sender = { tab: { url: "https://example.test/" } }) {
+    async function dispatch(message, sender = { tab: { id: 7, url: "https://example.test/" } }) {
       return await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("Background message timed out")), 1000);
         const keepAlive = messages[0](message, sender, (response) => {
