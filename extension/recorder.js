@@ -7,6 +7,10 @@
 
   let recording = false;
   let paused = false;
+  let inspectMode = false;
+  let inspectOverlay = null;
+  let inspectedElement = null;
+  let previousOutline = "";
   const clean = value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 180);
   const visible = element => !!(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
 
@@ -36,11 +40,56 @@
     if (element.tagName === "TEXTAREA") return "textbox";
     if (element.tagName === "SELECT") return "combobox";
     if (element.tagName === "SUMMARY") return "button";
+    if (element.tagName === "OPTION") return "option";
+    if (element.hasAttribute("tabindex") || element.hasAttribute("onclick")) return "button";
+    try { if (getComputedStyle(element).cursor === "pointer") return "button"; } catch { /* detached elements */ }
     return "";
   }
 
   function accessibleName(element) {
-    return label(element) || clean(element.innerText || element.textContent) || clean(element.getAttribute("title"));
+    return label(element) || clean(element.getAttribute("title")) ||
+      clean(element.getAttribute("alt")) || clean(element.innerText || element.textContent) ||
+      clean(element.getAttribute("value"));
+  }
+
+  function isInteractive(element) {
+    if (!(element instanceof Element)) return false;
+    if (element.matches("button,a[href],input,textarea,select,summary,[role],[tabindex],[onclick],[data-testid],[data-test],[data-qa]")) return true;
+    try { return getComputedStyle(element).cursor === "pointer"; } catch { return false; }
+  }
+
+  function stableCss(element) {
+    if (!(element instanceof Element)) return "";
+    const unique = selector => {
+      try { return document.querySelectorAll(selector).length === 1; } catch { return false; }
+    };
+    if (element.id) {
+      const idSelector = "#" + CSS.escape(element.id);
+      if (unique(idSelector)) return idSelector;
+    }
+    for (const attr of ["data-testid", "data-test", "data-qa", "name", "aria-label"]) {
+      const value = element.getAttribute(attr);
+      if (!value) continue;
+      const selector = "[" + attr + "=" + JSON.stringify(value) + "]";
+      if (unique(selector)) return selector;
+    }
+    const parts = [];
+    let node = element;
+    while (node && node instanceof Element && node !== document.documentElement && parts.length < 6) {
+      let part = node.tagName.toLowerCase();
+      const classes = Array.from(node.classList || []).filter(c => c && c.length < 48 && !/(^|[-_])[a-f0-9]{8,}$/i.test(c)).slice(0, 2);
+      if (classes.length) part += classes.map(c => "." + CSS.escape(c)).join("");
+      let candidate = [part, ...parts].join(" > ");
+      if (unique(candidate)) return candidate;
+      const siblings = node.parentElement ? Array.from(node.parentElement.children).filter(item => item.tagName === node.tagName) : [];
+      if (siblings.length > 1) part += ":nth-of-type(" + (siblings.indexOf(node) + 1) + ")";
+      parts.unshift(part);
+      node = node.parentElement;
+      candidate = parts.join(" > ");
+      if (unique(candidate)) return candidate;
+    }
+    const fallback = parts.join(" > ");
+    return unique(fallback) ? fallback : "";
   }
 
   function target(element) {
@@ -59,7 +108,9 @@
       autocomplete: element.getAttribute("autocomplete") || "",
       visible: visible(element),
       enabled: !element.disabled,
-      css: element.id ? "#" + CSS.escape(element.id) : ""
+      css: stableCss(element),
+      href: element.getAttribute("href") || "",
+      title: element.getAttribute("title") || ""
     };
   }
 
@@ -80,8 +131,14 @@
         output.push({ strategy: "css", value: selector, matchCount: count, confidence: count === 1 ? "high" : "low" });
       }
     }
+    if (info.fieldName) {
+      const selector = "[name=" + JSON.stringify(info.fieldName) + "]";
+      let count = 0;
+      try { count = document.querySelectorAll(selector).length; } catch { /* ignore invalid attribute values */ }
+      output.push({ strategy: "css", value: selector, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
+    }
     const selectors = {
-      button: "button,input[type=button],input[type=submit],input[type=reset],[role=button]",
+      button: "button,input[type=button],input[type=submit],input[type=reset],[role=button],[tabindex],[onclick]",
       link: "a[href],[role=link]",
       textbox: "input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),textarea,[role=textbox]",
       combobox: "select,[role=combobox]",
@@ -101,11 +158,20 @@
       const count = Array.from(document.querySelectorAll("[placeholder]")).filter(item => item.getAttribute("placeholder") === info.placeholder).length;
       output.push({ strategy: "placeholder", value: info.placeholder, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
     }
-    if (info.css) {
+    if (info.href) {
+      const selector = "a[href=" + JSON.stringify(info.href) + "]";
+      let count = 0;
+      try { count = document.querySelectorAll(selector).length; } catch { /* ignore malformed href selector */ }
+      output.push({ strategy: "css", value: selector, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
+    }
+    if (info.css && !output.some(item => item.strategy === "css" && item.value === info.css)) {
       let count = 0;
       try { count = document.querySelectorAll(info.css).length; } catch { /* malformed selector is not emitted as a verified locator */ }
-      output.push({ strategy: "css", value: info.css, matchCount: count, confidence: count === 1 ? "high" : "low" });
+      output.push({ strategy: "css", value: info.css, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
     }
+    const priority = { testId: 0, role: 1, label: 2, placeholder: 3, css: 4 };
+    output.sort((a, b) => Number(b.matchCount === 1) - Number(a.matchCount === 1) ||
+      (priority[a.strategy] ?? 9) - (priority[b.strategy] ?? 9));
     return output;
   }
 
@@ -169,8 +235,8 @@
     if (!recording || paused) return;
     const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
     const element = path.find(item => item instanceof Element && item.matches(
-      "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary"
-    ));
+      "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary,[tabindex]"
+    )) || path.find(item => item instanceof Element && isInteractive(item));
     if (element) {
       const info = target(element);
       emit("click", element, { description: "Click " + (info.name || info.text || info.tagName) });
@@ -197,6 +263,61 @@
     emit(kind, element, extra);
   }, true);
 
+  function clearInspectHighlight() {
+    if (inspectedElement) inspectedElement.style.outline = previousOutline;
+    inspectedElement = null;
+    if (inspectOverlay) inspectOverlay.remove();
+    inspectOverlay = null;
+  }
+
+  function startInspectMode() {
+    clearInspectHighlight();
+    inspectMode = true;
+    const banner = document.createElement("div");
+    banner.id = "record2pom-inspect-banner";
+    banner.textContent = "Record2POM Inspect: click the element whose locator needs repair · Esc to cancel";
+    Object.assign(banner.style, {position:"fixed",top:"8px",left:"8px",zIndex:"2147483647",padding:"10px 14px",background:"#0b1020",color:"#a5f3fc",border:"2px solid #22d3ee",borderRadius:"8px",font:"bold 12px/1.4 system-ui,sans-serif",boxShadow:"0 4px 24px #0008",pointerEvents:"none"});
+    (document.documentElement || document.body).appendChild(banner);
+    inspectOverlay = banner;
+  }
+
+  function finishInspectMode(element) {
+    if (!inspectMode || !(element instanceof Element)) return;
+    const chosen = element.closest("button,a[href],input,textarea,select,summary,[role],[tabindex],[onclick],[data-testid],[data-test],[data-qa]") || element;
+    const info = target(chosen);
+    const candidates = locators(chosen);
+    inspectMode = false;
+    clearInspectHighlight();
+    try {
+      chrome.runtime.sendMessage({type:"R2POM_INSPECT_RESULT", target:info, locators:candidates, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
+    } catch { /* extension may be reloading */ }
+  }
+
+  document.addEventListener("mousemove", event => {
+    if (!inspectMode || !(event.target instanceof Element)) return;
+    const element = event.target;
+    if (inspectedElement && inspectedElement !== element) inspectedElement.style.outline = previousOutline;
+    if (inspectedElement !== element) previousOutline = element.style.outline || "";
+    inspectedElement = element;
+    element.style.outline = "3px solid #22d3ee";
+  }, true);
+
+  document.addEventListener("click", event => {
+    if (!inspectMode) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    finishInspectMode(event.target);
+  }, true);
+
+  document.addEventListener("keydown", event => {
+    if (inspectMode && event.key === "Escape") {
+      inspectMode = false;
+      clearInspectHighlight();
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
   document.addEventListener("keydown", event => {
     if (recording && !paused && event.key === "Enter" && event.target instanceof Element) {
       emit("press", event.target, { value: "Enter", description: "Press Enter" });
@@ -205,6 +326,10 @@
 
   let lastNavigationUrl = "";
   chrome.runtime.onMessage.addListener(message => {
+    if (message?.type === "R2POM_INSPECT_MODE") {
+      startInspectMode();
+      return;
+    }
     if (message?.type === "R2POM_CONTROL") {
       recording = !!message.recording;
       paused = !!message.paused;
