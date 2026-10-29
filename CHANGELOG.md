@@ -4,6 +4,9 @@ Notable project changes are documented here. Entries describe repository changes
 
 ## Unreleased
 
+- Improve automatic locator discovery for custom controls using semantic names, associated labels, placeholders, test attributes, names, IDs, link targets, and measured CSS paths.
+- Add extension **Inspect & Repair Locator** mode to select an element in the page and attach its locator candidates to a recorded action that needs repair.
+
 - Scope extension recording events and navigation to the tab where the recording started.
 - Add one-command local validation with clear browser-prerequisite reporting.
 - Add versioned Chrome extension ZIP packaging with archive integrity checks and a SHA-256 sidecar.
