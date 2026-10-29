@@ -41,7 +41,7 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] Architecture, recording format, locator strategy and extension smoke-test documentation.
 - [x] Synthetic sample recording checked into the repository.
 - [x] Contributor and security policies.
-- [ ] Add a one-command validation script that runs fast checks and reports skipped browser prerequisites clearly.
+- [x] Add a one-command validation script (`npm run validate`) that runs fast checks and reports skipped browser prerequisites clearly; CI confirms the fast and browser E2E suites pass.
 - [ ] Publish a tagged release with a versioned extension ZIP and checksums.
 - [ ] Add a changelog and release notes policy.
 
