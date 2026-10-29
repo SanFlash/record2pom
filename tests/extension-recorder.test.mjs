@@ -85,13 +85,13 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
   return { sent, fire, control, documentListeners, window, setSession(value) { session = value; } };
 }
 
-test("recorder installs listeners once and stays idle until recording starts", async () => {
+test("recorder installs recording and inspect listeners once and stays idle until recording starts", async () => {
   const button = new FakeElement("button", { "aria-label": "Continue" });
   const h = await recorderHarness({ elements: [button] });
   h.fire("click", { composedPath: () => [button], target: button });
   assert.equal(h.sent.filter(m => m.type === "R2POM_EVENT").length, 0);
   assert.equal(h.window.__record2pomInstalled, true);
-  assert.equal(h.documentListeners.click.length, 1);
+  assert.equal(h.documentListeners.click.length, 2, "one click listener records actions and one handles Inspect mode");
 });
 
 test("recorder captures clicks with locator confidence metadata while active", async () => {
