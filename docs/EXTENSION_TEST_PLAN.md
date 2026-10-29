@@ -24,7 +24,10 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 | EXT-13 | Empty session | Generate is rejected without opening a project | Popup error state |
 | EXT-14 | Clear session | Events and active state are reset | Popup count/state |
 | EXT-15 | Reload extension or browser | Persisted session behavior is understood and stable | Before/after session check |
-| EXT-16 | Navigate to a new page while recording | Navigation is captured once after the new page initializes; paused sessions remain unchanged | Exported event sequence and sanitized URL assertions |\n| EXT-17 | Studio tab finishes loading before handoff listener is ready | Handoff checks the current tab state and still delivers the saved recording exactly once | Automated fast-load regression test |\n| EXT-18 | Studio emits repeated completed-navigation notifications | A successful handoff is not injected a second time | Automated idempotency regression test |
+| EXT-16 | Navigate to a new page while recording | Navigation is captured once after the new page initializes; paused sessions remain unchanged | Exported event sequence and sanitized URL assertions 
+| EXT-17 | Studio tab finishes loading before handoff listener is ready | Handoff checks the current tab state and still delivers the saved recording exactly once | Automated fast-load regression test 
+| EXT-18 | Studio emits repeated completed-navigation notifications | A successful handoff is not injected a second time | Automated idempotency regression test |
+| EXT-19 | Inspect and repair a missing locator | Enter a specific action number (e.g. 24), select the actual control, then confirm the selected action has locator candidates in exported JSON | Repaired JSON plus popup status screenshot |
 
 ## Manual smoke-test procedure
 
@@ -35,9 +38,10 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 5. Start recording, click the Details tab, fill the Full name field with a synthetic value, select a country, toggle Send updates, and submit.
 6. Pause and resume once. Verify events recorded while paused are absent.
 7. Stop the session. Verify the popup transfer state, open Studio, and inspect the imported action list.
-8. Generate a project and verify that the ZIP downloads. Generation alone does not mean the generated tests passed.
-9. Export a recording JSON and inspect it for secrets, personal information, browser-specific paths, or unintended values.
-10. Save evidence under a dated local folder with Chrome version, extension version, OS, result and any issue ID. Redact sensitive page content before sharing.
+8. For a missing locator, reopen the popup, enter the affected action number (e.g. 24), choose **Inspect & Repair Locator**, click the actual target element, reopen the popup and export the repaired JSON. Re-import it into Studio and confirm the selected action now has locator candidates.
+9. Generate a project and verify that the ZIP downloads. Generation alone does not mean the generated tests passed.
+10. Export a recording JSON and inspect it for secrets, personal information, browser-specific paths, or unintended values.
+11. Save evidence under a dated local folder with Chrome version, extension version, OS, result and any issue ID. Redact sensitive page content before sharing.
 
 ## Popup keyboard and accessibility checks
 
