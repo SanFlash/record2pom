@@ -18,7 +18,9 @@ $("addBtn").onclick=()=>{let k=(prompt("Action type: "+kinds.join(", "),"click")
 $("importBtn").onclick=()=>$("file").click();$("file").onchange=async ev=>{const f=ev.target.files?.[0];if(!f)return;try{const d=JSON.parse(await f.text()),normalized=window.Record2POMCore?.normalizeRecording(d);if(!normalized)throw Error("Recording core is unavailable; reload the dashboard.");if(!normalized.ok)throw Error(normalized.errors.join("\n"));events=normalized.recording.events.map(e=>{if(e.target?.accessibleName&&!e.target.name)e.target.name=e.target.accessibleName;return e;});selected=events[0]?.id||null;if(normalized.recording.targetUrl)$("url").value=normalized.recording.targetUrl;render();msg("Imported "+events.length+" event(s) into the canonical recording format. Review actions and locators before generation.","success");}catch(e){msg("Import failed: "+e.message,"error");}finally{$("file").value="";}};
 $("engine").onchange=()=>{$("framework").value=$("engine").value==="playwright"?"pytest":"unittest";};
 function locator(e,engine){
-  const t=e.target||{},ranked=window.Record2POMCore?window.Record2POMCore.rankLocators(e.locators).filter(x=>["testId","role","label","placeholder","css"].includes(x.strategy)):(e.locators||[]);
+  const t=e.target||{},source=Array.isArray(e.locators)?[...e.locators]:[];
+  if(e.selectedLocator&&typeof e.selectedLocator==="object")source.unshift({...e.selectedLocator,selected:true});
+  const ranked=window.Record2POMCore?window.Record2POMCore.rankLocators(source).filter(x=>["testId","role","label","placeholder","css"].includes(x.strategy)):source;
   const candidates=[...ranked];
   const add=(strategy,value,name)=>{if(value)candidates.push({strategy,value,...(name?{name}:{})});};
   add("testId",t.testId);add("role",t.role,t.name);add("label",t.label);add("placeholder",t.placeholder);add("css",t.css);add("text",t.text);
