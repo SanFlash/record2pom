@@ -30,3 +30,5 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+#inspectRepair{grid-column:1 / -1;border-color:#176a83;background:#102734;color:#a5f3fc}#inspectRepair:disabled{opacity:.35}
