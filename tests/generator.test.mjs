@@ -11,6 +11,11 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   const vercel = JSON.parse(await readFile("vercel.json", "utf8"));
   const fixture = await readFile("fixtures/universal-demo/index.html", "utf8");
   assert.equal(pkg.scripts.test, "node --test");
+  assert.equal(pkg.scripts.validate, "node scripts/validate.mjs");
+  assert.match(readme, /npm run validate/);
+  assert.match(readme, /docs\/LOCAL_VALIDATION\.md/);
+  const validatorSyntax = spawnSync(process.execPath, ["--check", "scripts/validate.mjs"], {encoding:"utf8"});
+  assert.equal(validatorSyntax.status, 0, validatorSyntax.stderr);
   assert.match(readme, /Playwright \+ Python \+ pytest/);
   assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
   assert.equal(manifest.manifest_version, 3);
