@@ -45,11 +45,13 @@
         timestamp: typeof raw.timestamp === "string" ? raw.timestamp : null,
         url: typeof raw.url === "string" ? raw.url.slice(0, 2000) : "",
         target,
+        ...(raw.selectedLocator && typeof raw.selectedLocator === "object" ? {selectedLocator:{strategy:String(raw.selectedLocator.strategy||"").slice(0,40),value:String(raw.selectedLocator.value||"").slice(0,1000),...(raw.selectedLocator.name!=null?{name:String(raw.selectedLocator.name).slice(0,300)}:{}),...(Number.isFinite(raw.selectedLocator.matchCount)?{matchCount:raw.selectedLocator.matchCount}:{}),selected:true}} : {}),
         locators: candidates.filter(c => c && typeof c === "object").map(c => ({
           strategy:String(c.strategy || c.type || "").slice(0, 40),
           value:String(c.value || c.selector || "").slice(0, 1000),
           ...(c.name != null ? {name:String(c.name).slice(0, 300)} : {}),
-          ...(Number.isFinite(c.matchCount) && c.matchCount >= 0 ? {matchCount:c.matchCount} : {})
+          ...(Number.isFinite(c.matchCount) && c.matchCount >= 0 ? {matchCount:c.matchCount} : {}),
+          ...(c.selected === true ? {selected:true} : {})
         })).filter(c => c.strategy && c.value),
         source: String(raw.source || "import").slice(0, 80),
         redacted: isRedacted
@@ -71,8 +73,8 @@
   function rankLocators(candidates) {
     return (Array.isArray(candidates) ? candidates : []).filter(c => c && typeof c === "object" && c.value != null && String(c.value).length > 0)
       .map((c, index) => ({...c, _index:index, _weight:STRATEGY_WEIGHT[c.strategy] || 0,
-        _unique: c.matchCount === 1, _ambiguous: typeof c.matchCount === "number" && c.matchCount > 1}))
-      .sort((a,b) => Number(b._unique)-Number(a._unique) || b._weight-a._weight || a._index-b._index);
+        _selected: c.selected === true, _unique: c.matchCount === 1, _ambiguous: typeof c.matchCount === "number" && c.matchCount > 1}))
+      .sort((a,b) => Number(b._selected)-Number(a._selected) || Number(b._unique)-Number(a._unique) || b._weight-a._weight || a._index-b._index);
   }
   function assessLocator(candidate) {
     if (!candidate) return {status:"missing", message:"No usable locator candidate."};
