@@ -30,6 +30,7 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 
 - [x] Start, pause/resume, stop, clear and JSON export controls.
 - [x] Studio handoff with import acknowledgement state.
+- [x] Recover Studio delivery when the tab has already completed loading; guard concurrent and duplicate delivery attempts with regression tests.
 - [x] Retry affordance for a failed or stalled handoff.
 - [ ] Manual Chrome validation across a clean profile and supported Chromium version.
 - [x] Navigation capture rechecks persisted session state to avoid page-initialization races; automated tests cover duplicate notifications and paused sessions.
