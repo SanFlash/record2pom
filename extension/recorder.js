@@ -8,6 +8,7 @@
   let recording = false;
   let paused = false;
   let inspectMode = false;
+  let inspectSequence = null;
   let inspectOverlay = null;
   let inspectedElement = null;
   let previousOutline = "";
@@ -275,9 +276,10 @@
     inspectOverlay = null;
   }
 
-  function startInspectMode() {
+  function startInspectMode(sequence) {
     clearInspectHighlight();
     inspectMode = true;
+    inspectSequence = Number.isInteger(sequence) && sequence > 0 ? sequence : null;
     const banner = document.createElement("div");
     banner.id = "record2pom-inspect-banner";
     banner.textContent = "Record2POM Inspect: click the element whose locator needs repair · Esc to cancel";
@@ -297,7 +299,7 @@
     inspectMode = false;
     clearInspectHighlight();
     try {
-      chrome.runtime.sendMessage({type:"R2POM_INSPECT_RESULT", target:info, locators:candidates, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
+      chrome.runtime.sendMessage({type:"R2POM_INSPECT_RESULT", sequence:inspectSequence, target:info, locators:candidates, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
     } catch { /* extension may be reloading */ }
   }
 
@@ -335,7 +337,7 @@
   let lastNavigationUrl = "";
   chrome.runtime.onMessage.addListener(message => {
     if (message?.type === "R2POM_INSPECT_MODE") {
-      startInspectMode();
+      startInspectMode(message.sequence);
       return;
     }
     if (message?.type === "R2POM_CONTROL") {
