@@ -273,7 +273,7 @@ The repository now includes implementation-focused guides and contributor workfl
 | [Architecture and data flow](docs/ARCHITECTURE.md) | Component responsibilities, trust boundaries and pipeline overview |
 | [Recording JSON format](docs/RECORDING_FORMAT.md) | Schema fields, supported actions, compatibility and safe sample-data rules |
 | [Locator strategy](docs/LOCATOR_STRATEGY.md) | Locator priority, health states, review checklist and fail-safe behavior |
-| [Chrome extension test plan](docs/EXTENSION_TEST_PLAN.md) | 15 manual smoke scenarios, expected outcomes and evidence template |
+| [Chrome extension test plan](docs/EXTENSION_TEST_PLAN.md) | manual smoke scenarios, expected outcomes and evidence template |
 | [Project roadmap](docs/PROJECT_ROADMAP.md) | Completed foundations, open reliability work and acceptance criteria |
 | [Release process](docs/RELEASE_PROCESS.md) | Versioned extension packaging, checksum verification and release gates |
 | [Changelog](CHANGELOG.md) | User-visible changes and known release notes |
