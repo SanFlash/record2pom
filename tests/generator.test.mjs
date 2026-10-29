@@ -825,7 +825,7 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   const popupScript = await readFile("extension/popup.js", "utf8");
 
   for (const source of [recorder, background, popupScript]) {
-    const check = spawnSync(process.execPath, ["--check", "--input-type=commonjs"], {input:source, encoding:"utf8"});
+    const check = spawnSync(process.execPath, ["--check"], {input:source, encoding:"utf8"});
     // Browser globals are only referenced at runtime; Node's parser still validates JavaScript syntax.
     assert.equal(check.status, 0, check.stderr);
   }
