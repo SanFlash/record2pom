@@ -39,6 +39,20 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 9. Export a recording JSON and inspect it for secrets, personal information, browser-specific paths, or unintended values.
 10. Save evidence under a dated local folder with Chrome version, extension version, OS, result and any issue ID. Redact sensitive page content before sharing.
 
+## Popup keyboard and accessibility checks
+
+Use these checks with the extension popup open in a clean Chrome profile:
+
+1. Press `Tab` from the browser toolbar and confirm focus reaches visible controls in a logical order. Use `Shift+Tab` to move backwards.
+2. Confirm every focused button and link has a high-contrast visible focus indicator that is not clipped.
+3. Use `Enter` or `Space` to activate focused buttons; confirm disabled Pause/Stop controls cannot be activated while idle.
+4. Confirm the recording state, active-tab target, captured-action count, session-start time, Studio transfer state, and status/error messages are exposed as text and announced politely by assistive technology.
+5. Confirm Pause/Resume updates its accessible name and pressed state.
+6. Enable the operating system/browser reduced-motion preference and confirm the popup remains usable without non-essential transitions.
+7. Confirm the Setup & limitations link opens a new tab without granting that page access to the opener window.
+
+Automated source-contract tests check the semantic labels, live regions, focus-visible styles, reduced-motion rules, and link safety attributes. They do not replace manual keyboard and screen-reader checks in Chrome.
+
 ## Automated coverage
 
 GitHub Actions validates the Manifest V3 JSON, required extension assets, icon dimensions, branding, packaging and the Node message/session integration tests. Browser E2E tests use Playwright against the Studio and generated project. Navigation regression tests also simulate a delayed initial session read, duplicate completion notifications, URL-secret redaction, and paused-state behavior. These checks are valuable but do not replace the manual installed-extension scenarios above.
