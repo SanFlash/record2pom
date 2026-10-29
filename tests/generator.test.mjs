@@ -836,6 +836,8 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   assert.match(recorder, /R2POM_INSPECT_RESULT/);
   assert.match(recorder, /if \(inspectMode \|\| !recording \|\| paused\) return/);
   assert.match(background, /R2POM_INSPECT_LAST_MISSING/);
+  assert.match(background, /const requested=Number\.isInteger\(m\.sequence\)/);
+  assert.match(popup, /id="inspectSequence"/);
   assert.match(background, /locatorRepairSource="inspect-mode"/);
   assert.match(background, /record2pom_inspect_status_v1/);
   assert.match(popup, /id="inspectRepair"/);
