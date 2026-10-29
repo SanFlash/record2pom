@@ -791,3 +791,29 @@ test("versioned extension packaging is wired, integrity-checked and documented",
   assert.match(changelog, /Unreleased/);
   assert.match(readme, /Chrome extension packaging/);
 });
+
+test("extension popup exposes keyboard focus, accessible control names and live state regions", async () => {
+  const html = await readFile("extension/popup.html", "utf8");
+  const css = await readFile("extension/popup.css", "utf8");
+  const js = await readFile("extension/popup.js", "utf8");
+
+  assert.match(html, /<html lang="en">/);
+  assert.match(html, /id="state"[^>]*role="status"/);
+  assert.match(html, /id="target"[^>]*aria-live="polite"/);
+  assert.match(html, /id="count"[^>]*aria-live="polite"/);
+  assert.match(html, /id="duration"[^>]*aria-live="polite"/);
+  assert.match(html, /id="message" role="status" aria-live="polite"/);
+  assert.match(html, /aria-label="Start recording on the active tab"/);
+  assert.match(html, /aria-label="Pause or resume recording"/);
+  assert.match(html, /aria-label="Stop recording"/);
+  assert.match(html, /aria-label="Generate a Page Object Model project"/);
+  assert.match(html, /aria-label="Export recording as JSON"/);
+  assert.match(html, /aria-label="Clear saved recording"/);
+  assert.match(html, /aria-label="Studio transfer status"/);
+  assert.match(html, /rel="noopener noreferrer"/);
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /prefers-reduced-motion/);
+  assert.match(js, /setAttribute\("aria-label"/);
+  assert.match(js, /setAttribute\("aria-pressed"/);
+  assert.match(js, /Captured actions:/);
+});
