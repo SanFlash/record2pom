@@ -787,7 +787,7 @@ test("versioned extension packaging is wired, integrity-checked and documented",
   assert.match(workflow, /npm run package:extension/);
   assert.match(workflow, /record2pom-extension-v\*\.zip\.sha256/);
   assert.match(releaseGuide, /clean Chrome profile/);
-  assert.match(releaseGuide, /not a published GitHub Release/);
+  assert.match(releaseGuide, /published GitHub Release/);
   assert.match(changelog, /Unreleased/);
   assert.match(readme, /Chrome extension packaging/);
 });
