@@ -834,6 +834,7 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   assert.match(recorder, /function isInteractive\(element\)/);
   assert.match(recorder, /R2POM_INSPECT_MODE/);
   assert.match(recorder, /R2POM_INSPECT_RESULT/);
+  assert.match(recorder, /sequence:inspectSequence/);
   assert.match(recorder, /if \(inspectMode \|\| !recording \|\| paused\) return/);
   assert.match(background, /R2POM_INSPECT_LAST_MISSING/);
   assert.match(background, /const requested=Number\.isInteger\(m\.sequence\)/);
