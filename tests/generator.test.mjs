@@ -718,3 +718,49 @@ test("extension navigation capture survives session-read races and deduplicates 
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(captured.length, 1, "navigation while paused must not be recorded");
 });
+
+
+test("extension scopes recording events and navigation to the tab where recording started", async () => {
+  const storage = {};
+  let messageListener;
+  let updatedListener;
+  const sentNavigationMessages = [];
+  const chrome = {
+    runtime: {
+      onInstalled: { addListener() {} },
+      onMessage: { addListener(fn) { messageListener = fn; } }
+    },
+    storage: {
+      local: {
+        async get(key) { return {[key]: storage[key]}; },
+        async set(value) { Object.assign(storage, value); }
+      }
+    },
+    tabs: {
+      onUpdated: { addListener(fn) { updatedListener = fn; } },
+      async sendMessage(tabId, message) { sentNavigationMessages.push({tabId, message}); }
+    }
+  };
+  vm.runInNewContext(await readFile("extension/background.js", "utf8"), {chrome, console, Date, JSON, Error, String, RegExp, URL, URLSearchParams});
+  const send = (message, tabId) => new Promise(resolve => {
+    messageListener(message, {tab:{id:tabId, url:"https://fixture.test"}}, resolve);
+  });
+
+  const started = await send({type:"R2POM_START", url:"https://fixture.test", tabId:7}, 0);
+  assert.equal(started.ok, true);
+  assert.equal(started.session.targetTabId, 7);
+
+  const unrelated = await send({type:"R2POM_EVENT", event:{kind:"click", description:"other tab"}}, 8);
+  assert.equal(unrelated.ok, false);
+  assert.match(unrelated.error, /outside the active recording/);
+  const expected = await send({type:"R2POM_EVENT", event:{kind:"click", description:"recording tab"}}, 7);
+  assert.equal(expected.ok, true);
+  assert.equal((await send({type:"R2POM_GET_SESSION"}, 7)).session.events.length, 1);
+
+  await updatedListener(8, {status:"complete"}, {url:"https://unrelated.test/"});
+  assert.equal(sentNavigationMessages.length, 0, "navigation in unrelated tabs must not enter the recording");
+  await updatedListener(7, {status:"complete"}, {url:"https://fixture.test/next"});
+  assert.equal(sentNavigationMessages.length, 1);
+  assert.equal(sentNavigationMessages[0].tabId, 7);
+  assert.equal(sentNavigationMessages[0].message.type, "R2POM_NAVIGATION");
+});
