@@ -658,3 +658,58 @@ test("generated runners include structured diagnostics, step timelines and actio
     assert.match(result.runner, /JUnit parsing/);
   }
 });
+
+
+test("extension navigation capture survives session-read races and deduplicates repeated completion events", async () => {
+  const pendingInitialRead = new Promise(() => {});
+  let messageListener;
+  let session = {recording:true, paused:false, targetUrl:"https://fixture.test/start", events:[]};
+  let sessionReads = 0;
+  const captured = [];
+  const chrome = {
+    runtime: {
+      onMessage: { addListener(fn) { messageListener = fn; } },
+      sendMessage(message) {
+        if (message.type === "R2POM_GET_SESSION") {
+          sessionReads++;
+          return sessionReads === 1
+            ? pendingInitialRead
+            : Promise.resolve({ok:true, session});
+        }
+        if (message.type === "R2POM_EVENT") {
+          captured.push(message.event);
+          return Promise.resolve({ok:true});
+        }
+        return Promise.resolve({ok:true});
+      }
+    }
+  };
+  const document = {title:"Fixture page", addEventListener() {}, getElementById() {}, querySelectorAll() { return []; }};
+  const window = {__record2pomInstalled:false, addEventListener() {}};
+  const context = {
+    window, document, chrome, URL, URLSearchParams, Date, Math, String, RegExp,
+    JSON, Promise, Element: class Element {}, HTMLInputElement: class HTMLInputElement {},
+    HTMLTextAreaElement: class HTMLTextAreaElement {}, HTMLSelectElement: class HTMLSelectElement {},
+    location: {href:"https://fixture.test/next", origin:"https://fixture.test"},
+    console
+  };
+  vm.runInNewContext(await readFile("extension/recorder.js", "utf8"), context);
+  assert.equal(typeof messageListener, "function");
+
+  // The initial document read never resolves before navigation notification.
+  messageListener({type:"R2POM_NAVIGATION", url:"https://fixture.test/next?token=private"});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(captured.length, 1, "navigation must consult persisted state instead of stale local state");
+  assert.equal(captured[0].kind, "navigate");
+  assert.match(captured[0].url, /token=__REDACTED__/);
+  assert.equal(captured[0].page.url, captured[0].url);
+
+  messageListener({type:"R2POM_NAVIGATION", url:"https://fixture.test/next?token=private"});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(captured.length, 1, "duplicate completed-navigation notifications must not create duplicate steps");
+
+  session = {...session, paused:true};
+  messageListener({type:"R2POM_NAVIGATION", url:"https://fixture.test/paused"});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(captured.length, 1, "navigation while paused must not be recorded");
+});
