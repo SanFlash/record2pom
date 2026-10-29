@@ -252,6 +252,18 @@ The showcase is implemented in `showcase/index.html` with GSAP 3 and CSS 3D tran
 - Production deployment: inspect the live site and deployment status; a Vercel READY state alone is not a manual browser smoke test.
 - Installed-extension smoke test on your own Chrome profile: follow the steps above before relying on it.
 
+## ✦ Chrome extension packaging
+
+Build a versioned, integrity-checked extension archive locally:
+
+```bash
+npm run package:extension
+```
+
+The command creates `dist/record2pom-extension-v<manifest-version>.zip` and a matching `.sha256` file. It validates the Manifest V3 metadata, required assets, ZIP CRCs, archive paths and membership, and checksum. GitHub Actions uploads both files as a workflow artifact after successful checks; this is a CI artifact, not a published GitHub Release.
+
+See the [release and packaging guide](docs/RELEASE_PROCESS.md) and [changelog](CHANGELOG.md) for release gates and release-note policy.
+
 ## ✦ Developer documentation hub
 
 The repository now includes implementation-focused guides and contributor workflows—not only the product overview.
@@ -263,6 +275,8 @@ The repository now includes implementation-focused guides and contributor workfl
 | [Locator strategy](docs/LOCATOR_STRATEGY.md) | Locator priority, health states, review checklist and fail-safe behavior |
 | [Chrome extension test plan](docs/EXTENSION_TEST_PLAN.md) | 15 manual smoke scenarios, expected outcomes and evidence template |
 | [Project roadmap](docs/PROJECT_ROADMAP.md) | Completed foundations, open reliability work and acceptance criteria |
+| [Release process](docs/RELEASE_PROCESS.md) | Versioned extension packaging, checksum verification and release gates |
+| [Changelog](CHANGELOG.md) | User-visible changes and known release notes |
 | [Contributing guide](CONTRIBUTING.md) | Local setup, quality gates and pull-request checklist |
 | [Security policy](SECURITY.md) | Responsible use, data handling, vulnerability reporting and safe defaults |
 | [Synthetic recording example](examples/recording-example.json) | A portable sample journey for import, review and test development |
