@@ -42,7 +42,6 @@
     if (element.tagName === "SUMMARY") return "button";
     if (element.tagName === "OPTION") return "option";
     if (element.hasAttribute("tabindex") || element.hasAttribute("onclick")) return "button";
-    try { if (getComputedStyle(element).cursor === "pointer") return "button"; } catch { /* detached elements */ }
     return "";
   }
 
@@ -150,7 +149,7 @@
       radio: "input[type=radio],[role=radio]"
     };
     if (info.role && info.name && selectors[info.role]) {
-      const count = Array.from(document.querySelectorAll("*"))
+      const count = Array.from(document.querySelectorAll(selectors[info.role]))
         .filter(item => roleFor(item) === info.role && accessibleName(item) === info.name).length;
       output.push({ strategy: "role", value: info.role, name: info.name, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
     }
