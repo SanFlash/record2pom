@@ -817,3 +817,28 @@ test("extension popup exposes keyboard focus, accessible control names and live 
   assert.match(js, /setAttribute\("aria-pressed"/);
   assert.match(js, /Captured actions:/);
 });
+
+test("extension automatically enriches locators and supports inspect-and-repair recovery", async () => {
+  const recorder = await readFile("extension/recorder.js", "utf8");
+  const background = await readFile("extension/background.js", "utf8");
+  const popup = await readFile("extension/popup.html", "utf8");
+  const popupScript = await readFile("extension/popup.js", "utf8");
+
+  for (const source of [recorder, background, popupScript]) {
+    const check = spawnSync(process.execPath, ["--check", "--input-type=commonjs"], {input:source, encoding:"utf8"});
+    // Browser globals are only referenced at runtime; Node's parser still validates JavaScript syntax.
+    assert.equal(check.status, 0, check.stderr);
+  }
+  assert.match(recorder, /function stableCss\(element\)/);
+  assert.match(recorder, /\["data-testid", "data-test", "data-qa", "name", "aria-label"\]/);
+  assert.match(recorder, /function isInteractive\(element\)/);
+  assert.match(recorder, /R2POM_INSPECT_MODE/);
+  assert.match(recorder, /R2POM_INSPECT_RESULT/);
+  assert.match(recorder, /if \(inspectMode \|\| !recording \|\| paused\) return/);
+  assert.match(background, /R2POM_INSPECT_LAST_MISSING/);
+  assert.match(background, /locatorRepairSource="inspect-mode"/);
+  assert.match(background, /record2pom_inspect_status_v1/);
+  assert.match(popup, /id="inspectRepair"/);
+  assert.match(popupScript, /R2POM_INSPECT_LAST_MISSING/);
+  assert.match(popupScript, /Export the recording JSON and re-import it into Studio/);
+});
