@@ -25,7 +25,19 @@ This is a guideline, not a guarantee. A selector recorded as unique can become a
 - **Unverified:** uniqueness was not measured. Inspect it before running.
 - **Missing:** no usable locator candidate was captured. First use the extension's **Inspect & Repair Locator** workflow; if inspection still cannot find a unique candidate, add or scope a locator manually.
 
-## Repair a missing locator from the browser\n\n1. Stop the recording and open the Record2POM extension popup on the recorded tab.\n2. Choose **Inspect & Repair Locator**. Record2POM enters inspect mode and highlights the element under your pointer.\n3. Click the actual control (not a decorative outer container). Press Escape to cancel.\n4. The extension reads the selected element's accessible role/name, associated label, placeholder, test attributes, name, ID, link target, and a measured CSS path.\n5. It attaches the candidates to the most recent recorded action missing a locator. If no action is missing one, it attaches them to the latest non-navigation action.\n6. Reopen the extension popup, export the recording JSON, then import that JSON into Studio and regenerate the project. Review the selected action before running tests.\n\nInspect mode prevents the selection click from being recorded as a new test action. CSS paths may still change when the application DOM changes; measured uniqueness is a capture-time signal, not a guarantee for future runs. The extension does not guess between multiple equally plausible targets.\n\n## Review checklist
+## Repair a missing locator from the browser
+
+1. Stop the recording and open the Record2POM extension popup on the recorded tab.
+2. Enter the action number (for example, `24`) in **Action # (optional)**. Leave it blank to target the most recent action missing a locator.
+3. Choose **Inspect & Repair Locator**. Record2POM enters inspect mode and highlights the element under your pointer.
+4. Click the actual control (not a decorative outer container). Press Escape to cancel.
+5. The extension reads the selected element's accessible role/name, associated label, placeholder, test attributes, name, ID, link target, and a measured CSS path.
+6. It attaches the candidates to the specified action, or the most recent action missing a locator if no action number was entered. If no action is missing one, it attaches them to the latest non-navigation action.
+7. Reopen the extension popup, export the recording JSON, then import that JSON into Studio and regenerate the project. Review the selected action before running tests.
+
+Inspect mode prevents the selection click from being recorded as a new test action. CSS paths may still change when the application DOM changes; measured uniqueness is a capture-time signal, not a guarantee for future runs. The extension does not guess between multiple equally plausible targets.
+
+## Review checklist
 
 - Is the target element unique at runtime?
 - Does the locator express meaning rather than page layout?
