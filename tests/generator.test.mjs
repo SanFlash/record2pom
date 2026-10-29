@@ -764,3 +764,30 @@ test("extension scopes recording events and navigation to the tab where recordin
   assert.equal(sentNavigationMessages[0].tabId, 7);
   assert.equal(sentNavigationMessages[0].message.type, "R2POM_NAVIGATION");
 });
+
+
+test("versioned extension packaging is wired, integrity-checked and documented", async () => {
+  const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+  assert.equal(packageJson.scripts["package:extension"], "node scripts/package-extension.mjs");
+  const wrapper = await readFile("scripts/package-extension.mjs", "utf8");
+  const packager = await readFile("scripts/package_extension.py", "utf8");
+  const workflow = await readFile(".github/workflows/test.yml", "utf8");
+  const releaseGuide = await readFile("docs/RELEASE_PROCESS.md", "utf8");
+  const changelog = await readFile("CHANGELOG.md", "utf8");
+  const readme = await readFile("README.md", "utf8");
+
+  assert.match(wrapper, /python3/);
+  assert.match(wrapper, /scripts\/package_extension\.py/);
+  assert.match(packager, /manifest_version/);
+  assert.match(packager, /record2pom-extension-v/);
+  assert.match(packager, /ZipFile/);
+  assert.match(packager, /testzip\(\)/);
+  assert.match(packager, /SHA-256 sidecar verification failed/);
+  assert.match(packager, /unsafe path in generated archive/);
+  assert.match(workflow, /npm run package:extension/);
+  assert.match(workflow, /record2pom-extension-v\*\.zip\.sha256/);
+  assert.match(releaseGuide, /clean Chrome profile/);
+  assert.match(releaseGuide, /not a published GitHub Release/);
+  assert.match(changelog, /Unreleased/);
+  assert.match(readme, /Chrome extension packaging/);
+});
