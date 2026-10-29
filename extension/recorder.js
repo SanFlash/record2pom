@@ -283,7 +283,10 @@
 
   function finishInspectMode(element) {
     if (!inspectMode || !(element instanceof Element)) return;
-    const chosen = element.closest("button,a[href],input,textarea,select,summary,[role],[tabindex],[onclick],[data-testid],[data-test],[data-qa]") || element;
+    let chosen = element;
+    for (let node = element; node && node instanceof Element; node = node.parentElement) {
+      if (isInteractive(node)) { chosen = node; break; }
+    }
     const info = target(chosen);
     const candidates = locators(chosen);
     inspectMode = false;
