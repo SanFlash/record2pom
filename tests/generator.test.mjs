@@ -32,7 +32,7 @@ test("dashboard and extension scripts parse", async () => {
   }
 });
 
-async function generateFromFixture(engine, kind = "click", strategy = "role") {
+async function generateFromFixture(engine, kind = "click", strategy = "role", redacted = false) {
   const source = await readFile("app.js", "utf8");
   const elements = new Map();
   let fileButtons = [];
@@ -64,7 +64,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted ? "PASSWORD" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -87,11 +87,11 @@ async function generateFromFixture(engine, kind = "click", strategy = "role") {
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
-  const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
+  const envButton = fileButtons.find(item => item.dataset.path === ".env.example");\n  let envExample = ""; if (envButton?.onclick) { envButton.onclick(); envExample = el("code").textContent; }\n  const requirementsButton = fileButtons.find(item => item.dataset.path === "requirements.txt");\n  let requirements = ""; if (requirementsButton?.onclick) { requirementsButton.onclick(); requirements = el("code").textContent; }\n  const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
   let generatedReadme = ""; if (readmeButton?.onclick) { readmeButton.onclick(); generatedReadme = el("code").textContent; }
   const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
   let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, config, data, validator, readme:generatedReadme, status:el("status").textContent};
+  return {code, runner, test:testSource, conftest, config, data, validator, envExample, requirements, readme:generatedReadme, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -104,7 +104,17 @@ test("Playwright generator binds recorded locator to the page object", async () 
   assert.match(result.status, /tests have NOT been executed/);
 });
 
-test("Selenium generator binds recorded locator to the page object", async () => {
+
+test("redacted Playwright inputs are configured through generated .env without embedding secrets", async () => {
+  const result = await generateFromFixture("playwright", "fill", "role", true);
+  assert.match(result.code, /copy \.env\.example to \.env/);
+  assert.match(result.envExample, /PASSWORD=replace_me/);
+  assert.match(result.conftest, /load_dotenv\(\)/);
+  assert.match(result.requirements, /python-dotenv/);
+  assert.match(result.readme, /copy.*\.env\.example.*\.env/i);
+  assert.match(result.readme, /python -m playwright install chromium/);
+});
+\ntest("Selenium generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("selenium");
   assert.match(result.code, /self\.driver\.find_element/);
   assert.match(result.code, /self::button/, "Selenium role locators must support native HTML buttons");
