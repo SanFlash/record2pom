@@ -93,7 +93,7 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 | Capability | What it provides |
 |---|---|
 | Browser recorder | Supported clicks, input changes, select changes, checkbox/radio changes, Enter, and navigation metadata |
-| Locator intelligence | Candidate locators for data-testid, accessible role/name, labels, placeholders, CSS IDs, and compatible data-test / data-qa attributes |
+| Locator intelligence | Candidate locators for data-testid, accessible role/name, labels, placeholders, stable name/ID/custom attributes, and measured CSS fallbacks; Inspect & Repair mode for missing locators |
 | Recording normalization | Versioned intermediate representation, legacy alias normalization, bounded fields, and event-count limits |
 | Safer recordings | Heuristic sensitive-value redaction, background re-validation, payload limits, and no file-input path capture |
 | Readiness checks | Highlights missing URL/configuration, uncertain locators, missing assertions, and environment-dependent values |
@@ -113,7 +113,7 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 2. **Import** the recording JSON into the dashboard.
 3. **Review** actions, locator confidence, redaction, and assertions.
 4. **Generate** the Page Object Model project and download its ZIP.
-5. **Inspect and run locally** with the generated instructions, then review the result artifacts.
+5. **Inspect and run locally** with the generated instructions, then review the result artifacts. If an action has no locator, use the extension popup's **Inspect & Repair Locator** mode to select the actual control, export the repaired recording JSON, and re-import it into Studio.
 
 Generation is not test execution. The hosted dashboard does not run the generated tests or claim that they passed just because project files were created.
 
