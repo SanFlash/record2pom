@@ -34,7 +34,8 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [ ] Manual Chrome validation across a clean profile and supported Chromium version.
 - [x] Navigation capture rechecks persisted session state to avoid page-initialization races; automated tests cover duplicate notifications and paused sessions.
 - [ ] Manual validation of navigation and session recovery in installed Chrome (automated simulation is not a substitute).
-- [ ] Expand accessibility and keyboard checks for the popup.
+- [x] Add semantic labels, polite status/live regions, dynamic accessible recording-state announcements, visible keyboard focus, and reduced-motion styling to the popup; source-contract tests cover these safeguards.
+- [ ] Manually verify keyboard-only operation and screen-reader announcements in installed Chrome.
 
 ## Developer experience
 
