@@ -24,6 +24,7 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 | EXT-13 | Empty session | Generate is rejected without opening a project | Popup error state |
 | EXT-14 | Clear session | Events and active state are reset | Popup count/state |
 | EXT-15 | Reload extension or browser | Persisted session behavior is understood and stable | Before/after session check |
+| EXT-16 | Navigate to a new page while recording | Navigation is captured once after the new page initializes; paused sessions remain unchanged | Exported event sequence and sanitized URL assertions |
 
 ## Manual smoke-test procedure
 
@@ -40,7 +41,7 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 
 ## Automated coverage
 
-GitHub Actions validates the Manifest V3 JSON, required extension assets, icon dimensions, branding, packaging and the Node message/session integration tests. Browser E2E tests use Playwright against the Studio and generated project. These checks are valuable but do not replace the manual installed-extension scenarios above.
+GitHub Actions validates the Manifest V3 JSON, required extension assets, icon dimensions, branding, packaging and the Node message/session integration tests. Browser E2E tests use Playwright against the Studio and generated project. Navigation regression tests also simulate a delayed initial session read, duplicate completion notifications, URL-secret redaction, and paused-state behavior. These checks are valuable but do not replace the manual installed-extension scenarios above.
 
 ## Evidence record template
 
