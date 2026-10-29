@@ -137,6 +137,16 @@ Generation is not test execution. The hosted dashboard does not run the generate
 - **Hosting:** Vercel static deployment
 - **Verification:** Node test suite + Playwright Chromium end-to-end fixture tests
 
+## ✦ One-command local validation
+
+Run the fast regression suite and automatically run browser E2E checks when Python, Playwright and Chromium are installed:
+
+```bash
+npm run validate
+```
+
+If browser prerequisites are missing, the command clearly reports that E2E checks were skipped and prints installation instructions. A skipped browser suite is **not** reported as a pass. See [Local Validation](docs/LOCAL_VALIDATION.md) for setup and CI behavior.
+
 ## ✦ Local development
 
 ### Run the dashboard locally
