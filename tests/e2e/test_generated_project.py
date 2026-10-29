@@ -495,7 +495,7 @@ def test_generated_runner_fails_safely_and_writes_failure_evidence(
             payload = artifact.read_bytes()
             assert len(payload) == item["sizeBytes"], f"Size mismatch: {item['path']}"
             assert hashlib.sha256(payload).hexdigest() == item["sha256"], f"Hash mismatch: {item['path']}"
-            assert "\\\\" not in item["path"], "Manifest paths must use POSIX separators"
+            assert "\\" not in item["path"], "Manifest paths must use POSIX separators"
         assert "No click was attempted" in steps[-1]["error"]
     finally:
         server.terminate()
