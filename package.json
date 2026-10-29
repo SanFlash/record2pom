@@ -1,1 +1,1 @@
-{"name":"record2pom","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test","start":"node scripts/serve.mjs","validate":"node scripts/validate.mjs","package:extension":"node scripts/package-extension.mjs"},"engines":{"node":">=20"}}
+{"name":"record2pom","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test","start":"node scripts/serve.mjs","validate":"node scripts/validate.mjs","package:extension":"node scripts/package-extension.mjs","validate:strict":"node scripts/validate.mjs --require-browser"},"engines":{"node":">=20"}}
