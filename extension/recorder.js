@@ -55,7 +55,11 @@
   function isInteractive(element) {
     if (!(element instanceof Element)) return false;
     if (element.matches("button,a[href],input,textarea,select,summary,[role],[tabindex],[onclick],[data-testid],[data-test],[data-qa]")) return true;
-    try { return getComputedStyle(element).cursor === "pointer"; } catch { return false; }
+    try {
+      if (getComputedStyle(element).cursor !== "pointer") return false;
+      // Cursor styles inherit. Prefer the actual clickable container over a child span/icon.
+      return !element.parentElement || getComputedStyle(element.parentElement).cursor !== "pointer";
+    } catch { return false; }
   }
 
   function stableCss(element) {
