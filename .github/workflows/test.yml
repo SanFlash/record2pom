@@ -22,12 +22,12 @@ jobs:
       - name: Validate branded Chrome extension
         run: |
           python - <<'PY'
-          import json, struct
+          import json, re, struct
           from pathlib import Path
           root = Path("extension")
           manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
           assert manifest["manifest_version"] == 3, "Extension must use Manifest V3"
-          assert manifest["version"] == "0.2.0", "Unexpected extension release version"
+          assert re.fullmatch(r"(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?", manifest["version"]), "Invalid extension release version"
           assert "Record2POM" in manifest["name"]
           required = [manifest["background"]["service_worker"], manifest["action"]["default_popup"], *manifest["icons"].values(), *manifest["action"]["default_icon"].values(), *[p for item in manifest["content_scripts"] for p in item["js"]], "popup.css"]
           for relative in required:
@@ -48,14 +48,14 @@ jobs:
               raise SystemExit("Neon Record2POM popup branding is missing")
           print(f"Validated Record2POM extension v{manifest['version']} and branded popup/icon.")
           PY
-      - name: Package Chrome extension
-        run: |
-          cd extension
-          zip -r ../record2pom-extension.zip .
+      - name: Build and verify versioned Chrome extension
+        run: npm run package:extension
       - uses: actions/upload-artifact@v4
-        name: Upload installable Chrome extension
+        name: Upload versioned Chrome extension and SHA-256 checksum
         with:
           name: record2pom-chrome-extension
-          path: record2pom-extension.zip
+          path: |
+            dist/record2pom-extension-v*.zip
+            dist/record2pom-extension-v*.zip.sha256
           if-no-files-found: error
           retention-days: 30
