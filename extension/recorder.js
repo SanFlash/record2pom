@@ -203,16 +203,29 @@
     }
   }, true);
 
+  let lastNavigationUrl = "";
   chrome.runtime.onMessage.addListener(message => {
     if (message?.type === "R2POM_CONTROL") {
       recording = !!message.recording;
       paused = !!message.paused;
+      return;
     }
-    if (message?.type === "R2POM_NAVIGATION" && recording && !paused) {
+    if (message?.type !== "R2POM_NAVIGATION") return;
+
+    // A navigation can finish before the new document's initial session read.
+    // Consult the service worker's persisted state so this timing race cannot
+    // silently drop the navigation event.
+    void (async () => {
       try {
+        const result = await chrome.runtime.sendMessage({ type: "R2POM_GET_SESSION" });
+        if (!result?.ok || !result.session) return;
+        recording = !!result.session.recording;
+        paused = !!result.session.paused;
+        if (!recording || paused) return;
         const safeUrl = sanitizeUrl(message.url);
-        if (!safeUrl) return;
+        if (!safeUrl || safeUrl === lastNavigationUrl) return;
         const url = new URL(safeUrl);
+        lastNavigationUrl = url.href;
         send({
           schemaVersion: 1,
           id: "nav-" + Date.now(),
@@ -225,8 +238,8 @@
           description: "Navigation",
           source: "browser-extension"
         });
-      } catch { /* ignore invalid navigation notifications */ }
-    }
+      } catch { /* ignore navigation messages while the extension is reloading */ }
+    })();
   });
 
   chrome.runtime.sendMessage({ type: "R2POM_GET_SESSION" }).then(result => {
