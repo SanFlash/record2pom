@@ -823,6 +823,8 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   const background = await readFile("extension/background.js", "utf8");
   const popup = await readFile("extension/popup.html", "utf8");
   const popupScript = await readFile("extension/popup.js", "utf8");
+  const core = await readFile("core.js", "utf8");
+  const studio = await readFile("app.js", "utf8");
 
   for (const source of [recorder, background, popupScript]) {
     const check = spawnSync(process.execPath, ["--check"], {input:source, encoding:"utf8"});
@@ -841,6 +843,12 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   assert.match(background, /sequence:Number\.isInteger\(m\.sequence\)/);
   assert.match(popup, /id="inspectSequence"/);
   assert.match(background, /locatorRepairSource="inspect-mode"/);
+  assert.match(background, /const selectedLocator=locators\.find\(c=>c\.matchCount===1\)\|\|null/);
+  assert.match(background, /selectedLocator\?\{\.\.\.selectedLocator,selected:true\}:null/);
+  assert.match(core, /_selected: c\.selected === true/);
+  assert.match(core, /raw\.selectedLocator/);
+  assert.match(studio, /if\(e\.selectedLocator&&typeof e\.selectedLocator==="object"\)source\.unshift/);
+  assert.match(popupScript, /auto-selected unique/);
   assert.match(background, /record2pom_inspect_status_v1/);
   assert.match(popup, /id="inspectRepair"/);
   assert.match(popupScript, /R2POM_INSPECT_LAST_MISSING/);
