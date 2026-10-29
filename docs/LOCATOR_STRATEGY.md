@@ -32,8 +32,9 @@ This is a guideline, not a guarantee. A selector recorded as unique can become a
 3. Choose **Inspect & Repair Locator**. Record2POM enters inspect mode and highlights the element under your pointer.
 4. Click the actual control (not a decorative outer container). Press Escape to cancel.
 5. The extension reads the selected element's accessible role/name, associated label, placeholder, test attributes, name, ID, link target, and a measured CSS path.
-6. It attaches the candidates to the specified action, or the most recent action missing a locator if no action number was entered. If no action is missing one, it attaches them to the latest non-navigation action.
-7. Reopen the extension popup, export the recording JSON, then import that JSON into Studio and regenerate the project. Review the selected action before running tests.
+6. Record2POM automatically selects the highest-priority candidate with exactly one match (test ID, role/name, label, placeholder, then CSS). It marks this candidate as preferred for Studio and generated framework code. If none is verified unique, it preserves ranked fallbacks and explicitly reports that no unique locator could be auto-selected.
+7. It attaches the candidates to the specified action, or the most recent action missing a locator if no action number was entered. If no action is missing one, it attaches them to the latest non-navigation action.
+8. Reopen the extension popup, export the recording JSON, then import that JSON into Studio and regenerate the project. The selected locator is preferred automatically; review the action and execute the generated tests to confirm behavior.
 
 Inspect mode prevents the selection click from being recorded as a new test action. CSS paths may still change when the application DOM changes; measured uniqueness is a capture-time signal, not a guarantee for future runs. The extension does not guess between multiple equally plausible targets.
 
