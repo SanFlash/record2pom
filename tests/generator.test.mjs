@@ -87,7 +87,11 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
-  const envButton = fileButtons.find(item => item.dataset.path === ".env.example");\n  let envExample = ""; if (envButton?.onclick) { envButton.onclick(); envExample = el("code").textContent; }\n  const requirementsButton = fileButtons.find(item => item.dataset.path === "requirements.txt");\n  let requirements = ""; if (requirementsButton?.onclick) { requirementsButton.onclick(); requirements = el("code").textContent; }\n  const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
+  const envButton = fileButtons.find(item => item.dataset.path === ".env.example");
+  let envExample = ""; if (envButton?.onclick) { envButton.onclick(); envExample = el("code").textContent; }
+  const requirementsButton = fileButtons.find(item => item.dataset.path === "requirements.txt");
+  let requirements = ""; if (requirementsButton?.onclick) { requirementsButton.onclick(); requirements = el("code").textContent; }
+  const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
   let generatedReadme = ""; if (readmeButton?.onclick) { readmeButton.onclick(); generatedReadme = el("code").textContent; }
   const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
   let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
