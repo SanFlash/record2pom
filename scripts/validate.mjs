@@ -4,6 +4,7 @@ import process from "node:process";
 const isWindows = process.platform === "win32";
 const npmCommand = isWindows ? "npm.cmd" : "npm";
 const pythonCandidates = isWindows ? ["python", "py"] : ["python3", "python"];
+const requireBrowser = process.argv.includes("--require-browser");
 
 function run(command, args, label, options = {}) {
   console.log("\n▶ " + label);
@@ -37,7 +38,7 @@ if (!python) {
   console.log("  Install Python 3.10+ and then run: python -m pip install \"pytest-playwright>=0.5,<1\"");
   console.log("  Install Chromium with: python -m playwright install chromium");
   console.log("\n✓ Fast checks passed; browser E2E checks were not run.");
-  process.exit(0);
+  process.exit(requireBrowser ? 1 : 0);
 }
 
 const browserReady = run(
@@ -50,8 +51,8 @@ if (browserReady.status !== 0) {
   console.log("\n⚠ Browser E2E checks skipped: Python dependencies or the Playwright Chromium browser are missing.");
   console.log("  Install dependencies: " + python + " -m pip install \"pytest-playwright>=0.5,<1\"");
   console.log("  Install Chromium: " + python + " -m playwright install chromium");
-  console.log("\n✓ Fast checks passed; browser E2E checks were not run.");
-  process.exit(0);
+  console.log("\n" + (requireBrowser ? "✖ Strict validation failed: browser E2E checks were not run." : "✓ Fast checks passed; browser E2E checks were not run."));
+  process.exit(requireBrowser ? 1 : 0);
 }
 
 const e2e = run(python, ["-m", "pytest", "-q", "tests/e2e"], "Run browser E2E tests against the local fixture");
