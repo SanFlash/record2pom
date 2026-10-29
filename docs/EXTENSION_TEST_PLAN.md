@@ -24,7 +24,7 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 | EXT-13 | Empty session | Generate is rejected without opening a project | Popup error state |
 | EXT-14 | Clear session | Events and active state are reset | Popup count/state |
 | EXT-15 | Reload extension or browser | Persisted session behavior is understood and stable | Before/after session check |
-| EXT-16 | Navigate to a new page while recording | Navigation is captured once after the new page initializes; paused sessions remain unchanged | Exported event sequence and sanitized URL assertions |
+| EXT-16 | Navigate to a new page while recording | Navigation is captured once after the new page initializes; paused sessions remain unchanged | Exported event sequence and sanitized URL assertions |\n| EXT-17 | Studio tab finishes loading before handoff listener is ready | Handoff checks the current tab state and still delivers the saved recording exactly once | Automated fast-load regression test |\n| EXT-18 | Studio emits repeated completed-navigation notifications | A successful handoff is not injected a second time | Automated idempotency regression test |
 
 ## Manual smoke-test procedure
 
