@@ -232,7 +232,7 @@
   }
 
   document.addEventListener("click", event => {
-    if (!recording || paused) return;
+    if (inspectMode || !recording || paused) return;
     const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
     const element = path.find(item => item instanceof Element && item.matches(
       "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary,[tabindex]"
