@@ -92,7 +92,9 @@
       if (unique(candidate)) return candidate;
     }
     const fallback = parts.join(" > ");
-    return unique(fallback) ? fallback : "";
+    // Preserve a structurally useful fallback even when uniqueness cannot be proven.
+    // The generated runner will measure matches and fail safely if it is ambiguous.
+    return fallback;
   }
 
   function target(element) {
