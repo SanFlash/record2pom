@@ -42,8 +42,9 @@ This roadmap is an engineering plan, not a promise that every idea is already im
 - [x] Synthetic sample recording checked into the repository.
 - [x] Contributor and security policies.
 - [x] Add a one-command validation script (`npm run validate`) that runs fast checks and reports skipped browser prerequisites clearly; CI confirms the fast and browser E2E suites pass.
-- [ ] Publish a tagged release with a versioned extension ZIP and checksums.
-- [ ] Add a changelog and release notes policy.
+- [x] Build a versioned Chrome extension ZIP in CI; validate required files, safe archive paths, ZIP CRCs, membership, and SHA-256 checksum sidecar.
+- [x] Add a changelog and documented release notes policy with manual Chrome smoke-test gates.
+- [ ] Publish a tagged GitHub Release after installed-Chrome validation and checksum review.
 
 ## Acceptance criteria for future work
 
