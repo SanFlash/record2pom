@@ -244,6 +244,14 @@ test("Selenium generator emits real select and keyboard APIs", async () => {
   assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
 });
 
+test("recorder automatically selects a unique locator at capture time", async () => {
+  const source = await readFile("extension/recorder.js", "utf8");
+  assert.match(source, /const locatorCandidates = locators\(element\)/);
+  assert.match(source, /locatorCandidates\.find\(candidate => candidate\.matchCount === 1\)/);
+  assert.match(source, /selectedLocator\.selected = true/);
+  assert.match(source, /selectedLocator \? \{ selectedLocator \} : \{\}/);
+});
+
 test("recorder redacts sensitive select values before export", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
   assert.match(source, /element instanceof HTMLSelectElement/);
