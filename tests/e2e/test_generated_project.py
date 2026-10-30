@@ -78,9 +78,9 @@ def test_dashboard_generates_and_executes_real_playwright_project(page: Page, tm
                     "sequence": 2,
                     "kind": "click",
                     "description": "Submit the fixture form",
-                    "target": {"testId": "submit-form"},
+                    "target": {"tagName": "button", "role": "button", "name": "Submit form", "text": "Submit form", "testId": "obsolete-submit-id"},
                     "locators": [
-                        {"strategy": "testId", "value": "submit-form", "matchCount": 1}
+                        {"strategy": "testId", "value": "obsolete-submit-id", "matchCount": 0}
                     ],
                     "source": "e2e-fixture",
                 },
