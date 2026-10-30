@@ -1,5 +1,8 @@
 # Changelog
 
+- Chrome extension `0.2.2` now selects the highest-priority locator verified as unique during recording and carries it into Studio and generated projects.
+
+
 ## Unreleased — runtime locator self-healing
 
 - Generated Playwright Page Objects now fall back to live-DOM fingerprint matching when captured selectors become stale.
