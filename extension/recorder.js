@@ -214,6 +214,9 @@
   function emit(kind, element, extra = {}) {
     if (!recording || paused) return;
     const info = target(element);
+    const locatorCandidates = locators(element);
+    const selectedLocator = locatorCandidates.find(candidate => candidate.matchCount === 1) || null;
+    if (selectedLocator) selectedLocator.selected = true;
     const isSensitive = sensitive(element);
     const event = {
       schemaVersion: 1,
@@ -223,7 +226,8 @@
       url: sanitizeUrl(location.href),
       page: { url: sanitizeUrl(location.href), origin: location.origin, title: document.title },
       target: info,
-      locators: locators(element),
+      locators: locatorCandidates,
+      ...(selectedLocator ? { selectedLocator } : {}),
       source: "browser-extension",
       sensitivity: isSensitive ? "sensitive" : "normal",
       ...extra
