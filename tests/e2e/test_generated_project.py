@@ -127,6 +127,19 @@ def test_dashboard_generates_and_executes_real_playwright_project(page: Page, tm
 
         assert (project_dir / "pages" / "recorded_page.py").is_file()
         assert (project_dir / "tests" / "test_recorded_journey.py").is_file()
+        requirements_install = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
+            cwd=project_dir,
+            text=True,
+            capture_output=True,
+            timeout=120,
+            check=False,
+        )
+        assert requirements_install.returncode == 0, (
+            "Generated Playwright requirements failed to install.\\n"
+            f"stdout:\\n{requirements_install.stdout}\\nstderr:\\n{requirements_install.stderr}"
+        )
+
         env = os.environ.copy()
         env["BASE_URL"] = fixture_url
         run = subprocess.run(
