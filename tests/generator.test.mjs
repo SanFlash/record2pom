@@ -118,7 +118,7 @@ test("redacted Playwright inputs are configured through generated .env without e
   assert.match(result.readme, /copy.*\.env\.example.*\.env/i);
   assert.match(result.readme, /python -m playwright install chromium/);
 });
-\ntest("Selenium generator binds recorded locator to the page object", async () => {
+test("Selenium generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("selenium");
   assert.match(result.code, /self\.driver\.find_element/);
   assert.match(result.code, /self::button/, "Selenium role locators must support native HTML buttons");
