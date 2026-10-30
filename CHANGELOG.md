@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — runtime locator self-healing
+
+- Generated Playwright Page Objects now fall back to live-DOM fingerprint matching when captured selectors become stale.
+- The fallback uses recorded element metadata and only accepts a uniquely highest-scoring visible, enabled element; ambiguous matches fail closed.
+- Locator failure diagnostics now include the current page URL and title to expose wrong-page or wrong-state recordings.
+- Added an end-to-end regression scenario that deliberately supplies an obsolete test ID and expects the generated test to recover using the live button semantics.
+
+
 ## Unreleased — integrated recorder and generated-project setup
 
 - Bumped the Chrome recorder to `0.2.1` and added recorder-version metadata to Studio handoffs for compatibility diagnostics.
