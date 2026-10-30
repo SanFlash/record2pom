@@ -127,6 +127,10 @@ def test_dashboard_generates_and_executes_real_playwright_project(page: Page, tm
 
         assert (project_dir / "pages" / "recorded_page.py").is_file()
         assert (project_dir / "tests" / "test_recorded_journey.py").is_file()
+        assert (project_dir / "run.ps1").is_file()
+        quickstart = (project_dir / "run.ps1").read_text(encoding="utf-8")
+        assert "pip install -r requirements.txt" in quickstart
+        assert "playwright install chromium" in quickstart
         requirements_install = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
             cwd=project_dir,
