@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — integrated recorder and generated-project setup
+
+- Bumped the Chrome recorder to `0.2.1` and added recorder-version metadata to Studio handoffs for compatibility diagnostics.
+- Added a generated Windows `run.ps1` bootstrap that creates a virtual environment, installs dependencies, prepares `.env`, installs Playwright Chromium, validates the project, and runs the recorded journey.
+- Unified generated action sequence numbers and redacted environment-variable names so `.env.example` matches the generated Page Object code even when imported event sequence values are non-contiguous.
+- Added dotenv loading to Selenium-generated test modules as well as Playwright projects.
+
+
 Notable project changes are documented here. Entries describe repository changes and do not imply that an unperformed manual browser test passed.
 
 ## Unreleased
