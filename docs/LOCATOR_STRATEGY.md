@@ -38,6 +38,12 @@ This is a guideline, not a guarantee. A selector recorded as unique can become a
 
 Inspect mode prevents the selection click from being recorded as a new test action. CSS paths may still change when the application DOM changes; measured uniqueness is a capture-time signal, not a guarantee for future runs. The extension does not guess between multiple equally plausible targets.
 
+## Runtime locator self-healing in generated Playwright projects
+
+Generated Playwright Page Objects now retain a compact fingerprint of the recorded element (tag, role, accessible name, label, placeholder, test ID, text, ID, field name, href, and title). If all saved locator candidates fail, the resolver inspects the current live DOM and scores visible, enabled interactive elements against that fingerprint. It accepts only one uniquely highest-scoring match and records the repair metadata in memory; equal-scoring candidates are rejected rather than guessed. Failure diagnostics include the current URL and page title so a wrong page/state can be distinguished from a stale selector.
+
+This is a recovery mechanism, not permission to click an unrelated control. If the recorded action belongs to a different page state or the element no longer exists, the resolver stops safely. A recording should be replayed in the same workflow and state in which it was captured.
+
 ## Review checklist
 
 - Is the target element unique at runtime?
