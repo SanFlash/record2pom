@@ -26,6 +26,7 @@ test("Studio handoff recovers when the tab is already complete before the listen
   const chrome = {
     runtime: {
       onInstalled: { addListener() {} },
+      getManifest() { return {version:"0.2.1"}; },
       onMessage: { addListener(fn) { messageListeners.push(fn); } }
     },
     storage: {
@@ -83,6 +84,7 @@ test("Studio handoff recovers when the tab is already complete before the listen
   assert.equal(injections.length, 1, "already-complete Studio tab must receive the recording");
   assert.equal(injections[0].target.tabId, nextTabId);
   assert.equal(injections[0].args[0].metadata.sessionId, session.sessionId);
+  assert.equal(injections[0].args[0].metadata.recorderVersion, "0.2.1");
   assert.equal(injections[0].args[0].events.length, 1);
   assert.equal(store.record2pom_import_status_v1.ok, null);
 
