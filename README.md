@@ -176,7 +176,7 @@ The CI workflow installs Chromium and runs the fixture journeys and generated-pr
 
 ## ✦ Install the browser extension
 
-**Current recorder version:** `0.2.1` (Studio handoff includes the recorder version for compatibility diagnostics).
+**Current recorder version:** `0.2.2` (Studio handoff includes the recorder version for compatibility diagnostics).
 
 1. Open chrome://extensions in Chrome or a compatible Chromium browser.
 2. Enable **Developer mode**.
