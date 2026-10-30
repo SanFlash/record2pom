@@ -107,6 +107,9 @@ test("Playwright generator binds recorded locator to the page object", async () 
   assert.match(result.code, /def _resolve_locator/);
   assert.match(result.code, /lambda: self\.page\.get_by_role/);
   assert.match(result.code, /lambda: self\.page\.locator/);
+  assert.match(result.code, /live DOM repair/);
+  assert.match(result.code, /recorded element fingerprint/);
+  assert.match(result.code, /Current page:/);
   assert.match(result.status, /tests have NOT been executed/);
 });
 
