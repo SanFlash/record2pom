@@ -32,7 +32,7 @@ test("dashboard and extension scripts parse", async () => {
   }
 });
 
-async function generateFromFixture(engine, kind = "click", strategy = "role", redacted = false) {
+async function generateFromFixture(engine, kind = "click", strategy = "role", redacted = false, sequence = 1, omitEnvVar = false) {
   const source = await readFile("app.js", "utf8");
   const elements = new Map();
   let fileButtons = [];
@@ -64,7 +64,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence:1,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted ? "PASSWORD" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted && !omitEnvVar ? "PASSWORD" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -89,13 +89,15 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
   const envButton = fileButtons.find(item => item.dataset.path === ".env.example");
   let envExample = ""; if (envButton?.onclick) { envButton.onclick(); envExample = el("code").textContent; }
+  const setupButton = fileButtons.find(item => item.dataset.path === "run.ps1");
+  let setupScript = ""; if (setupButton?.onclick) { setupButton.onclick(); setupScript = el("code").textContent; }
   const requirementsButton = fileButtons.find(item => item.dataset.path === "requirements.txt");
   let requirements = ""; if (requirementsButton?.onclick) { requirementsButton.onclick(); requirements = el("code").textContent; }
   const readmeButton = fileButtons.find(item => item.dataset.path === "README.md");
   let generatedReadme = ""; if (readmeButton?.onclick) { readmeButton.onclick(); generatedReadme = el("code").textContent; }
   const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
   let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, config, data, validator, envExample, requirements, readme:generatedReadme, status:el("status").textContent};
+  return {code, runner, test:testSource, conftest, config, data, validator, envExample, requirements, setupScript, readme:generatedReadme, status:el("status").textContent};
 }
 
 test("Playwright generator binds recorded locator to the page object", async () => {
@@ -120,6 +122,16 @@ test("redacted Playwright inputs are configured through generated .env without e
   assert.match(result.requirements, /python-dotenv/);
   assert.match(result.readme, /copy.*\.env\.example.*\.env/i);
   assert.match(result.readme, /python -m playwright install chromium/);
+  assert.match(result.setupScript, /python -m pip install -r requirements\.txt/);
+  assert.match(result.setupScript, /playwright install chromium/);
+  assert.match(result.setupScript, /pytest tests -v/);
+});
+
+test("generated redacted variable names stay aligned when imported event sequences are non-contiguous", async () => {
+  const result = await generateFromFixture("playwright", "fill", "role", true, 24, true);
+  assert.match(result.code, /RECORDED_INPUT_1/);
+  assert.match(result.envExample, /RECORDED_INPUT_1=replace_me/);
+  assert.doesNotMatch(result.envExample, /RECORDED_INPUT_24=/);
 });
 test("Selenium generator binds recorded locator to the page object", async () => {
   const result = await generateFromFixture("selenium");
