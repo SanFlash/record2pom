@@ -433,7 +433,8 @@ window.addEventListener("record2pom:import-recording", event => {
     generatedButton.click();
     if (!generated || !generated.files || !Object.keys(generated.files).length) throw Error("POM generation did not produce project files.");
     if (sessionId) handledRecordingSessions.add(sessionId);
-    const recorderVersion = String(event.detail?.metadata?.recorderVersion || "legacy");\n    msg("Imported " + events.length + " recorded action(s) from extension v" + recorderVersion + " and generated " + Object.keys(generated.files).length + " project files. Review the actions and download the ZIP.", "success");
+    const recorderVersion = String(event.detail?.metadata?.recorderVersion || "legacy");
+    msg("Imported " + events.length + " recorded action(s) from extension v" + recorderVersion + " and generated " + Object.keys(generated.files).length + " project files. Review the actions and download the ZIP.", "success");
     $("download").scrollIntoView({behavior:"smooth", block:"center"});
     window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:true, sessionId:sessionId || null, eventCount:events.length, fileCount:Object.keys(generated.files).length}}));
   } catch (error) {
