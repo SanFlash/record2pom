@@ -114,6 +114,9 @@ test("redacted Playwright inputs are configured through generated .env without e
   assert.match(result.code, /copy \.env\.example to \.env/);
   assert.match(result.envExample, /PASSWORD=replace_me/);
   assert.match(result.conftest, /load_dotenv\(\)/);
+  assert.match(result.conftest, /saucedemo\.com/);
+  assert.match(result.conftest, /secret_sauce/);
+  assert.match(result.conftest, /urlparse/);
   assert.match(result.requirements, /python-dotenv/);
   assert.match(result.readme, /copy.*\.env\.example.*\.env/i);
   assert.match(result.readme, /python -m playwright install chromium/);
