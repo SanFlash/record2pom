@@ -79,9 +79,13 @@ REQUIRED = ["README.md", "requirements.txt", "config.py", "data/recorded_test_da
 def main():
     errors = [f"Missing required file: {p}" for p in REQUIRED if not (ROOT / p).is_file()]
     data_path = ROOT / "data/recorded_test_data.json"
+    data = {}
     if data_path.is_file():
         try:
             data = json.loads(data_path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                errors.append("data/recorded_test_data.json must contain a JSON object.")
+                data = {}
             if not isinstance(data.get("steps"), list) or not data["steps"]:
                 errors.append("Test data must contain a non-empty steps array.")
             for i, step in enumerate(data.get("steps", []), 1):
@@ -98,9 +102,10 @@ def main():
             values = json.loads(values_path.read_text(encoding="utf-8"))
             if not isinstance(values, dict):
                 errors.append("test_data/test_data.json must contain a JSON object.")
+                values = {}
         except Exception as exc:
             errors.append(f"Invalid test data values JSON: {exc}")
-    for i, step in enumerate(data.get("steps", []), 1) if data_path.is_file() else []:
+    for i, step in enumerate(data.get("steps", []), 1):
         if isinstance(step, dict) and step.get("kind") in ("fill", "select") and not step.get("redacted"):
             key = step.get("dataKey")
             if not key or key not in values:
