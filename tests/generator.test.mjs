@@ -572,6 +572,8 @@ test("extension branding assets exist and all manifest references resolve", asyn
   const assets = new Set([
     ...Object.values(manifest.icons || {}),
     ...Object.values(manifest.action?.default_icon || {}),
+    manifest.side_panel?.default_path,
+    "panel.js", "panel.css",
     manifest.action?.default_popup,
     manifest.background?.service_worker,
     ...(manifest.content_scripts || []).flatMap(script => script.js || []),
@@ -599,6 +601,7 @@ test("extension branding assets exist and all manifest references resolve", asyn
   assert.match(panelScript, /renderTimeline/);
   const popupScript = await readFile("extension/popup.js", "utf8");
   const background = await readFile("extension/background.js", "utf8");
+  assert.match(background, /chrome\.sidePanel\.setPanelBehavior\(\{openPanelOnActionClick:true\}\)/);
   assert.match(popupScript, /renderImportStatus/);
   assert.match(popupScript, /record2pom_import_status_v1/);
   assert.match(popupScript, /ageMs>30000/);
