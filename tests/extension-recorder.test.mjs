@@ -234,9 +234,12 @@ test("recorder never converts typed input into an automatic value assertion", as
 test("recorder never creates automatic value assertions for sensitive input", async () => {
   const input = new FakeInput("input", {name:"password", "aria-label":"Password"}, {type:"password", name:"password", value:"secret-value"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("click",{composedPath:()=>[input],target:input});
   h.fire("change",{target:input});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
   assert.equal(events.length,1);
+  assert.equal(events[0].kind,"click");
+  assert.equal(events[0].requiresTestData,true);
   assert.equal(events[0].redacted,true);
   assert.ok(!JSON.stringify(events).includes("secret-value"));
 });
