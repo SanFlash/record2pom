@@ -157,8 +157,9 @@
       checkbox: "input[type=checkbox],[role=checkbox]",
       radio: "input[type=radio],[role=radio]"
     };
-    if (info.role && info.name && selectors[info.role]) {
-      const count = Array.from(document.querySelectorAll(selectors[info.role]))
+    const roleSelector = selectors[info.role] || (element.getAttribute("role") ? "[role=" + JSON.stringify(info.role) + "]" : "");
+    if (info.role && info.name && roleSelector) {
+      const count = Array.from(document.querySelectorAll(roleSelector))
         .filter(item => roleFor(item) === info.role && accessibleName(item) === info.name).length;
       output.push({ strategy: "role", value: info.role, name: info.name, matchCount: count, confidence: count === 1 ? "high" : count > 1 ? "low" : "unverified" });
     }
