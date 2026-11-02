@@ -228,8 +228,6 @@
     // It does not assert business correctness when no meaningful expected value exists.
     if (kind === "click" && /login|sign in|log in/i.test(info.name || info.text || "")) {
       assertions.push({kind:"assert-url",description:"Verify login navigation",assertion:{expected:"/inventory.html"},url:pageUrl,...common});
-    } else if (kind === "click" && /continue|checkout|finish|submit|save|search/i.test(info.name || info.text || "")) {
-      assertions.push({kind:"assert-visible",description:"Verify post-action page state",target:{role:"heading"},locators:[],assertion:{expected:"visible"},url:pageUrl,...common});
     }
     if (kind === "fill" && element && !sensitive(element)) {
       const expected = String(element.value || "").slice(0, 500);
