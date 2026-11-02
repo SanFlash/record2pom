@@ -12,13 +12,13 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 | EXT-01 | Load unpacked extension | Manifest and icons load without extension errors | Chrome extensions page screenshot |
 | EXT-02 | Open an HTTP/HTTPS fixture | Active tab URL is displayed | Popup screenshot |
 | EXT-03 | Start recording | State changes to Recording and session resets | Popup state + action count |
-| EXT-04 | Capture click and text entry | Supported events appear once in session | Exported synthetic recording |
+| EXT-04 | First click on an element | A visibility assertion is stored before the click action; repeated clicks do not duplicate the first-click assertion | Exported synthetic recording |
 | EXT-05 | Pause, interact, resume | Paused interactions are not recorded; resumed interactions are | Event sequence comparison |
 | EXT-06 | Stop with events | Session is retained and Studio opens | Popup and Studio screenshots |
 | EXT-07 | Studio acknowledges import | Transfer status becomes Imported with event count | Popup acknowledgement screenshot |
 | EXT-08 | Force or simulate import failure | Error is visible and retry remains available | Failure-state screenshot |
 | EXT-09 | Export JSON | Valid versioned JSON downloads | JSON file validated locally |
-| EXT-10 | Password-like field | Sensitive value is not stored in exported event | Synthetic test only |
+| EXT-10 | Password-like field | Sensitive value is never stored in the recording or test-data JSON | Synthetic test only |
 | EXT-11 | URL contains token-like parameter | Credentials are removed and sensitive parameter redacted | Sanitized URL assertion |
 | EXT-12 | Browser-internal page | Start is rejected with clear guidance | Popup error state |
 | EXT-13 | Empty session | Generate is rejected without opening a project | Popup error state |
@@ -28,6 +28,9 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 | EXT-17 | Studio tab finishes loading before handoff listener is ready | Handoff checks the current tab state and still delivers the saved recording exactly once | Automated fast-load regression test |
 | EXT-18 | Studio emits repeated completed-navigation notifications | A successful handoff is not injected a second time | Automated idempotency regression test |
 | EXT-19 | Inspect and repair a missing locator | Enter a specific action number (e.g. 24), select the actual control, then confirm the selected action has locator candidates in exported JSON | Repaired JSON plus popup status screenshot |
+| EXT-20 | Type into a clicked text field | Final value is captured automatically as a fill action attached to that field click; it is not an assertion | Exported synthetic recording and separate test-data JSON |
+| EXT-21 | Change a field value repeatedly | One fill action is updated while typing; a later separate fill interaction gets its own data key | Exported event sequence and test-data JSON |
+| EXT-22 | Change a native dropdown | Selected value is captured as a select action attached to the dropdown click | Exported synthetic recording |
 
 ## Manual smoke-test procedure
 
@@ -35,12 +38,12 @@ This plan distinguishes automated simulation from real-browser validation. Passi
 2. Navigate to `chrome://extensions`, enable Developer mode and select **Load unpacked**.
 3. Choose the repository's `extension/` folder. Resolve manifest or service-worker errors before proceeding.
 4. Open the local fixture served from the repository and reload the tab so the content script is available.
-5. Start recording, click the Details tab, fill the Full name field with a synthetic value, select a country, toggle Send updates, and submit.
+5. Start recording and click the Details tab. Confirm the first click records an element-visibility assertion before the click action. Click the Full name field, type a synthetic value, then move focus away; confirm a fill action appears automatically and the value is stored separately from action metadata. Select a country and confirm a select action is captured automatically. Toggle Send updates and submit.
 6. Pause and resume once. Verify events recorded while paused are absent.
 7. Stop the session. Verify the popup transfer state, open Studio, and inspect the imported action list.
 8. For a missing locator, reopen the popup, enter the affected action number (e.g. 24), choose **Inspect & Repair Locator**, click the actual target element, reopen the popup and export the repaired JSON. Re-import it into Studio and confirm the selected action now has locator candidates.
 9. Generate a project and verify that the ZIP downloads. Generation alone does not mean the generated tests passed.
-10. Export a recording JSON and inspect it for secrets, personal information, browser-specific paths, or unintended values.
+10. Export a recording JSON and inspect it for secrets, personal information, browser-specific paths, or unintended values. Confirm the reusable values are in test_data/test_data.json, action metadata has no copied input values, and a second fill of the same field has a distinct data key.
 11. Save evidence under a dated local folder with Chrome version, extension version, OS, result and any issue ID. Redact sensitive page content before sharing.
 
 ## Popup keyboard and accessibility checks
