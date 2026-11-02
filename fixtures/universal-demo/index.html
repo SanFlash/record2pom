@@ -30,8 +30,17 @@
       <button type="submit" data-testid="submit-form">Submit form</button>
     </fieldset>
   </form>
+  <section aria-label="Advanced browser interactions">
+    <h2>Advanced interactions</h2>
+    <button id="hover-menu" type="button">Hover menu</button>
+    <div id="drag-source" draggable="true" style="display:inline-block;padding:1rem;margin:1rem;background:#dbeafe">Drag source</div>
+    <div id="drop-target" style="display:inline-block;padding:1rem;margin:1rem;border:2px dashed #64748b">Drop target</div>
+    <output id="drop-result">Nothing dropped yet.</output>
+  </section>
   <section aria-label="Result"><h2>Observed outcome</h2><output id="result" aria-live="polite">No action performed yet.</output></section>
   <script>
+    document.getElementById("drop-target").addEventListener("dragover", event => event.preventDefault());
+    document.getElementById("drop-target").addEventListener("drop", event => { event.preventDefault(); document.getElementById("drop-result").textContent = "Drop complete"; });
     document.getElementById('details-tab').addEventListener('click', function () {
       this.setAttribute('aria-selected','true');
       document.getElementById('result').textContent='Details selected';
