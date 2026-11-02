@@ -92,11 +92,11 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 
 | Capability | What it provides |
 |---|---|
-| Browser recorder | Supported clicks, input changes, select changes, checkbox/radio changes, Enter, and navigation metadata |
+| Browser recorder | Supported clicks, input changes, select changes, checkbox/radio changes, Enter, navigation metadata, and recording-time verification checkpoints |
 | Locator intelligence | Candidate locators for data-testid, accessible role/name, labels, placeholders, stable name/ID/custom attributes, and measured CSS fallbacks; Inspect & Repair mode for missing locators |
 | Recording normalization | Versioned intermediate representation, legacy alias normalization, bounded fields, and event-count limits |
 | Safer recordings | Heuristic sensitive-value redaction, background re-validation, payload limits, and no file-input path capture |
-| Readiness checks | Highlights missing URL/configuration, uncertain locators, missing assertions, and environment-dependent values |
+| Readiness checks | Highlights missing URL/configuration, uncertain locators, missing assertions, and environment-dependent values; generated verification checkpoints can be reviewed before generation |
 | Code generation | Python + Playwright + pytest, or Python + Selenium + unittest |
 | Project export | Client-side ZIP download of generated files |
 | Local execution | Generated runner captures output and writes JSON/log/JUnit reports |
