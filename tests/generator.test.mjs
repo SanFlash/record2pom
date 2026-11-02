@@ -90,6 +90,8 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   let config = ""; if (configButton?.onclick) { configButton.onclick(); config = el("code").textContent; }
   const dataButton = fileButtons.find(item => item.dataset.path === "data/recorded_test_data.json");
   let data = ""; if (dataButton?.onclick) { dataButton.onclick(); data = el("code").textContent; }
+  const testDataButton = fileButtons.find(item => item.dataset.path === "test_data/test_data.json");
+  let testData = ""; if (testDataButton?.onclick) { testDataButton.onclick(); testData = el("code").textContent; }
   const envButton = fileButtons.find(item => item.dataset.path === ".env.example");
   let envExample = ""; if (envButton?.onclick) { envButton.onclick(); envExample = el("code").textContent; }
   const setupButton = fileButtons.find(item => item.dataset.path === "run.ps1");
@@ -100,8 +102,31 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   let generatedReadme = ""; if (readmeButton?.onclick) { readmeButton.onclick(); generatedReadme = el("code").textContent; }
   const validatorButton = fileButtons.find(item => item.dataset.path === "validate_project.py");
   let validator = ""; if (validatorButton?.onclick) { validatorButton.onclick(); validator = el("code").textContent; }
-  return {code, runner, test:testSource, conftest, config, data, validator, envExample, requirements, setupScript, readme:generatedReadme, status:el("status").textContent};
+  return {code, runner, test:testSource, conftest, config, data, testData, validator, envExample, requirements, setupScript, readme:generatedReadme, status:el("status").textContent};
 }
+
+test("input values are stored in test_data and never generated as automatic assertions", async () => {
+  const playwright = await generateFromFixture("playwright", "fill", "label");
+  assert.match(playwright.code, /self\.test_data\.get\("input_1", ''\)/);
+  assert.deepEqual(JSON.parse(playwright.testData), {input_1:"Ada"});
+  assert.doesNotMatch(playwright.data, /Ada/);
+  assert.match(playwright.code, /data_path.*test_data.*test_data\.json/s);
+  const selenium = await generateFromFixture("selenium", "select", "label");
+  assert.deepEqual(JSON.parse(selenium.testData), {input_1:"India"});
+  assert.match(selenium.code, /self\.test_data\.get\("input_1", ''\)/);
+});
+
+test("recorder asks for explicit test data after clicking an input and does not infer assert-value", async () => {
+  const recorder = await readFile("extension/recorder.js", "utf8");
+  const panel = await readFile("extension/panel.js", "utf8");
+  const background = await readFile("extension/background.js", "utf8");
+  assert.match(recorder, /requiresTestData:true/);
+  assert.match(recorder, /Never infer a field-value assertion/);
+  assert.doesNotMatch(recorder, /assertions\.push\(\{kind:"assert-value"/);
+  assert.match(panel, /renderInputPrompt/);
+  assert.match(panel, /R2POM_SET_TEST_DATA/);
+  assert.match(background, /R2POM_SET_TEST_DATA/);
+});
 
 test("generated Playwright and Selenium projects preserve assertion execution code", async () => {
   const playwright = await generateFromFixture("playwright","assert-value","label");
@@ -884,7 +909,7 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   }
   assert.match(recorder, /function stableCss\(element\)/);
   assert.match(recorder, /function verificationFor\(kind, element, extra = \{\}\)/);
-  assert.match(recorder, /assert-value/);
+  assert.match(recorder, /assert-url/);\n  assert.doesNotMatch(recorder, /assertions\\.push\\(\\{kind:"assert-value"/);
   assert.match(background, /R2POM_ASSERT_INSPECT_RESULT/);
   assert.match(core, /raw\.verification/);
   assert.match(recorder, /\["data-testid", "data-test", "data-qa", "name", "aria-label"\]/);
