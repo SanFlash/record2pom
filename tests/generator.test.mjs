@@ -710,7 +710,7 @@ test("generated locator recovery re-measures dynamic matches and explains safe r
 test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
   const select = await generateFromFixture("playwright", "select");
   assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
-  assert.match(select.code, /self\._resolve_select_locator\("India"\)\.select_option\(label="India"\)/);
+  assert.match(select.code, /self\._resolve_select_locator\(self\.test_data\.get\("input_1"/);
   assert.ok(select.code.includes("all_text_contents()"));
   assert.ok(select.code.includes("locator(\'option\')") || select.code.includes('locator("option")'));
   assert.match(select.code, /Expected exactly one native select containing option/);
