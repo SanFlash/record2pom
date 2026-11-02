@@ -101,6 +101,18 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 | Project export | Client-side ZIP download of generated files |
 | Local execution | Generated runner captures output and writes JSON/log/JUnit reports |
 
+## ✦ Verification-first recording
+
+Recorder `0.3.0` adds verification checkpoints to the capture workflow:
+
+- Non-sensitive text-field changes can produce a generated `assert-value` checkpoint using the same measured locator.
+- A login action can produce a URL checkpoint for the expected inventory route where that login pattern is detected.
+- Use the extension's **Verification checkpoint** controls while recording to add a manual URL, text, field-value, or element-visibility assertion.
+- Visibility assertions let you select the exact target on the page; the recorder stores the selected locator with the assertion.
+- Verification checkpoints are preserved through JSON export/import and generated into Playwright or Selenium test code.
+
+Automatic checkpoints are deliberately conservative. They do not invent business expectations for every click, and sensitive values are never copied into assertions. Review the expected result and locator before running the generated tests.
+
 ## ✦ How the workflow moves
 
 <div align="center">
@@ -176,7 +188,7 @@ The CI workflow installs Chromium and runs the fixture journeys and generated-pr
 
 ## ✦ Install the browser extension
 
-**Current recorder version:** `0.2.2` (Studio handoff includes the recorder version for compatibility diagnostics).
+**Current recorder version:** `0.3.0` (Studio handoff includes the recorder version for compatibility diagnostics).
 
 1. Open chrome://extensions in Chrome or a compatible Chromium browser.
 2. Enable **Developer mode**.
