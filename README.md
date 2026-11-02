@@ -103,7 +103,7 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 
 ## ✦ Verification-first recording
 
-Recorder `0.5.0` separates browser interactions, test data, and assertions:
+Recorder `0.5.1` separates browser interactions, test data, and assertions:
 
 - Click an editable field or dropdown first. The Side Panel then asks for the reusable test value and adds a distinct `fill` or `select` action.
 - Values typed directly into the website during recording are not captured as expected values and never create automatic `assert-value` assertions.
