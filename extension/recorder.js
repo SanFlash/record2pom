@@ -224,18 +224,9 @@
       selectedLocator: locatorHint ? { ...locatorHint, selected: true } : undefined,
       source: "browser-extension:auto-verification"
     };
-    // A checkpoint means the browser reached the expected post-action state.
-    // It does not assert business correctness when no meaningful expected value exists.
+    // Never infer a field-value assertion from the value typed during recording.
     if (kind === "click" && /login|sign in|log in/i.test(info.name || info.text || "")) {
       assertions.push({kind:"assert-url",description:"Verify login navigation",assertion:{expected:"/inventory.html"},url:pageUrl,...common});
-    }
-    if (kind === "fill" && element && !sensitive(element)) {
-      const expected = String(element.value || "").slice(0, 500);
-      if (expected) assertions.push({
-        kind:"assert-value", description:"Verify " + (info.label || info.name || "field") + " value",
-        target:info, locators:common.locators, selectedLocator:common.selectedLocator,
-        assertion:{expected}, url:pageUrl, page:common.page, source:common.source
-      });
     }
     return assertions;
   }
@@ -284,28 +275,27 @@
     )) || path.find(item => item instanceof Element && isInteractive(item));
     if (element) {
       const info = target(element);
-      emit("click", element, { description: "Click " + (info.name || info.text || info.tagName) });
+      const isSelect = element instanceof HTMLSelectElement;
+      const isTextEntry = element instanceof HTMLTextAreaElement ||
+        (element instanceof HTMLInputElement && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(element.type));
+      const needsData = isSelect || isTextEntry || element.getAttribute("role") === "textbox" || element.getAttribute("role") === "combobox";
+      const dataKey = (element.name || element.id || info.label || info.name || "field")
+        .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
+      emit("click", element, {
+        description: "Click " + (info.name || info.text || info.tagName),
+        ...(needsData ? { requiresTestData:true, inputKind:isSelect || element.getAttribute("role")==="combobox" ? "select" : "fill", dataKey } : {})
+      });
     }
   }, true);
 
   document.addEventListener("change", event => {
     if (!recording || paused) return;
     const element = event.target;
-    if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) return;
-    if (element instanceof HTMLInputElement && (element.type === "file" || element.type === "hidden" || element.type === "button" || element.type === "submit")) return;
+    if (!(element instanceof HTMLInputElement)) return;
     if (element.type === "checkbox" || element.type === "radio") {
       emit(element.checked ? "check" : "uncheck", element, { description: (element.checked ? "Check " : "Uncheck ") + (label(element) || element.tagName) });
-      return;
     }
-    const kind = element instanceof HTMLSelectElement ? "select" : "fill";
-    const extra = { description: (kind === "select" ? "Select " : "Fill ") + (label(element) || element.placeholder || element.tagName) };
-    if (sensitive(element)) {
-      extra.redacted = true;
-      extra.envVar = (element.name || element.id || "RECORDED_INPUT").replace(/[^A-Z0-9_]/gi, "_").toUpperCase().slice(0, 80);
-    } else {
-      extra.value = String(element instanceof HTMLSelectElement ? (element.selectedOptions?.[0]?.label || element.value || "") : (element.value || "")).slice(0, 500);
-    }
-    emit(kind, element, extra);
+    // Text entry and dropdown values are requested explicitly in the Side Panel.
   }, true);
 
   function clearInspectHighlight() {
