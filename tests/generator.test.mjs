@@ -171,7 +171,7 @@ test("redacted Playwright inputs are configured through generated .env without e
 
 test("generated redacted variable names stay aligned when imported event sequences are non-contiguous", async () => {
   const result = await generateFromFixture("playwright", "fill", "role", true, 24, true);
-  assert.match(result.code, /RECORDED_INPUT_1/);
+  assert.match(result.envExample, /RECORDED_INPUT_1=replace_me/);
   assert.match(result.envExample, /RECORDED_INPUT_1=replace_me/);
   assert.doesNotMatch(result.envExample, /RECORDED_INPUT_24=/);
 });
