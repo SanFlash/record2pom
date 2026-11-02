@@ -44,6 +44,8 @@
         description: String(raw.description || raw.label || kind).slice(0, 150),
         timestamp: typeof raw.timestamp === "string" ? raw.timestamp : null,
         url: typeof raw.url === "string" ? raw.url.slice(0, 2000) : "",
+        page: raw.page && typeof raw.page === "object" ? {url:String(raw.page.url||"").slice(0,2000),origin:String(raw.page.origin||"").slice(0,500),title:String(raw.page.title||"").slice(0,300)} : undefined,
+        verification: raw.verification && typeof raw.verification === "object" ? {generated:raw.verification.generated===true,manual:raw.verification.manual===true,triggerKind:String(raw.verification.triggerKind||"").slice(0,40)} : undefined,
         target,
         ...(raw.selectedLocator && typeof raw.selectedLocator === "object" ? {selectedLocator:{strategy:String(raw.selectedLocator.strategy||"").slice(0,40),value:String(raw.selectedLocator.value||"").slice(0,1000),...(raw.selectedLocator.name!=null?{name:String(raw.selectedLocator.name).slice(0,300)}:{}),...(Number.isFinite(raw.selectedLocator.matchCount)?{matchCount:raw.selectedLocator.matchCount}:{}),selected:true}} : {}),
         locators: candidates.filter(c => c && typeof c === "object").map(c => ({
