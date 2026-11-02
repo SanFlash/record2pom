@@ -203,3 +203,26 @@ test("recorder does not mislabel data-test/data-qa attributes as data-testid loc
   assert.ok(event.locators.some(locator => locator.strategy === "css" && locator.value === '[data-test="open-control"]'));
   assert.ok(!event.locators.some(locator => locator.strategy === "testId"));
 });
+
+
+test("recorder emits a post-action field-value verification checkpoint", async () => {
+  const input = new FakeInput("input", {name:"displayName", "aria-label":"Display name", "data-testid":"display-name"}, {type:"text", name:"displayName", value:"Ada Lovelace"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("change",{target:input});
+  const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
+  assert.equal(events[0].kind,"fill");
+  assert.equal(events[1].kind,"assert-value");
+  assert.equal(events[1].assertion.expected,"Ada Lovelace");
+  assert.equal(events[1].verification.generated,true);
+  assert.equal(events[1].locators[0].value,"display-name");
+});
+
+test("recorder never creates automatic value assertions for sensitive input", async () => {
+  const input = new FakeInput("input", {name:"password", "aria-label":"Password"}, {type:"password", name:"password", value:"secret-value"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("change",{target:input});
+  const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
+  assert.equal(events.length,1);
+  assert.equal(events[0].redacted,true);
+  assert.ok(!JSON.stringify(events).includes("secret-value"));
+});
