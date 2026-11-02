@@ -16,8 +16,8 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   assert.match(readme, /docs\/LOCAL_VALIDATION\.md/);
   const validatorSyntax = spawnSync(process.execPath, ["--check", "scripts/validate.mjs"], {encoding:"utf8"});
   assert.equal(validatorSyntax.status, 0, validatorSyntax.stderr);
-  assert.match(readme, /Playwright \+ Python \+ pytest/);
-  assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
+  assert.match(readme, /\| Playwright \| Python \| pytest \|/);
+  assert.match(readme, /\| Selenium \| Python \| unittest \|/);
   assert.equal(manifest.manifest_version, 3);
   assert.equal(manifest.side_panel.default_path, "panel.html");
   assert.equal(manifest.permissions.includes("sidePanel"), true);
