@@ -371,3 +371,12 @@ test("keyboard focus creates an input origin so Tab-based form entry is captured
   assert.equal(fill?.value,"keyboard@example.test");
   assert.equal(fill?.sourceClickId,events.find(e=>e.kind==="click")?.id);
 });
+
+
+test("generic ARIA roles such as option and menuitem receive semantic locators", async () => {
+  const option = new FakeElement("div", {role:"option","aria-label":"India"}, {innerText:"India"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[option]});
+  h.fire("click",{composedPath:()=>[option],target:option});
+  const click=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
+  assert.ok(click.locators.some(locator=>locator.strategy==="role"&&locator.value==="option"&&locator.name==="India"&&locator.matchCount===1));
+});
