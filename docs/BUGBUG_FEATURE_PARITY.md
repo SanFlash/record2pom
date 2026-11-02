@@ -84,3 +84,9 @@ This is a capability map, not a claim that every item is already implemented. Fe
 - **Phase C — execution and debugging:** smart waits, local runner bridge, per-step evidence, rewind and visual regression.
 - **Phase D — portability and integrations:** YAML schema, CLI, REST/webhooks and GitHub/Slack/Jira/Linear adapters.
 - **Phase E — hosted capabilities:** authenticated cloud workers, schedules, parallelism, run history and team RBAC.
+
+
+## External tool interoperability
+
+- Playwright CRX script bridge: JavaScript/TypeScript codegen import is available in Studio. Supported actions are documented in README; imported selectors remain unverified until a local run confirms uniqueness.
+- BugBug: use BugBug's documented YAML or project ZIP export as a portable external artifact. Direct API sync and complete YAML import are not shipped. Do not invent selector-field mappings; implement the adapter against an actual exported sample and BugBug's current schema.
