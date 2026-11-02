@@ -103,15 +103,17 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 
 ## ✦ Verification-first recording
 
-Recorder `0.3.0` adds verification checkpoints to the capture workflow:
+Recorder `0.5.0` separates browser interactions, test data, and assertions:
 
-- Non-sensitive text-field changes can produce a generated `assert-value` checkpoint using the same measured locator.
+- Click an editable field or dropdown first. The Side Panel then asks for the reusable test value and adds a distinct `fill` or `select` action.
+- Values typed directly into the website during recording are not captured as expected values and never create automatic `assert-value` assertions.
+- Non-sensitive values are generated separately in `test_data/test_data.json`; sensitive fields are represented by environment variables and must be configured in `.env`.
 - A login action can produce a URL checkpoint for the expected inventory route where that login pattern is detected.
 - Use the extension's **Verification checkpoint** controls while recording to add a manual URL, text, field-value, or element-visibility assertion.
 - Visibility assertions let you select the exact target on the page; the recorder stores the selected locator with the assertion.
 - Verification checkpoints are preserved through JSON export/import and generated into Playwright or Selenium test code.
 
-Automatic checkpoints are deliberately conservative. They do not invent business expectations for every click, and sensitive values are never copied into assertions. Review the expected result and locator before running the generated tests.
+Assertions remain separate from input actions. Add expected URL, text, visibility, or field-value checks explicitly when the business outcome is known. Sensitive values are never copied into generated test-data files or assertions.
 
 ## ✦ How the workflow moves
 
