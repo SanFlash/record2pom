@@ -590,7 +590,14 @@ test("extension branding assets exist and all manifest references resolve", asyn
   assert.match(popup, /id="export"/);
   assert.match(popup, /id="clear"/);
   const panelHtml = await readFile("extension/panel.html", "utf8");
-  const panelScript = await readFile("extension/panel.js", "utf8");\n  assert.match(panelHtml, /panel.js/);\n  assert.match(panelHtml, /id="timelineList"/);\n  assert.match(panelHtml, /id="captureScreenshot"/);\n  assert.match(panelScript, /chrome.tabs.captureVisibleTab/);\n  assert.match(panelScript, /chrome.tabs.onActivated/);\n  assert.match(panelScript, /renderTimeline/);\n  const popupScript = await readFile("extension/popup.js", "utf8");
+  const panelScript = await readFile("extension/panel.js", "utf8");
+  assert.match(panelHtml, /panel.js/);
+  assert.match(panelHtml, /id="timelineList"/);
+  assert.match(panelHtml, /id="captureScreenshot"/);
+  assert.match(panelScript, /chrome.tabs.captureVisibleTab/);
+  assert.match(panelScript, /chrome.tabs.onActivated/);
+  assert.match(panelScript, /renderTimeline/);
+  const popupScript = await readFile("extension/popup.js", "utf8");
   const background = await readFile("extension/background.js", "utf8");
   assert.match(popupScript, /renderImportStatus/);
   assert.match(popupScript, /record2pom_import_status_v1/);
