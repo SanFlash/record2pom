@@ -132,6 +132,16 @@ Assertions, actions and test data remain distinct throughout capture, JSON norma
 
 Generation is not test execution. The hosted dashboard does not run the generated tests or claim that they passed just because project files were created.
 
+## ✦ External tool interoperability: BugBug + Playwright CRX
+
+Record2POM keeps its own recording model and generated Playwright projects while supporting a companion workflow with other browser-testing tools.
+
+- **Playwright CRX:** Install the official [Playwright CRX Chrome extension](https://chromewebstore.google.com/detail/playwright-crx/jambeljnbnfbkcpnoiaedcabbgmnnlcd), attach the authorized tab, record in JavaScript or TypeScript, then paste its generated script into the **Playwright CRX bridge** in Record2POM Studio. Supported statements include `page.goto`, role/label/placeholder/test-id/text/CSS/alt/title locators, click, fill/type, selectOption, check/uncheck, press, hover, and common visibility/text/value/URL assertions. Imported locators are marked unverified; the generated runner still resolves them strictly at runtime.
+- **BugBug:** BugBug is a separate commercial SaaS product, not an embeddable source-code library. Its documented YAML envelope uses `schema_version`, `schema_type`, and `data`; export individual tests or a project ZIP from BugBug and keep those files in Git. See the [official YAML schema](https://docs.bugbug.io/export-import-and-backup/yaml-schema) and [import/export guide](https://bugbug.io/test-import-export/). Record2POM does not claim direct live sync or full BugBug YAML import yet; an exact adapter requires representative exported test YAML so action-specific selector fields can be mapped without guessing.
+- **Two engines, one pipeline:** Use BugBug for its own visual recorder/cloud workflows where appropriate, use Playwright CRX for browser-side Playwright recording, and use Record2POM to normalize supported Playwright codegen into the Record2POM journey and portable POM project.
+
+The Playwright CRX extension uses Chrome's debugger API to control an attached tab. Do not try to drive the same tab simultaneously from multiple debugger clients; detach one recorder/player before starting another.
+
 ## ✦ Technology
 
 <div align="center">

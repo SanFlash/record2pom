@@ -21,7 +21,7 @@ $("engine").onchange=updateFrameworkOptions;if($("language"))$("language").oncha
 function locator(e,engine){
   const t=e.target||{},source=Array.isArray(e.locators)?[...e.locators]:[];
   if(e.selectedLocator&&typeof e.selectedLocator==="object")source.unshift({...e.selectedLocator,selected:true});
-  const ranked=window.Record2POMCore?window.Record2POMCore.rankLocators(source).filter(x=>["testId","role","label","placeholder","css"].includes(x.strategy)):source;
+  const ranked=window.Record2POMCore?window.Record2POMCore.rankLocators(source).filter(x=>["testId","role","label","placeholder","css","text","alt","title"].includes(x.strategy)):source;
   const candidates=[...ranked];
   const add=(strategy,value,name)=>{if(value)candidates.push({strategy,value,...(name?{name}:{})});};
   add("testId",t.testId);add("role",t.role,t.name);add("label",t.label);add("placeholder",t.placeholder);add("css",t.css);add("text",t.text);
@@ -36,6 +36,8 @@ function locator(e,engine){
       else if(c.strategy==="placeholder")expr="self.page.get_by_placeholder("+q(c.value)+")";
       else if(c.strategy==="css")expr="self.page.locator("+q(c.value)+")";
       else if(c.strategy==="text")expr="self.page.get_by_text("+q(c.value)+", exact=True)";
+      else if(c.strategy==="alt")expr="self.page.get_by_alt_text("+q(c.value)+")";
+      else if(c.strategy==="title")expr="self.page.get_by_title("+q(c.value)+")";
     }else{
       if(c.strategy==="testId")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q('[data-testid="'+c.value+'"]')+")";
       else if(c.strategy==="role"&&c.name)expr="self.driver.find_elements(By.XPATH, "+q(seleniumRoleXPath(c.value,c.name))+")";
@@ -43,11 +45,13 @@ function locator(e,engine){
       else if(c.strategy==="placeholder")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q('[placeholder="'+c.value+'"]')+")";
       else if(c.strategy==="css")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q(c.value)+")";
       else if(c.strategy==="text")expr="self.driver.find_elements(By.XPATH, "+q("//*[normalize-space(.)="+JSON.stringify(c.value)+"]")+")";
+      else if(c.strategy==="alt")expr="self.driver.find_elements(By.XPATH, "+q("//*[@alt="+JSON.stringify(c.value)+"]")+")";
+      else if(c.strategy==="title")expr="self.driver.find_elements(By.XPATH, "+q("//*[@title="+JSON.stringify(c.value)+"]")+")";
     }
     if(expr&&!seen.has(expr)){seen.add(expr);expressions.push("lambda: "+expr);}
   }
   if(!expressions.length)throw Error("Action "+e.sequence+" has no locator. Add a role/name, label, test ID, placeholder or CSS selector.");
-  const hintFields=["tagName","role","name","label","placeholder","testId","text","id","fieldName","href","title"];
+  const hintFields=["tagName","role","name","label","placeholder","testId","text","alt","id","fieldName","href","title"];
   const hints="{"+hintFields.filter(key=>t[key]).map(key=>q(key)+": "+q(String(t[key]))).concat(e.page?.url||e.url?[q("recordedUrl")+": "+q(String(e.page?.url||e.url))]:[]).join(", ")+"}";
   return engine==="playwright"?"self._resolve_locator(["+expressions.join(", ")+"], "+hints+")":"self._resolve_locator(["+expressions.join(", ")+"])";
 }
@@ -70,8 +74,7 @@ function renderStep(e,i,engine){
   if(e.kind==="scroll")return head+"\n        "+(engine==="playwright"?"self.page.evaluate(\"([x,y]) => window.scrollTo(x,y)\", ["+(Number(e.x)||0)+", "+(Number(e.y)||0)+"])":"self.driver.execute_script(\"window.scrollTo(arguments[0], arguments[1])\", "+(Number(e.x)||0)+", "+(Number(e.y)||0)+")");
   if(e.kind==="drag-drop"){const source=locator({...e,locators:e.sourceLocators||[],selectedLocator:e.sourceSelectedLocator||null,target:e.sourceTarget||{}},engine);return head+"\n        "+(engine==="playwright"?source+".drag_to("+l+")":"ActionChains(self.driver).drag_and_drop("+source+", "+l+").perform()");}
   if(e.kind==="fill"){const env=e.envVar||"RECORDED_INPUT_"+(i+1),key=e.dataKey||"input_"+(i+1),v=e.redacted?"os.environ.get("+q(env)+", '')":"self.test_data.get("+q(key)+", '')";return head+"\n        "+(e.redacted?"assert "+q(env)+" in os.environ and os.environ["+q(env)+"], 'Missing "+env+": copy .env.example to .env and set this secret before running.'\n        ":"")+l+(engine==="playwright"?".fill("+v+")":".clear()\n        "+l+".send_keys("+v+")");}
-  if(e.kind==="select"){const key=e.dataKey||"input_"+(i+1),v=e.redacted?"os.environ.get("+q(e.envVar||"RECORDED_INPUT_"+(i+1))+", '')":"self.test_data.get("+q(key)+", '')";return head+"\n        "+(engine==="playwright"?"self._resolve_select_locator("+v+").select_option(label="+v+")":"Select("+l+").select_by_visible_text("+v+")");}
-  if(e.kind==="check"||e.kind==="uncheck")return head+"\n        "+(engine==="playwright"?l+(e.kind==="check"?".check()":".uncheck()"):"("+l+".click() if "+l+".is_selected() == "+(e.kind==="check"?"False":"True")+" else None)");
+  if(e.kind==="select"){const key=e.dataKey||"input_"+(i+1),v=e.redacted?"os.environ.get("+q(e.envVar||"RECORDED_INPUT_"+(i+1))+", '')":"self.test_data.get("+q(key)+", '')";return head+"\n        "+(engine==="playwright"?l+".select_option(value="+v+")":"Select("+l+").select_by_value("+v+")");}if(e.kind==="check"||e.kind==="uncheck")return head+"\n        "+(engine==="playwright"?l+(e.kind==="check"?".check()":".uncheck()"):"("+l+".click() if "+l+".is_selected() == "+(e.kind==="check"?"False":"True")+" else None)");
   if(e.kind==="press"){const keys={Enter:"Keys.ENTER",Tab:"Keys.TAB",Escape:"Keys.ESCAPE",Backspace:"Keys.BACKSPACE",Delete:"Keys.DELETE",ArrowDown:"Keys.ARROW_DOWN",ArrowUp:"Keys.ARROW_UP",ArrowLeft:"Keys.ARROW_LEFT",ArrowRight:"Keys.ARROW_RIGHT"};return head+"\n        "+(engine==="playwright"?l+".press("+q(e.value||"Enter")+")":l+".send_keys("+(keys[e.value||"Enter"]||q(e.value||"Enter"))+")");}
   throw Error("Unsupported action "+e.kind);
 }

@@ -3,7 +3,7 @@
   "use strict";
   const MAX_EVENTS = 5000;
   const MAX_TEXT = 10000;
-  const STRATEGY_WEIGHT = { testId: 100, role: 90, label: 80, placeholder: 70, attribute: 60, css: 40, xpath: 20 };
+  const STRATEGY_WEIGHT = { testId: 100, role: 90, label: 80, placeholder: 70, text: 65, alt: 60, title: 55, attribute: 50, css: 40, xpath: 20 };
   function validateRecording(input) {
     const errors = [];
     if (!input || typeof input !== "object") return { ok: false, errors: ["Recording must be a JSON object or event array."] };
