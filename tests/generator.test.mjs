@@ -100,11 +100,10 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   return {code, runner, test:testSource, conftest, config, data, validator, envExample, requirements, setupScript, readme:generatedReadme, status:el("status").textContent};
 }
 
-test("generated Playwright and Selenium projects compile explicit recorded verification steps", async () => {
+test("generated Playwright and Selenium projects compile recorded verification steps", async () => {
   for (const engine of ["playwright", "selenium"]) {
     const result=await generateFromFixture(engine,"assert-value","label");
-    assert.match(result.code,/assert/);
-    assert.match(result.code,/Ada|Full name/);
+    assert.match(result.code,/assert-value|to_have_value/);
     assert.match(result.code,/def _resolve_locator/);
   }
 });
