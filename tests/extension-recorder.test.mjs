@@ -124,12 +124,13 @@ test("recorder captures ordinary input changes and redacts sensitive fields", as
   h.fire("change", { target: password });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
   assert.equal(events.find(e => e.kind === "fill").kind, "fill");
-  assert.equal(events[0].value, "qa@example.test");
-  assert.equal(events.find(e => e.kind === "fill" && e.redacted).kind, "fill");
-  assert.equal("value" in events[1], false);
-  assert.equal(events[1].redacted, true);
-  assert.equal(events[1].sensitivity, "sensitive");
-  assert.equal(events[1].envVar, "USERPASSWORD");
+  const emailEvent=events.find(e=>e.kind==="fill"&&!e.redacted);
+  const passwordEvent=events.find(e=>e.kind==="fill"&&e.redacted);
+  assert.equal(emailEvent.value, "qa@example.test");
+  assert.equal("value" in passwordEvent, false);
+  assert.equal(passwordEvent.redacted, true);
+  assert.equal(passwordEvent.sensitivity, "sensitive");
+  assert.equal(passwordEvent.envVar, "USERPASSWORD");
 });
 
 test("recorder redacts sensitive values identified by placeholder before messaging background", async () => {
@@ -198,7 +199,7 @@ test("recorder ignores invalid navigation protocols and tolerates missing compos
   const button = new FakeElement("button", { "aria-label": "Save" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
   h.fire("click", { target: button });
-  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT" && !message.event?.verification?.generated).length, 1);
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
   h.control({ type: "R2POM_NAVIGATION", url: "javascript:alert(1)" });
   assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
 });
