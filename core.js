@@ -67,6 +67,11 @@
       } else if (raw.value != null) {
         event.value = String(raw.value).slice(0, 5000);
       }
+      if (raw.sourceTarget && typeof raw.sourceTarget === "object") event.sourceTarget = {...raw.sourceTarget};
+      if (Array.isArray(raw.sourceLocators)) event.sourceLocators = raw.sourceLocators.filter(c=>c&&typeof c==="object").map(c=>({strategy:String(c.strategy||"").slice(0,40),value:String(c.value||"").slice(0,1000),...(c.name!=null?{name:String(c.name).slice(0,300)}:{}),...(Number.isFinite(c.matchCount)?{matchCount:c.matchCount}:{})}));
+      if (raw.sourceSelectedLocator && typeof raw.sourceSelectedLocator === "object") event.sourceSelectedLocator = {...raw.sourceSelectedLocator};
+      if (raw.x != null) event.x = Math.max(0, Math.min(100000, Number(raw.x)||0));
+      if (raw.y != null) event.y = Math.max(0, Math.min(100000, Number(raw.y)||0));
       if (raw.assertion && typeof raw.assertion === "object") {
         event.assertion = { ...raw.assertion };
         if (event.assertion.expected != null) event.assertion.expected = String(event.assertion.expected).slice(0, 2000);
