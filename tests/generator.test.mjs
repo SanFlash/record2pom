@@ -278,7 +278,7 @@ test("Selenium label locators resolve associated controls, not the label node", 
 test("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
   assert.match(select.code, /Select\(self\._resolve_locator/);
-  assert.match(select.code, /select_by_visible_text\("India"\)/);
+  assert.match(select.code, /select_by_visible_text\(self\.test_data\.get/);
   const press = await generateFromFixture("selenium", "press");
   assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
 });
@@ -295,7 +295,8 @@ test("recorder redacts sensitive select values before export", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
   assert.match(source, /element instanceof HTMLSelectElement/);
   assert.match(source, /if \(sensitive\(element\)\)/);
-  assert.match(source, /extra\.redacted = true/);
+  assert.match(source, /requiresTestData:true/);
+  assert.match(source, /event\.redacted = true/);
 });
 
 
