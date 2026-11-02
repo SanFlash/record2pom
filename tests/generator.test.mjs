@@ -127,16 +127,18 @@ test("generated validator safely reports malformed metadata and validates empty 
   assert.equal(values.input_1, "");
 });
 
-test("recorder asks for explicit test data after clicking an input and does not infer assert-value", async () => {
+test("recorder asserts on first click and automatically stores live input values without inferring assert-value", async () => {
   const recorder = await readFile("extension/recorder.js", "utf8");
-  const panel = await readFile("extension/panel.js", "utf8");
+  const panel = await readFile("extension/panel.html", "utf8");
   const background = await readFile("extension/background.js", "utf8");
-  assert.match(recorder, /requiresTestData:true/);
+  assert.match(recorder, /assert-visible/);
+  assert.match(recorder, /capturedAutomatically/);
+  assert.match(recorder, /sourceClickId/);
   assert.match(recorder, /Never infer a field-value assertion/);
   assert.doesNotMatch(recorder, /assertions\.push\(\{kind:"assert-value"/);
-  assert.match(panel, /renderInputPrompt/);
-  assert.match(panel, /R2POM_SET_TEST_DATA/);
-  assert.match(background, /R2POM_SET_TEST_DATA/);
+  assert.match(panel, /Automatic input capture/);
+  assert.match(background, /sourceClickId/);
+  assert.match(background, /capturedAutomatically/);
 });
 
 test("generated Playwright and Selenium projects preserve assertion execution code", async () => {
@@ -308,7 +310,7 @@ test("recorder redacts sensitive select values before export", async () => {
   assert.match(source, /if \(isSensitive\)/);
   assert.match(source, /inputKind:isSelect \? "select" : "fill"/);
   assert.match(source, /event\.redacted = true/);
-  assert.match(source, /capturedAutomatically:true/);
+  assert.match(source, /capturedAutomatically/);
 });
 
 
