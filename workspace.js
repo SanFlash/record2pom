@@ -12,6 +12,7 @@ function render(){
  const folder=$("wsFolderSelect"),suite=$("wsSuiteSelect"),test=$("wsTestSelect"),profile=$("wsProfileSelect"),component=$("wsComponentSelect");
  if(!folder)return;
  folder.replaceChildren(...data.folders.map(x=>new Option(x.name,x.id)));
+ suite.replaceChildren(...data.suites.map(x=>new Option(x.name,x.id)));
  test.replaceChildren(new Option("Select a saved test",""),...data.tests.map(x=>new Option(x.name+" · "+(data.suites.find(s=>s.id===x.suiteId)?.name||"Suite"),x.id)));
  profile.replaceChildren(...data.profiles.map(x=>new Option(x.name,x.id)));profile.value=data.activeProfile;
  component.replaceChildren(...data.components.map(x=>new Option(x.name,x.id)));
