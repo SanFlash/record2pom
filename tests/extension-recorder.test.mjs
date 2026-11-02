@@ -168,7 +168,7 @@ test("recorder prioritizes the actual input over a data-testid wrapper", async (
   assert.equal(event.kind,"click");
   assert.equal(event.target.tagName,"input");
   assert.equal(event.inputKind,"fill");
-  assert.equal(event.dataKey,"account_email");
+  assert.equal(event.dataKey,"accountemail");
   assert.equal("value" in event,false);
 });
 
