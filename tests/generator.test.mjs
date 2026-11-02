@@ -290,10 +290,10 @@ test("Selenium label locators resolve associated controls, not the label node", 
 
 test("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
-  assert.match(select.code, /Select\\(self\\._resolve_locator/);
-  assert.match(select.code, /select_by_value\\(self\\.test_data\\.get/);
+  assert.match(select.code, /Select\(self\._resolve_locator/);
+  assert.match(select.code, /select_by_value\(self\.test_data\.get/);
   const press = await generateFromFixture("selenium", "press");
-  assert.match(press.code, /send_keys\\(Keys\\.ENTER\\)/);
+  assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
 });
 
 
@@ -724,9 +724,9 @@ test("generated locator recovery re-measures dynamic matches and explains safe r
 
 test("Playwright select actions use the recorded locator and selected option value", async () => {
   const select = await generateFromFixture("playwright", "select");
-  assert.match(select.code, /self\\._resolve_locator\\(/);
-  assert.match(select.code, /select_option\\(value=self\\.test_data\\.get/);
-  assert.doesNotMatch(select.code, /self\\._resolve_select_locator\\(/);
+  assert.match(select.code, /self\._resolve_locator\(/);
+  assert.match(select.code, /select_option\(value=self\.test_data\.get/);
+  assert.doesNotMatch(select.code, /self\._resolve_select_locator\(/);
   assert.ok(select.config.includes("BASE_URL = os.environ.get"));
   assert.doesNotThrow(() => JSON.parse(select.data));
   assert.equal(JSON.parse(select.data).steps[0].value, null);
