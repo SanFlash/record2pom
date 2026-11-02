@@ -91,7 +91,7 @@ def main():
                     errors.append(f"Step {i} is marked redacted but contains a value.")
         except Exception as exc:
             errors.append(f"Invalid recorded test data JSON: {exc}")
-    values_path = ROOT / \"test_data\" / \"test_data.json\"
+    values_path = ROOT / "test_data" / "test_data.json"
     values = {}
     if values_path.is_file():
         try:
