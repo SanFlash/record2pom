@@ -717,7 +717,8 @@ test("Playwright select actions recover native controls by option text when acce
   assert.ok(select.code.includes("timeout=2500"));
   assert.ok(select.config.includes("BASE_URL = os.environ.get"));
   assert.doesNotThrow(() => JSON.parse(select.data));
-  assert.equal(JSON.parse(select.data).steps[0].value, "India");
+  assert.equal(JSON.parse(select.data).steps[0].value, null);
+  assert.deepEqual(JSON.parse(select.testData), {input_1:"India"});
 });
 
 test("generated runners include structured diagnostics, step timelines and actionable repair guidance", async () => {
