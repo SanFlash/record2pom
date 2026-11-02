@@ -88,11 +88,11 @@ The Motion Lab is the animated product experience—not a static mockup. Its GSA
 
 ## ✦ What it does
 
-Record2POM is a website-agnostic browser recording and Page Object Model (POM) project generator. It combines a static dashboard with a separately installed Chrome/Chromium Manifest V3 extension.
+Record2POM is a website-agnostic browser recording and Page Object Model (POM) project generator. It combines a static dashboard with a separately installed Chrome/Chromium Manifest V3 extension with a persistent right-hand Side Panel alongside the active website.
 
 | Capability | What it provides |
 |---|---|
-| Browser recorder | Supported clicks, input changes, select changes, checkbox/radio changes, Enter, navigation metadata, and recording-time verification checkpoints |
+| Browser recorder | Persistent Side Panel; supported clicks, input changes, select changes, checkbox/radio changes, Enter, navigation metadata, wait steps, screenshots, and recording-time verification checkpoints |
 | Locator intelligence | Candidate locators for data-testid, accessible role/name, labels, placeholders, stable name/ID/custom attributes, and measured CSS fallbacks; Inspect & Repair mode for missing locators |
 | Recording normalization | Versioned intermediate representation, legacy alias normalization, bounded fields, and event-count limits |
 | Safer recordings | Heuristic sensitive-value redaction, background re-validation, payload limits, and no file-input path capture |
@@ -125,7 +125,7 @@ Automatic checkpoints are deliberately conservative. They do not invent business
 2. **Import** the recording JSON into the dashboard.
 3. **Review** actions, locator confidence, redaction, and assertions.
 4. **Generate** the Page Object Model project and download its ZIP.
-5. **Inspect and run locally** with the generated instructions, then review the result artifacts. If an action has no locator, use the extension popup's **Inspect & Repair Locator** mode to select the actual control, export the repaired recording JSON, and re-import it into Studio.
+5. **Inspect and run locally** with the generated instructions, then review the result artifacts. If an action has no locator, use the persistent extension Side Panel's **Inspect & Repair Locator** mode to select the actual control, export the repaired recording JSON, and re-import it into Studio.
 
 Generation is not test execution. The hosted dashboard does not run the generated tests or claim that they passed just because project files were created.
 
@@ -188,15 +188,15 @@ The CI workflow installs Chromium and runs the fixture journeys and generated-pr
 
 ## ✦ Install the browser extension
 
-**Current recorder version:** `0.3.0` (Studio handoff includes the recorder version for compatibility diagnostics).
+**Current recorder version:** `0.4.0` (Studio handoff includes the recorder version for compatibility diagnostics).
 
 1. Open chrome://extensions in Chrome or a compatible Chromium browser.
 2. Enable **Developer mode**.
 3. Choose **Load unpacked** and select the repository's extension/ directory.
-4. Open an authorized HTTP/HTTPS test website and reload the page.
-5. Start recording and try a safe fixture journey; test pause/resume and stop.
-6. Export the recording and verify that password-like values and file paths are not present.
-7. Import the JSON into the dashboard and review the generated project.
+4. Pin Record2POM if desired, then click its toolbar icon. Chrome opens the persistent Record2POM Side Panel on the right.
+5. Open an authorized HTTP/HTTPS test website in the main browser area; the Side Panel stays beside it.
+6. Start recording from the Side Panel and try a safe fixture journey. Test pause/resume, wait steps, screenshot capture, locator inspection, verification checkpoints, and stop.
+7. Generate the POM project from the Side Panel, review the Studio import status, and export the recording JSON if needed.
 
 Some browser surfaces, closed shadow roots, cross-origin frames, popups, and highly customized widgets may require manual handling. The Node integration harness simulates the extension-to-Studio message contract; it is not a real installed-Chrome test. Before relying on the extension, manually verify Start → Pause/Resume → Stop → Studio import acknowledgement → Generate → ZIP download in Chrome and save screenshots with the test date, browser version, and result. Do not include secrets or real personal data in evidence.
 
@@ -227,7 +227,7 @@ The generated runner uses an argument array rather than shell interpolation and 
 
 - Sensitive-value detection is heuristic and cannot guarantee that all secrets or personal information will be identified. Inspect recordings before sharing them.
 - Use test credentials and synthetic data. Never commit secrets or record sensitive production sessions.
-- The extension uses broad HTTP/HTTPS host permissions to support user-selected targets; review the permission request before installation.
+- The Side Panel remains available while you browse; clicking the toolbar icon toggles its visibility. The extension uses broad HTTP/HTTPS host permissions to support user-selected targets; review the permission request before installation.
 - The dashboard has no accounts, database, hosted runner, server-side test execution, or cloud queue.
 - Authentication, CAPTCHA, MFA, and access controls are not bypassed.
 - Use the framework only on systems you own or have explicit permission to test.
