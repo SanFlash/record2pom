@@ -474,14 +474,22 @@
 
   document.addEventListener("dragend", () => { dragSource=null; }, true);
 
-  document.addEventListener("scroll", () => {
+  document.addEventListener("scroll", event => {
     if (!recording || paused || inspectMode || scrollTimer) return;
+    const source = event?.target;
+    const elementScroll = source instanceof Element &&
+      source !== document && source !== document.documentElement && source !== document.body &&
+      (source.scrollHeight > source.clientHeight || source.scrollWidth > source.clientWidth);
+    const scroller = elementScroll ? source : document.documentElement;
     scrollTimer=setTimeout(() => {
       scrollTimer=null;
-      emit("scroll", document.documentElement, {
-        x:Math.round(window.scrollX||0),
-        y:Math.round(window.scrollY||0),
-        description:"Scroll page to "+Math.round(window.scrollX||0)+", "+Math.round(window.scrollY||0)
+      const x=Math.round(elementScroll ? (scroller.scrollLeft||0) : (window.scrollX||0));
+      const y=Math.round(elementScroll ? (scroller.scrollTop||0) : (window.scrollY||0));
+      emit("scroll", scroller, {
+        x, y,
+        scrollMode:elementScroll ? "element" : "window",
+        scrollBehavior:"auto",
+        description:(elementScroll ? "Scroll container" : "Scroll page")+" to "+x+", "+y
       });
     },250);
   }, true);
