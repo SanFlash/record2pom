@@ -128,8 +128,8 @@ test("recorder asks for test data after input click and never captures typed web
   h.fire("click", { composedPath: () => [password], target: password });
   h.fire("change", { target: password });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
-  const emailEvent=events.find(e=>e.target?.name==="email");
-  const passwordEvent=events.find(e=>e.target?.name==="userPassword");
+  const emailEvent=events.find(e=>e.target?.fieldName==="email");
+  const passwordEvent=events.find(e=>e.target?.fieldName==="userPassword");
   assert.equal(emailEvent.kind, "click");
   assert.equal(emailEvent.requiresTestData, true);
   assert.equal(emailEvent.inputKind, "fill");
@@ -218,16 +218,17 @@ test("recorder does not mislabel data-test/data-qa attributes as data-testid loc
 });
 
 
-test("recorder emits a post-action field-value verification checkpoint", async () => {
+test("recorder never converts typed input into an automatic value assertion", async () => {
   const input = new FakeInput("input", {name:"displayName", "aria-label":"Display name", "data-testid":"display-name"}, {type:"text", name:"displayName", value:"Ada Lovelace"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("click",{composedPath:()=>[input],target:input});
   h.fire("change",{target:input});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
-  assert.equal(events[0].kind,"fill");
-  assert.equal(events[1].kind,"assert-value");
-  assert.equal(events.find(e=>e.kind==="assert-value").assertion.expected,"Ada Lovelace");
-  assert.equal(events.find(e=>e.kind==="assert-value").verification.generated,true);
-  assert.equal(events.find(e=>e.kind==="assert-value").locators[0].value,"display-name");
+  assert.equal(events[0].kind,"click");
+  assert.equal(events[0].requiresTestData,true);
+  assert.equal(events.some(e=>e.kind==="assert-value"),false);
+  assert.equal(events.some(e=>e.kind==="fill"),false);
+  assert.equal("value" in events[0],false);
 });
 
 test("recorder never creates automatic value assertions for sensitive input", async () => {
