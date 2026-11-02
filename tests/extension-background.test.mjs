@@ -53,6 +53,22 @@ test("extension initializes a persistent idle session and returns it", async () 
   assert.ok(h.store[KEY]);
 });
 
+test("background persists optional capture modes and accepts advanced browser actions", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test",tabId:7});
+  const modes=await h.dispatch({type:"R2POM_CAPTURE_MODES",captureHover:true,captureDragDrop:true});
+  assert.equal(modes.session.captureHover,true);
+  assert.equal(modes.session.captureDragDrop,true);
+  assert.equal(h.sentTabMessages.at(-1).message.captureHover,true);
+  for(const kind of ["hover","scroll","drag-drop"]){
+    const result=await h.dispatch({type:"R2POM_EVENT",event:{kind,target:{tagName:"button"},...(kind==="scroll"?{x:0,y:500}:{}),...(kind==="drag-drop"?{sourceTarget:{tagName:"button"},sourceLocators:[{strategy:"css",value:"#source"}]}:{})}});
+    assert.equal(result.ok,true,kind+" should be accepted");
+  }
+  const session=(await h.dispatch({type:"R2POM_GET_SESSION"})).session;
+  assert.deepEqual(Array.from(session.events,e=>e.kind),["hover","scroll","drag-drop"]);
+});
+
 test("extension start, pause, resume, stop and clear enforce the recording lifecycle", async () => {
   const h = await harness();
   await h.installed[0]();
