@@ -4,7 +4,7 @@
 
 # Record2POM — Universal POM Automation Studio
 
-**Capture browser journeys. Review locator health. Generate portable Python automation projects.**
+**Capture browser journeys. Assert first. Auto-capture test data. Generate multi-language POM frameworks.**
 
 **Framework creator:** Satyendra Kumar Namdeo
 
@@ -97,24 +97,23 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 | Recording normalization | Versioned intermediate representation, legacy alias normalization, bounded fields, and event-count limits |
 | Safer recordings | Heuristic sensitive-value redaction, background re-validation, payload limits, and no file-input path capture |
 | Readiness checks | Highlights missing URL/configuration, uncertain locators, missing assertions, and environment-dependent values; generated verification checkpoints can be reviewed before generation |
-| Code generation | Python + Playwright + pytest, or Python + Selenium + unittest |
+| Code generation | Playwright / Selenium with Python, JavaScript, TypeScript or Java |
 | Project export | Client-side ZIP download of generated files |
 | Local execution | Generated runner captures output and writes JSON/log/JUnit reports |
 
 ## ✦ Verification-first recording
 
-Recorder `0.5.1` separates browser interactions, test data, and assertions:
+Recorder `0.6.0` uses an assertion-first, action-aware recording pipeline:
 
-- Click an editable field or dropdown first. The Side Panel then asks for the reusable test value and adds a distinct `fill` or `select` action.
-- Values typed directly into the website during recording are not captured as expected values and never create automatic `assert-value` assertions.
-- Input prompts are processed in recording order. Empty strings are valid test data for negative and required-field scenarios.
-- Non-sensitive values are generated separately in `test_data/test_data.json`; sensitive fields are represented by environment variables and must be configured in `.env`.
-- A login action can produce a URL checkpoint for the expected inventory route where that login pattern is detected.
-- Use the extension's **Verification checkpoint** controls while recording to add a manual URL, text, field-value, or element-visibility assertion.
-- Visibility assertions let you select the exact target on the page; the recorder stores the selected locator with the assertion.
-- Verification checkpoints are preserved through JSON export/import and generated into Playwright or Selenium test code.
+- The first click on an element records a visibility assertion **before** the click action. Repeated clicks do not create duplicate first-click assertions for the same live element.
+- When a user types, changes, or selects a value on the live website, Record2POM automatically captures the final value and attaches one `fill` or `select` action to the originating element click. Continued typing updates that action rather than creating a keystroke-per-step timeline.
+- Captured values are test inputs, never expected assertions. The recorder does not infer `assert-value` from text entered by the user.
+- Values are kept in `test_data/test_data.json`, separate from page objects and `data/recorded_test_data.json` action metadata.
+- Passwords, OTPs, payment data and other detected sensitive fields are redacted; configure their `RECORDED_INPUT_*` environment variables locally instead.
+- Use the extension's **Verification checkpoint** controls to add explicit URL, text, field-value, or element-visibility assertions for business outcomes.
+- The same normalized recording is used for Playwright and Selenium projects in Python, JavaScript, TypeScript and Java.
 
-Assertions remain separate from input actions. Add expected URL, text, visibility, or field-value checks explicitly when the business outcome is known. Sensitive values are never copied into generated test-data files or assertions.
+Assertions, actions and test data remain distinct throughout capture, JSON normalization, review and generation.
 
 ## ✦ How the workflow moves
 
@@ -217,14 +216,18 @@ The generated runner uses an argument array rather than shell interpolation and 
 
 ## ✦ Supported generator combinations
 
-- Playwright + Python + pytest
-- Selenium WebDriver + Python + unittest
-
-| Engine | Language | Test framework |
+| Automation tool | Language | Runner |
 |---|---|---|
 | Playwright | Python | pytest |
-| Selenium WebDriver | Python | unittest |
-| Other engines/languages | — | Not implemented |
+| Selenium | Python | unittest |
+| Playwright | JavaScript | Playwright Test |
+| Selenium | JavaScript | Node.js runner |
+| Playwright | TypeScript | Playwright Test |
+| Selenium | TypeScript | ts-node runner |
+| Playwright | Java | JUnit 5 |
+| Selenium | Java | JUnit 5 |
+
+All generated projects keep reusable test data in a separate JSON file and secrets in environment variables. JavaScript/TypeScript projects use Node.js 20+; Java projects use JDK 17+ and Maven.
 
 ## ✦ Security and scope
 
