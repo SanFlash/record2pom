@@ -909,7 +909,8 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   }
   assert.match(recorder, /function stableCss\(element\)/);
   assert.match(recorder, /function verificationFor\(kind, element, extra = \{\}\)/);
-  assert.match(recorder, /assert-url/);\n  assert.doesNotMatch(recorder, /assertions\\.push\\(\\{kind:"assert-value"/);
+  assert.match(recorder, /assert-url/);
+  assert.doesNotMatch(recorder, /kind:"assert-value"/);
   assert.match(background, /R2POM_ASSERT_INSPECT_RESULT/);
   assert.match(core, /raw\.verification/);
   assert.match(recorder, /\["data-testid", "data-test", "data-qa", "name", "aria-label"\]/);
