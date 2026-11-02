@@ -279,6 +279,54 @@
   const capturedInputValues = new WeakMap();
   const inputTimers = new WeakMap();
 
+  // Keyboard navigation and programmatic focus must create the same input origin as a pointer click.
+  // The zero-delay check lets a real pointer click run first, avoiding duplicate click steps.
+  function startInputOrigin(element, verb = "Focus") {
+    if (!recording || paused || !(element instanceof Element)) return;
+    const isSelect = element instanceof HTMLSelectElement;
+    const isContentEditable = element.isContentEditable || element.getAttribute("contenteditable") === "true";
+    const isTextEntry = element instanceof HTMLTextAreaElement ||
+      (element instanceof HTMLInputElement && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(element.type)) ||
+      element.getAttribute("role") === "textbox" || isContentEditable;
+    if (!isSelect && !isTextEntry) return;
+    const info = target(element);
+    if (!assertedElements.has(element)) {
+      assertedElements.add(element);
+      emit("assert-visible", element, {
+        description: "Assert " + (info.name || info.label || info.placeholder || info.tagName) + " is visible before interaction",
+        assertion: { expected: "visible" },
+        verification: { generated: true, triggerKind: "first-focus" },
+        source: "browser-extension:first-focus-assertion"
+      });
+    }
+    const dataKey = (element.name || element.id || info.label || info.placeholder || info.name || "field")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
+    const clickAction = emit("click", element, {
+      description: verb + " " + (info.name || info.label || info.placeholder || "input"),
+      inputKind: isSelect ? "select" : "fill",
+      dataKey,
+      interactionOrigin: "keyboard-focus"
+    });
+    if (clickAction) {
+      inputClickIds.set(element, clickAction.id);
+      inputDataKeys.set(element, (dataKey + "_" + clickAction.id.slice(-5)).slice(0, 60));
+      capturedInputValues.delete(element);
+    }
+  }
+
+  document.addEventListener("focusin", event => {
+    if (!recording || paused || inspectMode) return;
+    const element = event.target;
+    if (!(element instanceof Element)) return;
+    inputClickIds.delete(element);
+    inputDataKeys.delete(element);
+    capturedInputValues.delete(element);
+    setTimeout(() => {
+      if (!inputClickIds.has(element)) startInputOrigin(element, "Focus");
+    }, 0);
+  }, true);
+
+
   function inputValue(element) {
     if (element.isContentEditable || element.getAttribute("contenteditable") === "true") return String(element.innerText || element.textContent || "");
     if (element instanceof HTMLSelectElement) return String(element.value || "");
