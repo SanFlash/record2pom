@@ -13,7 +13,7 @@ function render(){if(!session)return;const count=session.events?.length||0;$("co
       url:active.url,page:{url:active.url,origin:new URL(active.url).origin,title:active.title||""},
       target:{},locators:[],assertion:{expected},value:expected,verification:{generated:false,manual:true}};
     if(kind==="visible"){
-      await chrome.tabs.sendMessage(active.id,{type:"R2POM_START_ASSERT_INSPECT",sequence:null,assertion:event});
+      const started=await send({type:"R2POM_START_ASSERT_INSPECT",sequence:null,assertion:event});if(!started?.ok)throw Error(started?.error||"Could not start visibility checkpoint selection.");
       $("message").textContent="Select the element on the page that should be visible; press Esc to cancel.";
       window.close();return;
     }
