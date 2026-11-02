@@ -534,6 +534,8 @@
         if (!result?.ok || !result.session) return;
         recording = !!result.session.recording;
         paused = !!result.session.paused;
+        captureHover = result.session.captureHover === true;
+        captureDragDrop = result.session.captureDragDrop === true;
         if (!recording || paused) return;
         const safeUrl = sanitizeUrl(message.url);
         if (!safeUrl || safeUrl === lastNavigationUrl) return;
@@ -559,6 +561,8 @@
     if (result?.ok && result.session) {
       recording = !!result.session.recording;
       paused = !!result.session.paused;
+      captureHover = result.session.captureHover === true;
+      captureDragDrop = result.session.captureDragDrop === true;
     }
   }).catch(() => {});
 })();
