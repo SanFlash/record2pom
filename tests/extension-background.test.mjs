@@ -116,6 +116,23 @@ test("sensitive input selection creates a redacted fill action without storing a
   assert.equal("value" in action,false);
 });
 
+test("test data is inserted directly after its click and empty values are supported", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test/form"});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"click-a",kind:"click",requiresTestData:true,inputKind:"fill",dataKey:"first",target:{label:"First"}}});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"click-b",kind:"click",requiresTestData:true,inputKind:"fill",dataKey:"second",target:{label:"Second"}}});
+  const saved = await h.dispatch({type:"R2POM_SET_TEST_DATA",eventId:"click-a",value:""});
+  assert.equal(saved.ok,true);
+  assert.deepEqual(saved.session.events.map(event=>event.kind),["click","fill","click"]);
+  assert.equal(saved.session.events[1].sourceClickId,"click-a");
+  assert.equal(saved.session.events[1].value,"");
+  assert.deepEqual(saved.session.events.map(event=>event.sequence),[1,2,3]);
+  const tooLong=await h.dispatch({type:"R2POM_SET_TEST_DATA",eventId:"click-b",value:"x".repeat(5001)});
+  assert.equal(tooLong.ok,false);
+  assert.match(tooLong.error,/5,000 characters/);
+});
+
 test("pause and resume cannot accidentally start an idle session", async () => {
   const h = await harness();
   await h.installed[0]();
