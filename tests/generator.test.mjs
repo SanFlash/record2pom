@@ -19,6 +19,9 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   assert.match(readme, /Playwright \+ Python \+ pytest/);
   assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
   assert.equal(manifest.manifest_version, 3);
+  assert.equal(manifest.side_panel.default_path, "panel.html");
+  assert.equal(manifest.permissions.includes("sidePanel"), true);
+  assert.equal(manifest.action.default_popup, undefined);
   assert.deepEqual(manifest.content_scripts[0].matches, ["http://*/*", "https://*/*"]);
   assert.equal(vercel.cleanUrls, true);
   assert.match(fixture, /id="full-name"/);
@@ -26,7 +29,7 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
 });
 
 test("dashboard and extension scripts parse", async () => {
-  for (const file of ["core.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js"]) {
+  for (const file of ["core.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js", "extension/panel.js"]) {
     const source = await readFile(file, "utf8");
     assert.doesNotThrow(() => new vm.Script(source), file + " must parse");
   }
@@ -586,7 +589,8 @@ test("extension branding assets exist and all manifest references resolve", asyn
   assert.match(popup, /id="stop"/);
   assert.match(popup, /id="export"/);
   assert.match(popup, /id="clear"/);
-  const panelHtml = await readFile("extension/panel.html", "utf8");\n  const panelScript = await readFile("extension/panel.js", "utf8");\n  assert.match(panelHtml, /panel.js/);\n  assert.match(panelHtml, /id="timelineList"/);\n  assert.match(panelHtml, /id="captureScreenshot"/);\n  assert.match(panelScript, /chrome.tabs.captureVisibleTab/);\n  assert.match(panelScript, /chrome.tabs.onActivated/);\n  assert.match(panelScript, /renderTimeline/);\n  const popupScript = await readFile("extension/popup.js", "utf8");
+  const panelHtml = await readFile("extension/panel.html", "utf8");
+  const panelScript = await readFile("extension/panel.js", "utf8");\n  assert.match(panelHtml, /panel.js/);\n  assert.match(panelHtml, /id="timelineList"/);\n  assert.match(panelHtml, /id="captureScreenshot"/);\n  assert.match(panelScript, /chrome.tabs.captureVisibleTab/);\n  assert.match(panelScript, /chrome.tabs.onActivated/);\n  assert.match(panelScript, /renderTimeline/);\n  const popupScript = await readFile("extension/popup.js", "utf8");
   const background = await readFile("extension/background.js", "utf8");
   assert.match(popupScript, /renderImportStatus/);
   assert.match(popupScript, /record2pom_import_status_v1/);
