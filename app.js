@@ -35,14 +35,18 @@ function locator(e,engine){
       else if(c.strategy==="label")expr="self.page.get_by_label("+q(c.value)+")";
       else if(c.strategy==="placeholder")expr="self.page.get_by_placeholder("+q(c.value)+")";
       else if(c.strategy==="css")expr="self.page.locator("+q(c.value)+")";
-      else if(c.strategy==="text")expr="self.page.get_by_text("+q(c.value)+", exact=True)";\n      else if(c.strategy==="alt")expr="self.page.get_by_alt_text("+q(c.value)+")";\n      else if(c.strategy==="title")expr="self.page.get_by_title("+q(c.value)+")";
+      else if(c.strategy==="text")expr="self.page.get_by_text("+q(c.value)+", exact=True)";
+      else if(c.strategy==="alt")expr="self.page.get_by_alt_text("+q(c.value)+")";
+      else if(c.strategy==="title")expr="self.page.get_by_title("+q(c.value)+")";
     }else{
       if(c.strategy==="testId")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q('[data-testid="'+c.value+'"]')+")";
       else if(c.strategy==="role"&&c.name)expr="self.driver.find_elements(By.XPATH, "+q(seleniumRoleXPath(c.value,c.name))+")";
       else if(c.strategy==="label")expr="self.driver.find_elements(By.XPATH, "+q(seleniumLabelXPath(c.value))+")";
       else if(c.strategy==="placeholder")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q('[placeholder="'+c.value+'"]')+")";
       else if(c.strategy==="css")expr="self.driver.find_elements(By.CSS_SELECTOR, "+q(c.value)+")";
-      else if(c.strategy==="text")expr="self.driver.find_elements(By.XPATH, "+q("//*[normalize-space(.)="+JSON.stringify(c.value)+"]")+")";\n      else if(c.strategy==="alt")expr="self.driver.find_elements(By.XPATH, "+q("//*[@alt="+JSON.stringify(c.value)+"]")+")";\n      else if(c.strategy==="title")expr="self.driver.find_elements(By.XPATH, "+q("//*[@title="+JSON.stringify(c.value)+"]")+")";
+      else if(c.strategy==="text")expr="self.driver.find_elements(By.XPATH, "+q("//*[normalize-space(.)="+JSON.stringify(c.value)+"]")+")";
+      else if(c.strategy==="alt")expr="self.driver.find_elements(By.XPATH, "+q("//*[@alt="+JSON.stringify(c.value)+"]")+")";
+      else if(c.strategy==="title")expr="self.driver.find_elements(By.XPATH, "+q("//*[@title="+JSON.stringify(c.value)+"]")+")";
     }
     if(expr&&!seen.has(expr)){seen.add(expr);expressions.push("lambda: "+expr);}
   }
