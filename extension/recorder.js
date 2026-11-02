@@ -9,6 +9,7 @@
   let paused = false;
   let inspectMode = false;
   let inspectSequence = null;
+  let pendingAssertion = null;
   let inspectOverlay = null;
   let inspectedElement = null;
   let previousOutline = "";
@@ -316,10 +317,11 @@
     inspectOverlay = null;
   }
 
-  function startInspectMode(sequence) {
+  function startInspectMode(sequence, assertion = null) {
     clearInspectHighlight();
     inspectMode = true;
     inspectSequence = Number.isInteger(sequence) && sequence > 0 ? sequence : null;
+    pendingAssertion = assertion && typeof assertion === "object" ? assertion : null;
     const banner = document.createElement("div");
     banner.id = "record2pom-inspect-banner";
     banner.textContent = "Record2POM Inspect: click the element whose locator needs repair · Esc to cancel";
@@ -339,7 +341,13 @@
     inspectMode = false;
     clearInspectHighlight();
     try {
-      chrome.runtime.sendMessage({type:"R2POM_INSPECT_RESULT", sequence:inspectSequence, target:info, locators:candidates, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
+      if (pendingAssertion) {
+        const selected = candidates.find(candidate => candidate.matchCount === 1) || null;
+        chrome.runtime.sendMessage({type:"R2POM_ASSERT_INSPECT_RESULT", assertion:pendingAssertion, target:info, locators:candidates, selectedLocator:selected, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
+        pendingAssertion = null;
+      } else {
+        chrome.runtime.sendMessage({type:"R2POM_INSPECT_RESULT", sequence:inspectSequence, target:info, locators:candidates, url:sanitizeUrl(location.href), page:{url:sanitizeUrl(location.href),origin:location.origin,title:document.title}}).catch(()=>{});
+      }
     } catch { /* extension may be reloading */ }
   }
 
@@ -376,8 +384,8 @@
 
   let lastNavigationUrl = "";
   chrome.runtime.onMessage.addListener(message => {
-    if (message?.type === "R2POM_INSPECT_MODE") {
-      startInspectMode(message.sequence);
+    if (message?.type === "R2POM_INSPECT_MODE" || message?.type === "R2POM_INSPECT_ASSERT") {
+      startInspectMode(message.sequence, message.assertion || null);
       return;
     }
     if (message?.type === "R2POM_CONTROL") {
