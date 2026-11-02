@@ -56,6 +56,7 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
   const sent = [];
   const document = {
     title: "Fixture page",
+    documentElement: new FakeElement("html"),
     addEventListener(type, fn) { (documentListeners[type] ??= []).push(fn); },
     getElementById(id) { return elements.find(e => e.id === id) ?? null; },
     querySelectorAll(selector) {
@@ -93,6 +94,34 @@ async function recorderHarness({ session = { recording: false, paused: false }, 
   const control = message => runtimeListeners.forEach(fn => fn(message));
   return { sent, fire, control, documentListeners, window, setSession(value) { session = value; } };
 }
+
+test("optional hover and drag-drop modes capture stable target metadata", async () => {
+  const source = new FakeElement("button", {"data-testid":"drag-source"}, {innerText:"Source"});
+  const destination = new FakeElement("button", {"data-testid":"drop-target"}, {innerText:"Destination"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[source,destination]});
+  h.control({type:"R2POM_CONTROL",recording:true,paused:false,captureHover:true,captureDragDrop:true});
+  h.fire("mouseover",{target:source});
+  h.fire("dragstart",{target:source});
+  h.fire("drop",{target:destination});
+  const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
+  assert.equal(events[0].kind,"hover");
+  assert.equal(events[1].kind,"drag-drop");
+  assert.equal(events[1].sourceTarget.testId,"drag-source");
+  assert.equal(events[1].target.testId,"drop-target");
+  assert.ok(events[1].sourceLocators.some(locator=>locator.value==="drag-source"));
+});
+
+test("scroll positions are captured automatically after scroll settles", async () => {
+  const h = await recorderHarness({session:{recording:true,paused:false}});
+  h.window.scrollX=12;
+  h.window.scrollY=640;
+  h.fire("scroll",{});
+  await new Promise(resolve=>setTimeout(resolve,300));
+  const event=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event).find(item=>item.kind==="scroll");
+  assert.ok(event);
+  assert.equal(event.x,12);
+  assert.equal(event.y,640);
+});
 
 test("recorder installs recording and inspect listeners once and stays idle until recording starts", async () => {
   const button = new FakeElement("button", { "aria-label": "Continue" });
