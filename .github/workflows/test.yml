@@ -45,7 +45,8 @@ jobs:
           panel_html = (root / manifest["side_panel"]["default_path"]).read_text(encoding="utf-8")
           panel_js = (root / "panel.js").read_text(encoding="utf-8")
           if "panel.js" not in panel_html or "captureVisibleTab" not in panel_js or "timelineList" not in panel_html:
-              raise SystemExit("Persistent side panel workspace is incomplete")\n          html = (root / "popup.html").read_text(encoding="utf-8")
+              raise SystemExit("Persistent side panel workspace is incomplete")
+          html = (root / "popup.html").read_text(encoding="utf-8")
           css = (root / "popup.css").read_text(encoding="utf-8")
           if "Record2POM" not in html or "wordmark-accent" not in html or "linear-gradient" not in css:
               raise SystemExit("Neon Record2POM popup branding is missing")
