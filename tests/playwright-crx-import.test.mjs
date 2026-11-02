@@ -21,5 +21,5 @@ await expect(page).toHaveURL('/dashboard');
  assert.equal(parsed.events[3].locators[0].name,"Sign in");
  assert.equal(parsed.events[2].redacted,true);
  assert.equal("value" in parsed.events[2],false);
- assert.equal(parsed.events[4].locators[0].strategy,"text");
+ assert.equal(parsed.events[4].locators[0].strategy,"text");\n assert.equal(parsed.events[4].target.text,"Dashboard");
 });
