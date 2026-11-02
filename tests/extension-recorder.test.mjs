@@ -128,8 +128,9 @@ test("recorder asks for test data after input click and never captures typed web
   h.fire("click", { composedPath: () => [password], target: password });
   h.fire("change", { target: password });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
-  const emailEvent=events.find(e=>e.target?.fieldName==="email");
-  const passwordEvent=events.find(e=>e.target?.fieldName==="userPassword");
+  assert.equal(events.length,2,"each clicked input should emit one selection event");
+  const emailEvent=events.find(e=>e.dataKey==="email");
+  const passwordEvent=events.find(e=>e.dataKey==="userpassword");
   assert.equal(emailEvent.kind, "click");
   assert.equal(emailEvent.requiresTestData, true);
   assert.equal(emailEvent.inputKind, "fill");
