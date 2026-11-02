@@ -17,13 +17,17 @@ class FakeElement {
   getAttribute(name) { return this.attrs[name] ?? null; }
   matches(selector) {
     if (selector.includes("button") && this.tagName === "BUTTON") return true;
-    if (selector.includes("input") && this.tagName === "INPUT") return true;
+    if (selector.includes("input[type=button]") && this.tagName === "INPUT" && this.type === "button") return true;
+    if (selector.includes("input[type=submit]") && this.tagName === "INPUT" && this.type === "submit") return true;
+    if (selector.includes("input:not(") && this.tagName === "INPUT" && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(this.type)) return true;
     if (selector.includes("textarea") && this.tagName === "TEXTAREA") return true;
     if (selector.includes("select") && this.tagName === "SELECT") return true;
     if (selector.includes("a[href]") && this.tagName === "A" && this.attrs.href) return true;
     if (selector.includes("[data-testid]") && this.attrs["data-testid"]) return true;
     if (selector.includes("[data-test]") && this.attrs["data-test"]) return true;
     if (selector.includes("[data-qa]") && this.attrs["data-qa"]) return true;
+    if (selector.includes("[role=textbox]") && this.attrs.role === "textbox") return true;
+    if (selector.includes("[role=combobox]") && this.attrs.role === "combobox") return true;
     if (selector.includes("[role=button]") && this.attrs.role === "button") return true;
     if (selector.includes("[role=link]") && this.attrs.role === "link") return true;
     if (selector.includes("[role=menuitem]") && this.attrs.role === "menuitem") return true;
@@ -33,9 +37,9 @@ class FakeElement {
     if (selector.includes("[role=radio]") && this.attrs.role === "radio") return true;
     if (selector.includes("[aria-haspopup]") && this.attrs["aria-haspopup"]) return true;
     if (selector.includes("[onclick]") && this.attrs.onclick) return true;
+    if (selector.includes("[contenteditable=true]") && this.attrs.contenteditable === "true") return true;
     if (selector.includes("summary") && this.tagName === "SUMMARY") return true;
-    if (selector.includes("input[type=button]") && this.tagName === "INPUT" && this.type === "button") return true;
-    if (selector.includes("input[type=submit]") && this.tagName === "INPUT" && this.type === "submit") return true;
+    if (selector.includes("[tabindex]") && this.attrs.tabindex !== undefined) return true;
     return false;
   }
   getClientRects() { return [1]; }
@@ -142,6 +146,31 @@ test("recorder asks for test data after input click and never captures typed web
   assert.equal("value" in passwordEvent, false, "sensitive value must never be sent to background");
   assert.equal(passwordEvent.envVar, "USERPASSWORD");
   assert.equal(events.filter(e => e.kind === "fill").length, 0, "typing into the website must not create a fill action automatically");
+});
+
+test("recorder prioritizes the actual input over a data-testid wrapper", async () => {
+  const input = new FakeInput("input", {name:"accountEmail", placeholder:"Email"}, {type:"email",name:"accountEmail",value:"typed-on-page"});
+  const wrapper = new FakeElement("div", {"data-testid":"email-field"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input,wrapper]});
+  h.fire("click",{composedPath:()=>[input,wrapper],target:input});
+  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  assert.equal(event.kind,"click");
+  assert.equal(event.target.tagName,"input");
+  assert.equal(event.requiresTestData,true);
+  assert.equal(event.dataKey,"accountemail");
+  assert.equal("value" in event,false);
+});
+
+test("recorder treats contenteditable and ARIA textboxes as fill actions", async () => {
+  const content = new FakeElement("div", {"contenteditable":"true","aria-label":"Notes"});
+  content.isContentEditable=true;
+  const textbox = new FakeElement("div", {role:"textbox","aria-label":"Description"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[content,textbox]});
+  h.fire("click",{composedPath:()=>[content],target:content});
+  h.fire("click",{composedPath:()=>[textbox],target:textbox});
+  const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event);
+  assert.equal(events.length,2);
+  assert.ok(events.every(event=>event.kind==="click"&&event.requiresTestData&&event.inputKind==="fill"));
 });
 
 test("recorder marks dropdown clicks for explicit test data and retains checkbox and Enter actions", async () => {
