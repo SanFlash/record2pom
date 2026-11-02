@@ -623,8 +623,8 @@ test("generated assertions use explicit waits for dynamic page state", async () 
   for (const engine of ["playwright", "selenium"]) {
     for (const kind of ["assert-url", "assert-text", "assert-visible", "assert-value"]) {
       const result = await generateFromFixture(engine, kind);
-      assert.match(result.code, /WebDriverWait|expect\\(/, engine + " " + kind + " should include an assertion");
-      assert.match(result.code, /timeout=10000|WebDriverWait\\(self\\.driver, 10\\)/);
+      assert.match(result.code, /WebDriverWait|expect\(/, engine + " " + kind + " should include an assertion");
+      assert.match(result.code, /timeout=10000|WebDriverWait\(self\.driver, 10\)/);
     }
   }
 });
