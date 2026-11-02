@@ -73,3 +73,8 @@ A click is only an action. Add assertions for visible outcomes, text, URL change
 ## Anti-patterns
 
 Avoid fixed sleeps when a web-first wait or expected condition is available; selectors such as `:nth-child(7)` without a stable semantic scope; catching every exception and continuing; hidden automatic selector substitution that changes test meaning; and reporting generation success as a passing test.
+
+
+## Cross-origin replay protection
+
+Each browser-captured action carries the sanitized page URL where it occurred. Generated Playwright page objects compare that recorded origin with the live page origin before trying saved selectors or live-DOM fingerprint recovery. If the origins differ, the action stops with an explicit diagnostic instead of attempting a potentially unrelated click. This catches common recording/replay mix-ups (for example, actions captured on one application but executed against a default SauceDemo URL). Same-origin navigation remains supported. This guard is a safety check, not proof that the page state or target element is correct.
