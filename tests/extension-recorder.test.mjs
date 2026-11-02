@@ -108,7 +108,8 @@ test("recorder captures semantic submit success checkpoints only with expected a
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[button]});
   h.fire("click",{composedPath:()=>[button],target:button});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
-  assert.equal(events[0].kind,"click");
+  assert.equal(events[0].kind,"assert-visible");
+  assert.equal(events[1].kind,"click");
   assert.ok(events.some(e=>e.kind==="assert-url" && e.verification?.generated===true));
   assert.equal(events.find(e=>e.kind==="assert-url").assertion.expected,"/inventory.html");
 });
@@ -166,8 +167,8 @@ test("recorder prioritizes the actual input over a data-testid wrapper", async (
   const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind,"click");
   assert.equal(event.target.tagName,"input");
-  assert.equal(event.requiresTestData,true);
-  assert.equal(event.dataKey,"accountemail");
+  assert.equal(event.inputKind,"fill");
+  assert.equal(event.dataKey,"account_email");
   assert.equal("value" in event,false);
 });
 
@@ -189,7 +190,7 @@ test("recorder treats contenteditable and ARIA textboxes as fill actions", async
   h.fire("click",{composedPath:()=>[textbox],target:textbox});
   const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event).filter(event=>event.kind==="click");
   assert.equal(events.length,2);
-  assert.ok(events.every(event=>event.kind==="click"&&event.inputKind===undefined));
+  assert.ok(events.every(event=>event.kind==="click"&&event.inputKind==="fill"));
 });
 
 test("recorder marks dropdown clicks for explicit test data and retains checkbox and Enter actions", async () => {
@@ -204,10 +205,10 @@ test("recorder marks dropdown clicks for explicit test data and retains checkbox
   h.control({ type: "R2POM_CONTROL", recording: true, paused: true });
   h.fire("change", { target: textbox });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
-  assert.deepEqual(events.filter(e => !e.verification?.generated).map(e => e.kind), ["check", "click", "press"]);
-  const dropdown=events.find(e=>e.requiresTestData);
-  assert.equal(dropdown.inputKind, "select");
-  assert.equal("value" in dropdown, false);
+  assert.deepEqual(events.filter(e => !e.verification?.generated).map(e => e.kind), ["check", "click", "select", "press"]);
+  const dropdown=events.find(e=>e.kind==="click"&&e.inputKind==="select");
+  assert.ok(dropdown);
+  assert.equal(events.find(e=>e.kind==="select").value,"in");
   assert.equal(events.find(e=>e.kind==="press").value, "Enter");
 });
 
@@ -250,9 +251,9 @@ test("recorder ignores invalid navigation protocols and tolerates missing compos
   const button = new FakeElement("button", { "aria-label": "Save" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
   h.fire("click", { target: button });
-  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 2);
   h.control({ type: "R2POM_NAVIGATION", url: "javascript:alert(1)" });
-  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 2);
 });
 
 
