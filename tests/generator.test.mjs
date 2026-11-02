@@ -35,7 +35,7 @@ test("dashboard and extension scripts parse", async () => {
   }
 });
 
-async function generateFromFixture(engine, kind = "click", strategy = "role", redacted = false, sequence = 1, omitEnvVar = false) {
+async function generateFromFixture(engine, kind = "click", strategy = "role", redacted = false, sequence = 1, omitEnvVar = false, eventOverrides = {}) {
   const source = await readFile("app.js", "utf8");
   const elements = new Map();
   let fileButtons = [];
@@ -67,7 +67,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",page:{url:"https://fixture.test/form"},target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted && !omitEnvVar ? "PASSWORD" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",page:{url:"https://fixture.test/form"},target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted && !omitEnvVar ? "PASSWORD" : undefined,source:"fixture",...eventOverrides};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -1036,12 +1036,22 @@ test("Playwright CRX-imported text locators are supported by the Python Playwrig
 });
 
 
-test("Python POM generation accepts recorded scroll events instead of rejecting the journey", async () => {
+test("Python POM generation accepts window and nested-container scroll events", async () => {
   const playwright = await generateFromFixture("playwright", "scroll");
   assert.match(playwright.code, /window\.scrollTo/);
+  assert.match(playwright.code, /self\.page\.evaluate\("\\(\[x,y,behavior\]\\)/);
   assert.match(playwright.status, /Generated/);
   const selenium = await generateFromFixture("selenium", "scroll");
   assert.match(selenium.code, /window\.scrollTo/);
+  assert.match(selenium.code, /execute_script/);
+  const nested = await generateFromFixture("playwright", "scroll", "role", false, 1, false, {
+    scrollMode:"element", target:{css:"#scroll-panel"},
+    locators:[{strategy:"css",value:"#scroll-panel",matchCount:1}]
+  });
+  assert.match(nested.code, /#scroll-panel/);
+  assert.match(nested.code, /\.evaluate\("\\(el, \[x, y, behavior\]\\)/);
+  const parsed = spawnSync("python", ["-c", "import ast,sys; ast.parse(sys.stdin.read())"], {input:nested.code,encoding:"utf8"});
+  if (parsed.error?.code !== "ENOENT") assert.equal(parsed.status, 0, parsed.stderr);
 });
 
 test("shared recording schema canonicalizes legacy wheel and scroll aliases and preserves offsets", async () => {
