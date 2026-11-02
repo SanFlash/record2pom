@@ -270,6 +270,7 @@
 
   const assertedElements = new WeakSet();
   const inputClickIds = new WeakMap();
+  const inputDataKeys = new WeakMap();
   const capturedInputValues = new WeakMap();
   const inputTimers = new WeakMap();
 
@@ -290,8 +291,8 @@
     if (capturedInputValues.has(element) && capturedInputValues.get(element) === value) return;
     const isSelect = element instanceof HTMLSelectElement;
     const info = target(element);
-    const dataKey = (element.name || element.id || info.label || info.placeholder || info.name || "field")
-      .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
+    const dataKey = inputDataKeys.get(element) || ((element.name || element.id || info.label || info.placeholder || info.name || "field")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field");
     const action = emit(isSelect ? "select" : "fill", element, {
       description: (isSelect ? "Select " : "Fill ") + (info.name || info.label || info.placeholder || "input"),
       value,
@@ -349,7 +350,9 @@
       });
       if (needsData && clickAction) {
         inputClickIds.set(element, clickAction.id);
-        // Capture values that were already present only after this field is explicitly selected.
+        // Each interaction gets its own data key. Re-filling the same field later
+        // must not overwrite the value used by an earlier step in the journey.
+        inputDataKeys.set(element, (dataKey + "_" + clickAction.id.slice(-5)).slice(0, 60));
         capturedInputValues.delete(element);
       }
     }
