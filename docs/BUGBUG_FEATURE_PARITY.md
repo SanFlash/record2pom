@@ -17,7 +17,7 @@ This is a capability map, not a claim that every item is already implemented. Fe
 | Hover capture | In this branch | Explicit toggle, avoid duplicate hover noise |
 | Scroll capture | In this branch | Debounced positions and scroll-into-view replay |
 | Drag and drop | In this branch | Capture source and destination locators; support HTML5 and pointer-based widgets |
-| Visual test editor | Partial | Inline step editor, insert/reorder/duplicate/delete, parameter forms |
+| Visual test editor | Partial — local step editor added | Edit action, description, value and CSS fallback; insert/reorder/duplicate/delete; live locator verification and advanced parameter forms remain open |
 | Smart click and smart waiting | Partial | Visibility, enabled, stability, overlay and navigation waits with bounded retry |
 | Tabs and popups | Not implemented | Track tab lifecycle and opener relationships |
 | Iframes | Not implemented | Frame-aware event metadata and frame-scoped locator execution |
@@ -29,13 +29,13 @@ This is a capability map, not a claim that every item is already implemented. Fe
 
 | Capability | Current state | Engineering target |
 |---|---|---|
-| Named tests and suites | Not implemented | Local project library with suites, tags and folders |
-| Reusable components | Not implemented | Parameterized reusable step groups with dependency validation |
-| Variables and environment profiles | Partial | Global, suite and test variables; local/staging/production profiles |
+| Named tests and suites | Implemented baseline — browser-local | Save/load/delete journeys; folders and suites are local-only; tags, search, filtering and cross-device sync remain open |
+| Reusable components | Partial — reusable journey snapshots | Save and insert journey groups with remapped action IDs and input data keys; parameters, nested components and dependency validation remain open |
+| Variables and environment profiles | Partial — browser-local profile editor | Create profiles and variables; secret references store no secret value; generated-runner injection, scope precedence and profile CLI selection remain open |
 | Conditional logic | Not implemented | If/else, retry, loop and branch steps with bounded execution |
 | Custom JavaScript | Not implemented | Explicit opt-in sandboxed test step with timeout and visible source |
 | Email testing inbox | Not implemented | Provider adapter interface; never invent an inbox service |
-| YAML import/export | Not implemented | Versioned schema, round-trip validation and JSON compatibility |
+| YAML import/export | Partial — YAML export and JSON backup/restore | Export workspace YAML and backup/restore JSON; YAML import, schema validation and round-trip tests remain open |
 | Edit and rewind | Not implemented | Replay from selected checkpoint using saved state and step evidence |
 
 ## Execution, debugging and evidence

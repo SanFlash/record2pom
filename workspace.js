@@ -1,0 +1,56 @@
+(()=>{"use strict";
+const KEY="record2pom_workspace_v1", $=id=>document.getElementById(id);
+const uid=()=> "ws-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+const blank=()=>({version:1,folders:[{id:"folder-default",name:"Unsorted"}],suites:[{id:"suite-default",folderId:"folder-default",name:"My tests"}],tests:[],components:[],profiles:[{id:"profile-local",name:"local",variables:[]}],activeProfile:"profile-local"});
+let data=load(),selectedStep=null,activeFolder="folder-default";
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&v.version===1&&Array.isArray(v.folders)&&Array.isArray(v.suites)&&Array.isArray(v.tests)&&Array.isArray(v.components)&&Array.isArray(v.profiles)&&v.tests.length<=1000&&v.components.length<=500)return v;}catch{}return blank();}
+function persist(message="Saved locally."){localStorage.setItem(KEY,JSON.stringify(data));status(message);render();}
+function status(s){$("wsStatus").textContent=s;}
+function current(){return window.Record2POMStudio?.getEvents?.()||[];}
+function safeName(s){return String(s||"").trim().slice(0,60);}
+function render(){
+ const folder=$("wsFolderSelect"),suite=$("wsSuiteSelect"),test=$("wsTestSelect"),profile=$("wsProfileSelect"),component=$("wsComponentSelect");
+ if(!folder)return;
+ folder.replaceChildren(...data.folders.map(x=>new Option(x.name,x.id)));
+ suite.replaceChildren(...data.suites.map(x=>new Option(x.name,x.id)));
+ test.replaceChildren(new Option("Select a saved test",""),...data.tests.map(x=>new Option(x.name+" · "+(data.suites.find(s=>s.id===x.suiteId)?.name||"Suite"),x.id)));
+ profile.replaceChildren(...data.profiles.map(x=>new Option(x.name,x.id)));profile.value=data.activeProfile;
+ component.replaceChildren(...data.components.map(x=>new Option(x.name,x.id)));
+ $("wsComponentList").textContent=data.components.length?data.components.length+" reusable component(s) stored in this browser.":"No components saved yet.";
+ const list=$("wsSteps"),steps=current();list.replaceChildren();
+ if(!steps.length){list.textContent="No journey loaded.";selectedStep=null;}else{
+  if(!steps.some(x=>x.id===selectedStep))selectedStep=steps[0].id;
+  steps.forEach((s,i)=>{const b=document.createElement("button");b.type="button";b.className="ws-step";b.setAttribute("aria-pressed",String(s.id===selectedStep));const n=document.createElement("strong");n.textContent=String(i+1);const body=document.createElement("span");body.textContent=(s.kind||"action").toUpperCase();const small=document.createElement("small");small.textContent=s.description||s.target?.name||s.url||"Recorded step";body.append(small);b.append(n,body);b.addEventListener("click",()=>{selectedStep=s.id;render();});list.append(b);});
+ }
+ const chosen=steps.find(x=>x.id===selectedStep);
+ $("wsKind").value=chosen?.kind||"click";$("wsDescription").value=chosen?.description||"";$("wsValue").value=chosen?.redacted?"":String(chosen?.value??chosen?.assertion?.expected??"");
+ $("wsLocator").value=chosen?.selectedLocator?.value||chosen?.locators?.find(x=>x.strategy==="css")?.value||"";
+ const vars=data.profiles.find(x=>x.id===data.activeProfile)?.variables||[];
+ $("wsVariableList").replaceChildren();
+ vars.forEach(v=>{const p=document.createElement("p");p.textContent=v.name+" = "+(v.secret?"<environment variable required>":v.value);$("wsVariableList").append(p);});
+}
+function addSuite(){const name=safeName($("wsSuiteName").value);if(!name)return status("Enter a suite name.");const folderId=$("wsFolderSelect").value;const item={id:uid(),folderId,name};data.suites.push(item);$("wsSuiteName").value="";persist("Suite created.");}
+$("wsCreateFolder").onclick=()=>{const name=safeName($("wsFolderName").value);if(!name)return status("Enter a folder name.");if(data.folders.some(x=>x.name.toLowerCase()===name.toLowerCase()))return status("That folder already exists.");data.folders.push({id:uid(),name});$("wsFolderName").value="";persist("Folder created.");};
+$("wsCreateSuite").onclick=addSuite;
+$("wsSaveTest").onclick=()=>{const steps=current();if(!steps.length)return status("Record or import a journey before saving.");const name=safeName(prompt("Name this test journey",window.Record2POMStudio.getProject().name||"New test"));if(!name)return;const suiteId=$("wsSuiteSelect").value||data.suites[0]?.id||"suite-default";data.tests.push({id:uid(),suiteId,name,updatedAt:new Date().toISOString(),targetUrl:window.Record2POMStudio.getProject().url,events:steps});persist("Test journey saved locally.");};
+$("wsLoadTest").onclick=()=>{const t=data.tests.find(x=>x.id===$("wsTestSelect").value);if(!t)return status("Choose a saved test.");try{window.Record2POMStudio.setEvents(t.events);if(t.targetUrl)$("url").value=t.targetUrl;selectedStep=t.events[0]?.id||null;status("Loaded "+t.name+" into Studio. Review before generating.");render();}catch(e){status("Could not load test: "+e.message);}};
+$("wsDeleteTest").onclick=()=>{const id=$("wsTestSelect").value;if(!id)return status("Choose a saved test.");data.tests=data.tests.filter(x=>x.id!==id);persist("Saved test deleted.");};
+$("wsApplyStep").onclick=()=>{const steps=current(),i=steps.findIndex(x=>x.id===selectedStep);if(i<0)return status("Select a step first.");const s=steps[i],kind=$("wsKind").value,description=$("wsDescription").value.trim(),value=$("wsValue").value,css=$("wsLocator").value.trim();s.kind=kind;s.description=description;if(["fill","select","assert-text","assert-url","assert-value"].includes(kind)){if(s.redacted)return status("Sensitive values must remain external environment variables.");s.value=value;if(kind.startsWith("assert-"))s.assertion={...(s.assertion||{}),expected:value};}if(css){s.locators=[...(s.locators||[]).filter(x=>!(x.strategy==="css"&&x.value===css)),{strategy:"css",value:css,matchCount:null,confidence:"unverified",source:"workspace-editor"}];s.selectedLocator={strategy:"css",value:css,selected:true};}window.Record2POMStudio.setEvents(steps);status("Step updated. Locator uniqueness must be verified on the target page.");render();};
+function mutateSteps(fn,message){const a=current(),i=a.findIndex(x=>x.id===selectedStep);if(i<0)return status("Select a step first.");fn(a,i);window.Record2POMStudio.setEvents(a);selectedStep=a[Math.min(i,a.length-1)]?.id||null;status(message);render();}
+$("wsDuplicateStep").onclick=()=>mutateSteps((a,i)=>{const c=structuredClone(a[i]);c.id=uid();c.sequence=i+2;if(c.kind==="fill"||c.kind==="select"){c.sourceClickId=undefined;c.dataKey=String(c.dataKey||"input")+"_copy_"+Date.now().toString(36);}a.splice(i+1,0,c);},"Step duplicated. Review the copied input value and data key.");
+$("wsMoveUp").onclick=()=>mutateSteps((a,i)=>{if(i>0)[a[i-1],a[i]]=[a[i],a[i-1]];},"Step moved.");
+$("wsMoveDown").onclick=()=>mutateSteps((a,i)=>{if(i<a.length-1)[a[i+1],a[i]]=[a[i],a[i+1]];},"Step moved.");
+$("wsDeleteStep").onclick=()=>mutateSteps((a,i)=>a.splice(i,1),"Step deleted.");
+$("wsSaveComponent").onclick=()=>{const name=safeName($("wsComponentName").value);const steps=current();if(!name||!steps.length)return status("Enter a component name and load a journey.");data.components.push({id:uid(),name,events:steps.map(x=>structuredClone(x))});$("wsComponentName").value="";persist("Reusable component saved.");};
+$("wsInsertComponent").onclick=()=>{const c=data.components.find(x=>x.id===$("wsComponentSelect").value);if(!c)return status("Choose a reusable component.");const a=current();const idMap=new Map(c.events.map(x=>[x.id,uid()]));const copies=c.events.map((x,i)=>{const copy={...structuredClone(x),id:idMap.get(x.id)||uid(),source:"reusable-component:"+c.id};if(copy.sourceClickId)copy.sourceClickId=idMap.get(copy.sourceClickId)||copy.sourceClickId;if(copy.kind==="fill"||copy.kind==="select")copy.dataKey=String(copy.dataKey||"input")+"_reuse_"+Date.now().toString(36)+"_"+i;return copy;});window.Record2POMStudio.setEvents([...a,...copies]);selectedStep=copies[0]?.id||null;status("Inserted "+c.name+". Review locators and test data before running.");render();};
+$("wsCreateProfile").onclick=()=>{const name=safeName($("wsProfileName").value);if(!name)return status("Enter a profile name.");const p={id:uid(),name,variables:[]};data.profiles.push(p);data.activeProfile=p.id;$("wsProfileName").value="";persist("Environment profile created.");};
+$("wsProfileSelect").onchange=()=>{data.activeProfile=$("wsProfileSelect").value;persist("Active environment profile changed.");};
+$("wsAddVariable").onclick=()=>{const name=$("wsVariableName").value.trim(),value=$("wsVariableValue").value,secret=$("wsVariableSecret").checked;if(!/^[A-Z_][A-Z0-9_]{0,79}$/.test(name))return status("Variable names must use uppercase letters, digits and underscores.");const p=data.profiles.find(x=>x.id===data.activeProfile);if(!p)return status("Create an environment profile first.");p.variables=p.variables.filter(x=>x.name!==name);p.variables.push(secret?{name,secret:true,envVar:name}:{name,secret:false,value});$("wsVariableName").value="";$("wsVariableValue").value="";$("wsVariableSecret").checked=false;persist(secret?"Secret reference saved; no secret value was stored.":"Variable saved locally.");};
+function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);}
+function yaml(value,depth=0){const pad="  ".repeat(depth);if(Array.isArray(value))return value.map(v=>pad+"- "+(v&&typeof v==="object"?"\n"+yaml(v,depth+1).replace(/^(?=.)/gm,"  "):JSON.stringify(v))).join("\n");if(value&&typeof value==="object")return Object.entries(value).map(([k,v])=>pad+k+": "+(v&&typeof v==="object"?"\n"+yaml(v,depth+1):JSON.stringify(v))).join("\n");return pad+JSON.stringify(value);}
+$("wsExportYaml").onclick=()=>download("record2pom-workspace.yaml",yaml({version:1,tests:data.tests.map(t=>({name:t.name,targetUrl:t.targetUrl,events:t.events})),components:data.components,profiles:data.profiles.map(p=>({name:p.name,variables:p.variables.map(v=>v.secret?{name:v.name,secret:true,envVar:v.envVar}:{name:v.name,value:v.value})}))}),"text/yaml");
+$("wsExportWorkspace").onclick=()=>download("record2pom-workspace.json",JSON.stringify(data,null,2),"application/json");
+$("wsImportWorkspace").onclick=()=>$("wsImportFile").click();
+$("wsImportFile").onchange=async e=>{try{const f=e.target.files?.[0];if(!f)return;if(f.size>5_000_000)throw Error("Workspace backup exceeds 5 MB.");const v=JSON.parse(await f.text());if(v.version!==1||!Array.isArray(v.tests)||!Array.isArray(v.components)||!Array.isArray(v.profiles)||!Array.isArray(v.folders)||!Array.isArray(v.suites))throw Error("Unsupported workspace backup format.");if(v.tests.some(t=>!Array.isArray(t.events)||t.events.length>5000))throw Error("Invalid test journey in backup.");data=v;persist("Workspace backup restored.");}catch(err){status("Import failed: "+err.message);}finally{e.target.value="";}};
+window.addEventListener("record2pom:journey-updated",render);window.addEventListener("record2pom:import-recording",()=>setTimeout(render,0));render();
+})();
