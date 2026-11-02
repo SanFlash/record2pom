@@ -94,6 +94,16 @@ test("recorder installs recording and inspect listeners once and stays idle unti
   assert.equal(h.documentListeners.click.length, 2, "one click listener records actions and one handles Inspect mode");
 });
 
+test("recorder captures semantic submit success checkpoints only with expected action labels", async () => {
+  const button = new FakeElement("button", {"aria-label":"Login"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[button]});
+  h.fire("click",{composedPath:()=>[button],target:button});
+  const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
+  assert.equal(events[0].kind,"click");
+  assert.ok(events.some(e=>e.kind==="assert-url" && e.verification?.generated===true));
+  assert.equal(events.find(e=>e.kind==="assert-url").assertion.expected,"/inventory.html");
+});
+
 test("recorder captures clicks with locator confidence metadata while active", async () => {
   const button = new FakeElement("button", { "aria-label": "Continue", "data-testid": "continue-btn" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
