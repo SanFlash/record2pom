@@ -3,6 +3,9 @@
   "use strict";
   const MAX_EVENTS = 5000;
   const MAX_TEXT = 10000;
+  const normalizeKind = value => String(value || "").trim().toLowerCase().replace(/[\\s_]+/g, "-");
+  const KIND_ALIASES = { input:"fill", type:"fill", change:"fill", navigation:"navigate", keypress:"press", assertion:"assert-visible", wheel:"scroll", mousewheel:"scroll", scrolling:"scroll", "page-scroll":"scroll", "scroll-to":"scroll", "scroll-to-position":"scroll" };
+  const canonicalKind = value => { const kind = normalizeKind(value); return KIND_ALIASES[kind] || kind; };
   const STRATEGY_WEIGHT = { testId: 100, role: 90, label: 80, placeholder: 70, text: 65, alt: 60, title: 55, attribute: 50, css: 40, xpath: 20 };
   function validateRecording(input) {
     const errors = [];
@@ -14,7 +17,7 @@
       if (events.length > MAX_EVENTS) errors.push("Recording exceeds the " + MAX_EVENTS + " event limit.");
       events.forEach((event, index) => {
         if (!event || typeof event !== "object" || Array.isArray(event)) { errors.push("Event " + (index + 1) + " must be an object."); return; }
-        const kind = String(event.kind || event.type || event.action || "").toLowerCase().replace(/_/g, "-");
+        const kind = canonicalKind(event.kind || event.type || event.action);
         const allowed = ["click","fill","select","check","uncheck","press","navigate","wait","hover","scroll","drag-drop","assert-visible","assert-text","assert-url","assert-value"];
         if (!allowed.includes(kind) && !["input","type","change","navigation"].includes(kind)) errors.push("Event " + (index + 1) + " has unsupported kind: " + (kind || "(missing)"));
         for (const field of ["description","url","value"]) if (typeof event[field] === "string" && event[field].length > MAX_TEXT) errors.push("Event " + (index + 1) + " field " + field + " is too long.");
@@ -121,5 +124,5 @@
     });
   }
 
-  root.Record2POMCore = Object.freeze({validateRecording, normalizeRecording, rankLocators, assessLocator, explainLocatorRanking, MAX_EVENTS});
+  root.Record2POMCore = Object.freeze({validateRecording, normalizeRecording, normalizeKind:canonicalKind, rankLocators, assessLocator, explainLocatorRanking, MAX_EVENTS});
 })(typeof globalThis !== "undefined" ? globalThis : this);
