@@ -85,6 +85,37 @@ test("extension start, pause, resume, stop and clear enforce the recording lifec
   assert.equal(cleared.session.events.length, 0);
 });
 
+test("input selection creates explicit fill actions and keeps values out of click events", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test/form"});
+  const click = {id:"input-click-1",kind:"click",requiresTestData:true,inputKind:"fill",dataKey:"email",url:"https://example.test/form",target:{fieldName:"email",label:"Work email"},locators:[{strategy:"label",value:"Work email",matchCount:1}]};
+  await h.dispatch({type:"R2POM_EVENT",event:click});
+  const saved = await h.dispatch({type:"R2POM_SET_TEST_DATA",eventId:"input-click-1",value:"qa@example.test"});
+  assert.equal(saved.ok,true);
+  assert.equal(saved.session.events[0].kind,"click");
+  assert.equal("value" in saved.session.events[0],false);
+  assert.equal(saved.session.events[1].kind,"fill");
+  assert.equal(saved.session.events[1].value,"qa@example.test");
+  assert.equal(saved.session.events[1].dataKey,"email");
+  assert.equal(saved.session.events[1].sourceClickId,"input-click-1");
+});
+
+test("sensitive input selection creates a redacted fill action without storing a value", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test/login"});
+  const click = {id:"password-click",kind:"click",requiresTestData:true,inputKind:"fill",dataKey:"password",redacted:true,envVar:"PASSWORD",target:{fieldName:"password",inputType:"password"}};
+  await h.dispatch({type:"R2POM_EVENT",event:click});
+  const saved = await h.dispatch({type:"R2POM_SET_TEST_DATA",eventId:"password-click"});
+  assert.equal(saved.ok,true);
+  const action=saved.session.events[1];
+  assert.equal(action.kind,"fill");
+  assert.equal(action.redacted,true);
+  assert.equal(action.envVar,"PASSWORD");
+  assert.equal("value" in action,false);
+});
+
 test("pause and resume cannot accidentally start an idle session", async () => {
   const h = await harness();
   await h.installed[0]();
