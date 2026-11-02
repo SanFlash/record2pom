@@ -91,7 +91,21 @@ def main():
                     errors.append(f"Step {i} is marked redacted but contains a value.")
         except Exception as exc:
             errors.append(f"Invalid recorded test data JSON: {exc}")
-    values_path = ROOT / "test_data" / "test_data.json"\n    values = {}\n    if values_path.is_file():\n        try:\n            values = json.loads(values_path.read_text(encoding="utf-8"))\n            if not isinstance(values, dict):\n                errors.append("test_data/test_data.json must contain a JSON object.")\n        except Exception as exc:\n            errors.append(f"Invalid test data values JSON: {exc}")\n    for i, step in enumerate(data.get("steps", []), 1) if data_path.is_file() else []:\n        if isinstance(step, dict) and step.get("kind") in ("fill", "select") and not step.get("redacted"):\n            key = step.get("dataKey")\n            if not key or key not in values:\n                errors.append(f"Step {i} is missing its separate test data value.")\n    for relative in ("config.py", "pages/recorded_page.py", "tests/test_recorded_journey.py", "run_tests.py"):
+    values_path = ROOT / "test_data" / "test_data.json"
+    values = {}
+    if values_path.is_file():
+        try:
+            values = json.loads(values_path.read_text(encoding="utf-8"))
+            if not isinstance(values, dict):
+                errors.append("test_data/test_data.json must contain a JSON object.")
+        except Exception as exc:
+            errors.append(f"Invalid test data values JSON: {exc}")
+    for i, step in enumerate(data.get("steps", []), 1) if data_path.is_file() else []:
+        if isinstance(step, dict) and step.get("kind") in ("fill", "select") and not step.get("redacted"):
+            key = step.get("dataKey")
+            if not key or key not in values:
+                errors.append(f"Step {i} is missing its separate test data value.")
+    for relative in ("config.py", "pages/recorded_page.py", "tests/test_recorded_journey.py", "run_tests.py"):
         path = ROOT / relative
         if path.is_file():
             try: ast.parse(path.read_text(encoding="utf-8"), filename=relative)
