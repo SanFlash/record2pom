@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Record2POM Universal Recorder",
-  "version": "0.2.2",
-  "description": "Record browser journeys and generate portable Record2POM automation projects.",
+  "version": "0.3.0",
+  "description": "Record browser journeys with automatic verification checkpoints and generate portable POM projects.",
   "permissions": [
     "activeTab",
     "scripting",
