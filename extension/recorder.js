@@ -13,6 +13,7 @@
   let lastHovered = new WeakMap();
   let dragSource = null;
   let scrollTimer = null;
+  let pendingScrollTarget = null;
   let inspectSequence = null;
   let pendingAssertion = null;
   let inspectOverlay = null;
@@ -475,21 +476,26 @@
   document.addEventListener("dragend", () => { dragSource=null; }, true);
 
   document.addEventListener("scroll", event => {
-    if (!recording || paused || inspectMode || scrollTimer) return;
+    if (!recording || paused || inspectMode) return;
     const source = event?.target;
     const elementScroll = source instanceof Element &&
       source !== document && source !== document.documentElement && source !== document.body &&
       (source.scrollHeight > source.clientHeight || source.scrollWidth > source.clientWidth);
-    const scroller = elementScroll ? source : document.documentElement;
+    pendingScrollTarget = elementScroll ? source : document.documentElement;
+    if (scrollTimer) clearTimeout(scrollTimer);
     scrollTimer=setTimeout(() => {
       scrollTimer=null;
-      const x=Math.round(elementScroll ? (scroller.scrollLeft||0) : (window.scrollX||0));
-      const y=Math.round(elementScroll ? (scroller.scrollTop||0) : (window.scrollY||0));
+      if (!recording || paused || inspectMode) { pendingScrollTarget=null; return; }
+      const scroller=pendingScrollTarget || document.documentElement;
+      pendingScrollTarget=null;
+      const isElement=scroller !== document.documentElement && scroller !== document.body;
+      const x=Math.round(isElement ? (scroller.scrollLeft||0) : (window.scrollX||0));
+      const y=Math.round(isElement ? (scroller.scrollTop||0) : (window.scrollY||0));
       emit("scroll", scroller, {
         x, y,
-        scrollMode:elementScroll ? "element" : "window",
+        scrollMode:isElement ? "element" : "window",
         scrollBehavior:"auto",
-        description:(elementScroll ? "Scroll container" : "Scroll page")+" to "+x+", "+y
+        description:(isElement ? "Scroll container" : "Scroll page")+" to "+x+", "+y
       });
     },250);
   }, true);
