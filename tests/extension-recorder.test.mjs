@@ -355,3 +355,19 @@ test("sensitive inputs create only redacted fill metadata and no value assertion
   assert.equal(events.some(e=>e.kind==="assert-value"),false);
   assert.ok(!JSON.stringify(events).includes("secret-value"));
 });
+
+
+test("keyboard focus creates an input origin so Tab-based form entry is captured", async () => {
+  const email = new FakeInput("input", {name:"email",placeholder:"Work email"}, {type:"email",name:"email",value:""});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[email]});
+  h.fire("focusin",{target:email});
+  await new Promise(resolve=>setTimeout(resolve,10));
+  email.value="keyboard@example.test";
+  h.fire("input",{target:email});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
+  assert.equal(events.find(e=>e.kind==="click")?.interactionOrigin,"keyboard-focus");
+  const fill=events.find(e=>e.kind==="fill");
+  assert.equal(fill?.value,"keyboard@example.test");
+  assert.equal(fill?.sourceClickId,events.find(e=>e.kind==="click")?.id);
+});
