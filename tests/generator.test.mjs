@@ -294,7 +294,7 @@ test("recorder automatically selects a unique locator at capture time", async ()
 test("recorder redacts sensitive select values before export", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
   assert.match(source, /element instanceof HTMLSelectElement/);
-  assert.match(source, /if \(sensitive\(element\)\)/);
+  assert.match(source, /if \(isSensitive\)/);
   assert.match(source, /requiresTestData:true/);
   assert.match(source, /event\.redacted = true/);
 });
