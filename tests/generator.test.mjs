@@ -29,7 +29,7 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
 });
 
 test("dashboard and extension scripts parse", async () => {
-  for (const file of ["core.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js", "extension/panel.js"]) {
+  for (const file of ["core.js", "universal-generator.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js", "extension/panel.js"]) {
     const source = await readFile(file, "utf8");
     assert.doesNotThrow(() => new vm.Script(source), file + " must parse");
   }
@@ -947,4 +947,44 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   assert.match(popup, /id="inspectRepair"/);
   assert.match(popupScript, /R2POM_INSPECT_LAST_MISSING/);
   assert.match(popupScript, /Export the recording JSON and re-import it into Studio/);
+});
+
+test("recording normalization preserves auto-captured test data metadata and long values", async () => {
+  const context = {};
+  vm.runInNewContext(await readFile("core.js", "utf8"), context);
+  const value = "A".repeat(1200);
+  const normalized = context.Record2POMCore.normalizeRecording({events:[{
+    id:"fill-1",kind:"fill",value,dataKey:"customer_email",sourceClickId:"click-1",
+    inputKind:"fill",capturedAutomatically:true,target:{label:"Email"}
+  }]});
+  assert.equal(normalized.ok,true);
+  const event=normalized.recording.events[0];
+  assert.equal(event.value,value);
+  assert.equal(event.dataKey,"customer_email");
+  assert.equal(event.sourceClickId,"click-1");
+  assert.equal(event.inputKind,"fill");
+  assert.equal(event.capturedAutomatically,true);
+});
+
+test("universal generator creates separate test data and language-specific projects", async () => {
+  const context={};
+  vm.runInNewContext(await readFile("universal-generator.js","utf8"),context);
+  const events=[
+    {sequence:1,kind:"assert-visible",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}],assertion:{expected:"visible"}},
+    {sequence:2,kind:"click",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}]},
+    {sequence:3,kind:"fill",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}],dataKey:"email",value:"qa@example.test",capturedAutomatically:true},
+    {sequence:4,kind:"click",target:{role:"button",name:"Continue",css:"#continue"},locators:[{strategy:"css",value:"#continue",matchCount:1}]}
+  ];
+  for(const engine of ["playwright","selenium"]){
+    for(const language of ["javascript","typescript","java"]){
+      const result=context.Record2POMUniversalGenerator.generate({name:"multi-language",url:"https://fixture.test",engine,language,framework:language==="java"?"junit5":engine==="playwright"?"playwright-test":language==="typescript"?"ts-node":"node",events});
+      assert.ok(result.files["test_data/test_data.json"]);
+      assert.deepEqual(JSON.parse(result.files["test_data/test_data.json"]),{email:"qa@example.test"});
+      assert.ok(result.files["data/recorded_test_data.json"]);
+      const pagePath=language==="java"?"src/main/java/pages/RecordedPage.java":"pages/RecordedPage."+ (language==="typescript"?"ts":"js");
+      assert.match(result.files[pagePath],/class RecordedPage/);
+      assert.ok(Object.keys(result.files).some(path=>path.startsWith("tests/")||path.startsWith("src/test/")));
+      assert.ok(result.files["README.md"].includes("test_data/test_data.json"));
+    }
+  }
 });
