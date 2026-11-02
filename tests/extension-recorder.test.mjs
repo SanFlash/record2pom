@@ -27,6 +27,7 @@ class FakeElement {
     if (selector.includes("[data-testid]") && this.attrs["data-testid"]) return true;
     if (selector.includes("[data-test]") && this.attrs["data-test"]) return true;
     if (selector.includes("[data-qa]") && this.attrs["data-qa"]) return true;
+    if (selector.includes("[role]") && this.attrs.role) return true;
     if (selector.includes("[role=textbox]") && this.attrs.role === "textbox") return true;
     if (selector.includes("[role=combobox]") && this.attrs.role === "combobox") return true;
     if (selector.includes("[role=button]") && this.attrs.role === "button") return true;
