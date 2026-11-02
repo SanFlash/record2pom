@@ -270,20 +270,26 @@
   document.addEventListener("click", event => {
     if (inspectMode || !recording || paused) return;
     const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
-    const element = path.find(item => item instanceof Element && item.matches(
-      "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary,[tabindex]"
-    )) || path.find(item => item instanceof Element && isInteractive(item));
+    // Prefer the actual editable control over a surrounding wrapper carrying data-testid,
+    // tabindex, or a generic click role. This prevents wrapper clicks becoming button actions.
+    const editableSelector = "input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=image]),textarea,select,[role=textbox],[role=combobox],[contenteditable=true]";
+    const interactiveSelector = "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary,[tabindex]";
+    const element = path.find(item => item instanceof Element && item.matches(editableSelector))
+      || path.find(item => item instanceof Element && item.matches(interactiveSelector))
+      || path.find(item => item instanceof Element && isInteractive(item));
     if (element) {
       const info = target(element);
-      const isSelect = element instanceof HTMLSelectElement;
+      const isSelect = element instanceof HTMLSelectElement || element.getAttribute("role") === "combobox";
+      const isContentEditable = element.isContentEditable || element.getAttribute("contenteditable") === "true";
       const isTextEntry = element instanceof HTMLTextAreaElement ||
-        (element instanceof HTMLInputElement && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(element.type));
-      const needsData = isSelect || isTextEntry || element.getAttribute("role") === "textbox" || element.getAttribute("role") === "combobox";
-      const dataKey = (element.name || element.id || info.label || info.name || "field")
+        (element instanceof HTMLInputElement && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(element.type)) ||
+        element.getAttribute("role") === "textbox" || isContentEditable;
+      const needsData = isSelect || isTextEntry;
+      const dataKey = (element.name || element.id || info.label || info.placeholder || info.name || "field")
         .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
       emit("click", element, {
         description: "Click " + (info.name || info.text || info.tagName),
-        ...(needsData ? { requiresTestData:true, inputKind:isSelect || element.getAttribute("role")==="combobox" ? "select" : "fill", dataKey } : {})
+        ...(needsData ? { requiresTestData:true, inputKind:isSelect ? "select" : "fill", dataKey } : {})
       });
     }
   }, true);
