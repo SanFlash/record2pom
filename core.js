@@ -15,7 +15,7 @@
       events.forEach((event, index) => {
         if (!event || typeof event !== "object" || Array.isArray(event)) { errors.push("Event " + (index + 1) + " must be an object."); return; }
         const kind = String(event.kind || event.type || event.action || "").toLowerCase().replace(/_/g, "-");
-        const allowed = ["click","fill","select","check","uncheck","press","navigate","wait","assert-visible","assert-text","assert-url","assert-value"];
+        const allowed = ["click","fill","select","check","uncheck","press","navigate","wait","hover","scroll","drag-drop","assert-visible","assert-text","assert-url","assert-value"];
         if (!allowed.includes(kind) && !["input","type","change","navigation"].includes(kind)) errors.push("Event " + (index + 1) + " has unsupported kind: " + (kind || "(missing)"));
         for (const field of ["description","url","value"]) if (typeof event[field] === "string" && event[field].length > MAX_TEXT) errors.push("Event " + (index + 1) + " field " + field + " is too long.");
       });
