@@ -29,7 +29,7 @@ jobs:
           assert manifest["manifest_version"] == 3, "Extension must use Manifest V3"
           assert re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?", manifest["version"]), "Invalid extension release version"
           assert "Record2POM" in manifest["name"]
-          required = [manifest["background"]["service_worker"], manifest["action"]["default_popup"], *manifest["icons"].values(), *manifest["action"]["default_icon"].values(), *[p for item in manifest["content_scripts"] for p in item["js"]], "popup.css"]
+          required = [manifest["background"]["service_worker"], manifest["side_panel"]["default_path"], "panel.js", "panel.css", *manifest["icons"].values(), *manifest["action"]["default_icon"].values(), *[p for item in manifest["content_scripts"] for p in item["js"]], "popup.css"]
           for relative in required:
               path = root / relative
               if not path.is_file():
@@ -42,7 +42,7 @@ jobs:
           width, height = struct.unpack(">II", header[16:24])
           if (width, height) != (128, 128):
               raise SystemExit(f"Expected 128x128 extension icon, got {width}x{height}")
-          html = (root / "popup.html").read_text(encoding="utf-8")
+          panel_html = (root / manifest["side_panel"]["default_path"]).read_text(encoding="utf-8")\n          panel_js = (root / "panel.js").read_text(encoding="utf-8")\n          if "panel.js" not in panel_html or "captureVisibleTab" not in panel_js or "timelineList" not in panel_html:\n              raise SystemExit("Persistent side panel workspace is incomplete")\n          html = (root / "popup.html").read_text(encoding="utf-8")
           css = (root / "popup.css").read_text(encoding="utf-8")
           if "Record2POM" not in html or "wordmark-accent" not in html or "linear-gradient" not in css:
               raise SystemExit("Neon Record2POM popup branding is missing")
