@@ -25,15 +25,14 @@
     }
     return { ok: errors.length === 0, errors, count: Array.isArray(events) ? events.length : 0 };
   }
-  const KIND_ALIASES = { input:"fill", type:"fill", change:"fill", navigation:"navigate", keypress:"press", assertion:"assert-visible" };
   function normalizeRecording(input) {
     const validation = validateRecording(input);
     if (!validation.ok) return { ok:false, errors:validation.errors, recording:null };
     const rawEvents = Array.isArray(input) ? input : (input.events || input.actions || []);
     const targetUrl = typeof input.targetUrl === "string" ? input.targetUrl : (typeof input.url === "string" ? input.url : "");
     const events = rawEvents.map((raw, index) => {
-      const originalKind = String(raw.kind || raw.type || raw.action || "").toLowerCase().replace(/_/g, "-");
-      const kind = KIND_ALIASES[originalKind] || originalKind;
+      const originalKind = normalizeKind(raw.kind || raw.type || raw.action);
+      const kind = canonicalKind(originalKind);
       const target = raw.target && typeof raw.target === "object" && !Array.isArray(raw.target) ? {...raw.target} : {};
       const candidates = Array.isArray(raw.locators) ? raw.locators :
         (Array.isArray(raw.locatorCandidates) ? raw.locatorCandidates.map(c => ({
@@ -73,8 +72,22 @@
       if (raw.sourceTarget && typeof raw.sourceTarget === "object") event.sourceTarget = {...raw.sourceTarget};
       if (Array.isArray(raw.sourceLocators)) event.sourceLocators = raw.sourceLocators.filter(c=>c&&typeof c==="object").map(c=>({strategy:String(c.strategy||"").slice(0,40),value:String(c.value||"").slice(0,1000),...(c.name!=null?{name:String(c.name).slice(0,300)}:{}),...(Number.isFinite(c.matchCount)?{matchCount:c.matchCount}:{})}));
       if (raw.sourceSelectedLocator && typeof raw.sourceSelectedLocator === "object") event.sourceSelectedLocator = {...raw.sourceSelectedLocator};
-      if (raw.x != null) event.x = Math.max(0, Math.min(100000, Number(raw.x)||0));
-      if (raw.y != null) event.y = Math.max(0, Math.min(100000, Number(raw.y)||0));
+      if (kind === "scroll") {
+        const scroll = raw.scroll && typeof raw.scroll === "object" ? raw.scroll : {};
+        const x = raw.x ?? raw.scrollX ?? raw.left ?? scroll.x ?? scroll.left;
+        const y = raw.y ?? raw.scrollY ?? raw.top ?? scroll.y ?? scroll.top;
+        if (x != null && Number.isFinite(Number(x))) event.x = Math.max(-100000, Math.min(100000, Number(x)));
+        if (y != null && Number.isFinite(Number(y))) event.y = Math.max(-100000, Math.min(100000, Number(y)));
+        const deltaX = raw.deltaX ?? scroll.deltaX;
+        const deltaY = raw.deltaY ?? scroll.deltaY;
+        if (deltaX != null && Number.isFinite(Number(deltaX))) event.deltaX = Math.max(-100000, Math.min(100000, Number(deltaX)));
+        if (deltaY != null && Number.isFinite(Number(deltaY))) event.deltaY = Math.max(-100000, Math.min(100000, Number(deltaY)));
+        event.scrollMode = raw.scrollMode === "element" || raw.container === true || raw.scrollContainer === true ? "element" : "window";
+        event.scrollBehavior = ["auto","smooth","instant"].includes(raw.scrollBehavior || scroll.behavior) ? (raw.scrollBehavior || scroll.behavior) : "auto";
+      } else {
+        if (raw.x != null) event.x = Math.max(0, Math.min(100000, Number(raw.x)||0));
+        if (raw.y != null) event.y = Math.max(0, Math.min(100000, Number(raw.y)||0));
+      }
       if (raw.assertion && typeof raw.assertion === "object") {
         event.assertion = { ...raw.assertion };
         if (event.assertion.expected != null) event.assertion.expected = String(event.assertion.expected).slice(0, 2000);
