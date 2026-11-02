@@ -13,6 +13,7 @@
   let lastHovered = new WeakMap();
   let dragSource = null;
   let scrollTimer = null;
+  let pendingScrollTarget = null;
   let inspectSequence = null;
   let pendingAssertion = null;
   let inspectOverlay = null;
@@ -474,14 +475,27 @@
 
   document.addEventListener("dragend", () => { dragSource=null; }, true);
 
-  document.addEventListener("scroll", () => {
-    if (!recording || paused || inspectMode || scrollTimer) return;
+  document.addEventListener("scroll", event => {
+    if (!recording || paused || inspectMode) return;
+    const source = event?.target;
+    const elementScroll = source instanceof Element &&
+      source !== document && source !== document.documentElement && source !== document.body &&
+      (source.scrollHeight > source.clientHeight || source.scrollWidth > source.clientWidth);
+    pendingScrollTarget = elementScroll ? source : document.documentElement;
+    if (scrollTimer) clearTimeout(scrollTimer);
     scrollTimer=setTimeout(() => {
       scrollTimer=null;
-      emit("scroll", document.documentElement, {
-        x:Math.round(window.scrollX||0),
-        y:Math.round(window.scrollY||0),
-        description:"Scroll page to "+Math.round(window.scrollX||0)+", "+Math.round(window.scrollY||0)
+      if (!recording || paused || inspectMode) { pendingScrollTarget=null; return; }
+      const scroller=pendingScrollTarget || document.documentElement;
+      pendingScrollTarget=null;
+      const isElement=scroller !== document.documentElement && scroller !== document.body;
+      const x=Math.round(isElement ? (scroller.scrollLeft||0) : (window.scrollX||0));
+      const y=Math.round(isElement ? (scroller.scrollTop||0) : (window.scrollY||0));
+      emit("scroll", scroller, {
+        x, y,
+        scrollMode:isElement ? "element" : "window",
+        scrollBehavior:"auto",
+        description:(isElement ? "Scroll container" : "Scroll page")+" to "+x+", "+y
       });
     },250);
   }, true);

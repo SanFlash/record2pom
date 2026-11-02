@@ -123,6 +123,21 @@ test("scroll positions are captured automatically after scroll settles", async (
   assert.equal(event.y,640);
 });
 
+test("nested scroll containers are captured as element scroll actions", async () => {
+  const panel = new FakeElement("div", {"data-testid":"results-panel"}, {
+    scrollHeight:1200, clientHeight:300, scrollTop:420, scrollLeft:15
+  });
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[panel]});
+  h.fire("scroll",{target:panel});
+  await new Promise(resolve=>setTimeout(resolve,300));
+  const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event).find(item=>item.kind==="scroll");
+  assert.ok(event);
+  assert.equal(event.scrollMode,"element");
+  assert.equal(event.x,15);
+  assert.equal(event.y,420);
+  assert.ok(event.locators.some(locator=>locator.value.includes("results-panel")));
+});
+
 test("recorder installs recording and inspect listeners once and stays idle until recording starts", async () => {
   const button = new FakeElement("button", { "aria-label": "Continue" });
   const h = await recorderHarness({ elements: [button] });
