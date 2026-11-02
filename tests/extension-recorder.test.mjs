@@ -155,8 +155,8 @@ test("recorder captures checkbox state, select labels, Enter, and respects pause
   h.fire("change", { target: textbox });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
   assert.deepEqual(events.filter(e => !e.verification?.generated).map(e => e.kind), ["check", "select", "press"]);
-  assert.equal(events[1].value, "India");
-  assert.equal(events[2].value, "Enter");
+  assert.equal(events.find(e=>e.kind==="select").value, "India");
+  assert.equal(events.find(e=>e.kind==="press").value, "Enter");
 });
 
 test("recorder reports navigation only while recording and not paused", async () => {
@@ -222,9 +222,9 @@ test("recorder emits a post-action field-value verification checkpoint", async (
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
   assert.equal(events[0].kind,"fill");
   assert.equal(events[1].kind,"assert-value");
-  assert.equal(events[1].assertion.expected,"Ada Lovelace");
-  assert.equal(events[1].verification.generated,true);
-  assert.equal(events[1].locators[0].value,"display-name");
+  assert.equal(events.find(e=>e.kind==="assert-value").assertion.expected,"Ada Lovelace");
+  assert.equal(events.find(e=>e.kind==="assert-value").verification.generated,true);
+  assert.equal(events.find(e=>e.kind==="assert-value").locators[0].value,"display-name");
 });
 
 test("recorder never creates automatic value assertions for sensitive input", async () => {
