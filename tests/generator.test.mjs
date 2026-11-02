@@ -1025,3 +1025,12 @@ test("advanced hover scroll and drag-drop steps survive normalization and genera
   assert.match(studio,/"hover","scroll","drag-drop"/);
   assert.match(studio,/ActionChains\(self\.driver\)\.drag_and_drop/);
 });
+
+
+test("Playwright CRX-imported text locators are supported by the Python Playwright locator resolver", async () => {
+  const app = await readFile("app.js","utf8");
+  assert.match(app,/c\.strategy==="text"\)expr="self\.page\.get_by_text/);
+  assert.match(app,/c\.strategy==="alt"\)expr="self\.page\.get_by_alt_text/);
+  assert.match(app,/c\.strategy==="title"\)expr="self\.page\.get_by_title/);
+  assert.match(app,/select_option\(value=/);
+});
