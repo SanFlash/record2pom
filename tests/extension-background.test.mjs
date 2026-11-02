@@ -246,3 +246,22 @@ test("navigation notification is sent only for completed HTTP(S) tabs while reco
   await onUpdated(7, { status: "complete" }, { url: "https://example.test/paused" });
   assert.equal(h.sentTabMessages.length, 1);
 });
+
+
+test("concurrent click and automatic fill messages are persisted in causal order", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test/form"});
+  const click={id:"causal-click",kind:"click",target:{label:"Email"},locators:[{strategy:"label",value:"Email",matchCount:1}]};
+  const fill={id:"causal-fill",kind:"fill",value:"qa@example.test",dataKey:"email",sourceClickId:"causal-click",capturedAutomatically:true,target:{label:"Email"}};
+  const [clickResult,fillResult]=await Promise.all([
+    h.dispatch({type:"R2POM_EVENT",event:click}),
+    h.dispatch({type:"R2POM_EVENT",event:fill})
+  ]);
+  assert.equal(clickResult.ok,true);
+  assert.equal(fillResult.ok,true);
+  const events=(await h.dispatch({type:"R2POM_GET_SESSION"})).session.events;
+  assert.deepEqual(Array.from(events,e=>e.kind),["click","fill"]);
+  assert.equal(events[1].sourceClickId,events[0].id);
+  assert.equal(events[1].value,"qa@example.test");
+});
