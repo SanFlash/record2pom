@@ -415,8 +415,8 @@ function checkReadiness(){
     if(!["http:","https:"].includes(u.protocol))addItem("block","Target URL must use HTTP or HTTPS","Use a full URL such as https://example.test.");
     else addItem("pass","Target URL is valid",u.origin);
   }catch{addItem("block","Target URL is missing or invalid","Enter a full URL beginning with https:// or http://.");}
-  if((p.engine==="playwright"&&p.framework==="pytest")||(p.engine==="selenium"&&p.framework==="unittest"))addItem("pass","Engine and framework match",p.engine+" + "+p.framework);
-  else addItem("block","Engine and framework do not match","Choose Playwright + pytest or Selenium + unittest.");
+  const validFramework=p.language==="python"?(p.engine==="playwright"?p.framework==="pytest":p.framework==="unittest"):p.language==="java"?p.framework==="junit5":(p.engine==="playwright"?p.framework==="playwright-test":p.framework===(p.language==="typescript"?"ts-node":"node"));
+  if(validFramework)addItem("pass","Tool, language and runner match",p.engine+" + "+p.language+" + "+p.framework);else addItem("block","Tool, language and runner do not match","Choose a supported runner for the selected tool and language.");
   if(!events.length)addItem("block","No recorded actions","Import a recording JSON, use Add action, or install the extension and record a journey.");
   else addItem("pass",events.length+" action(s) loaded","Review the action timeline in sequence before generating.");
   let missing=0,ambiguous=0,unverified=0,redacted=0,assertions=0;
