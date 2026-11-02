@@ -15,6 +15,7 @@ class FakeElement {
     this.labels ??= [];
   }
   getAttribute(name) { return this.attrs[name] ?? null; }
+  hasAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name); }
   matches(selector) {
     if (selector.includes("button") && this.tagName === "BUTTON") return true;
     if (selector.includes("input[type=button]") && this.tagName === "INPUT" && this.type === "button") return true;
