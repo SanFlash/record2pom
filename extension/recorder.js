@@ -272,14 +272,14 @@
     const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
     // Prefer the actual editable control over a surrounding wrapper carrying data-testid,
     // tabindex, or a generic click role. This prevents wrapper clicks becoming button actions.
-    const editableSelector = "input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=image]),textarea,select,[role=textbox],[role=combobox],[contenteditable=true]";
+    const editableSelector = "input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=image]),textarea,select,[role=textbox],[contenteditable=true]";
     const interactiveSelector = "button,a[href],input[type=button],input[type=submit],[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=radio],[aria-haspopup],[data-testid],[data-test],[data-qa],[onclick],summary,[tabindex]";
     const element = path.find(item => item instanceof Element && item.matches(editableSelector))
       || path.find(item => item instanceof Element && item.matches(interactiveSelector))
       || path.find(item => item instanceof Element && isInteractive(item));
     if (element) {
       const info = target(element);
-      const isSelect = element instanceof HTMLSelectElement || element.getAttribute("role") === "combobox";
+      const isSelect = element instanceof HTMLSelectElement;
       const isContentEditable = element.isContentEditable || element.getAttribute("contenteditable") === "true";
       const isTextEntry = element instanceof HTMLTextAreaElement ||
         (element instanceof HTMLInputElement && !["button","submit","reset","checkbox","radio","file","hidden","image"].includes(element.type)) ||
