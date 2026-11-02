@@ -521,3 +521,113 @@ def test_generated_runner_fails_safely_and_writes_failure_evidence(
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=5)
+
+
+def test_dashboard_generates_all_javascript_typescript_and_java_combinations(page: Page, tmp_path: Path) -> None:
+    """Exercise language selection and ZIP contents for Playwright/Selenium across JS, TS and Java."""
+    port = _free_port()
+    server = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    base = f"http://127.0.0.1:{port}"
+    try:
+        _wait_for_server(base + "/index.html", server)
+        page.goto(base + "/index.html")
+        page.get_by_label("Project name").fill("universal-language-fixture")
+        page.get_by_label("Target URL").fill(base + FIXTURE_PATH)
+        recording = {
+            "schemaVersion": 1,
+            "targetUrl": base + FIXTURE_PATH,
+            "events": [
+                {
+                    "id": "first-assert",
+                    "sequence": 1,
+                    "kind": "assert-visible",
+                    "description": "Assert email is visible before interaction",
+                    "target": {"tagName": "input", "role": "textbox", "name": "Email", "css": "#email"},
+                    "locators": [{"strategy": "css", "value": "#email", "matchCount": 1}],
+                    "assertion": {"expected": "visible"},
+                },
+                {
+                    "id": "email-click",
+                    "sequence": 2,
+                    "kind": "click",
+                    "description": "Click Email",
+                    "target": {"tagName": "input", "role": "textbox", "name": "Email", "css": "#email"},
+                    "locators": [{"strategy": "css", "value": "#email", "matchCount": 1}],
+                },
+                {
+                    "id": "email-fill",
+                    "sequence": 3,
+                    "kind": "fill",
+                    "description": "Fill Email",
+                    "target": {"tagName": "input", "role": "textbox", "name": "Email", "css": "#email"},
+                    "locators": [{"strategy": "css", "value": "#email", "matchCount": 1}],
+                    "dataKey": "email_unique",
+                    "sourceClickId": "email-click",
+                    "capturedAutomatically": True,
+                    "value": "qa@example.test",
+                },
+            ],
+        }
+        recording_file = tmp_path / "universal-language-recording.json"
+        recording_file.write_text(json.dumps(recording), encoding="utf-8")
+        page.locator("#file").set_input_files(str(recording_file))
+        expect(page.locator("#count")).to_have_text("3")
+
+        for engine in ("playwright", "selenium"):
+            page.get_by_label("Engine").select_option(engine)
+            for language in ("javascript", "typescript", "java"):
+                page.get_by_label("Language").select_option(language)
+                expected_framework = "junit5" if language == "java" else (
+                    "playwright-test" if engine == "playwright" else (
+                        "ts-node" if language == "typescript" else "node"
+                    )
+                )
+                expect(page.get_by_label("Test framework")).to_have_value(expected_framework)
+                page.get_by_role("button", name="Generate project").click()
+                if language == "java":
+                    page_path = "src/main/java/pages/RecordedPage.java"
+                    test_path = "src/test/java/tests/RecordedJourneyTest.java"
+                else:
+                    extension = "ts" if language == "typescript" else "js"
+                    page_path = f"pages/RecordedPage.{extension}"
+                    test_path = (
+                        f"tests/recorded-journey.spec.{extension}"
+                        if engine == "playwright"
+                        else f"tests/recorded-journey.{extension}"
+                    )
+                expect(page.locator("#files")).to_contain_text(page_path)
+                expect(page.locator("#files")).to_contain_text(test_path)
+                with page.expect_download() as download_info:
+                    page.get_by_role("button", name="Download ZIP").click()
+                archive_path = tmp_path / f"{engine}-{language}.zip"
+                download_info.value.save_as(archive_path)
+                with zipfile.ZipFile(archive_path) as archive:
+                    names = set(archive.namelist())
+                    assert page_path in names
+                    assert test_path in names
+                    assert "test_data/test_data.json" in names
+                    assert "data/recorded_test_data.json" in names
+                    test_data = json.loads(archive.read("test_data/test_data.json"))
+                    assert test_data == {"email_unique": "qa@example.test"}
+                    metadata = json.loads(archive.read("data/recorded_test_data.json"))
+                    assert metadata["engine"] == engine
+                    assert metadata["language"] == language
+                    assert all(step.get("value") is None for step in metadata["steps"])
+                    if language == "java":
+                        assert "pom.xml" in names
+                    else:
+                        package = json.loads(archive.read("package.json"))
+                        assert package["scripts"]["test"]
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait(timeout=5)

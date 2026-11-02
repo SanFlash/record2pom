@@ -133,6 +133,25 @@ test("test data is inserted directly after its click and empty values are suppor
   assert.match(tooLong.error,/5,000 characters/);
 });
 
+test("automatic input capture is inserted after its click and updates in place", async () => {
+  const h = await harness();
+  await h.installed[0]();
+  await h.dispatch({type:"R2POM_START",url:"https://example.test/form"});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"first-assert",kind:"assert-visible",target:{label:"Email"}}});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"email-click",kind:"click",target:{label:"Email"}}});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"next-click",kind:"click",target:{label:"Continue"}}});
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"email-fill",kind:"fill",value:"a@example.test",dataKey:"email",sourceClickId:"email-click",capturedAutomatically:true,target:{label:"Email"}}});
+  let events=(await h.dispatch({type:"R2POM_GET_SESSION"})).session.events;
+  assert.deepEqual(Array.from(events, e=>e.kind),["assert-visible","click","fill","click"]);
+  assert.equal(events[2].value,"a@example.test");
+  assert.equal(events[2].sourceClickId,"email-click");
+  await h.dispatch({type:"R2POM_EVENT",event:{id:"email-fill-update",kind:"fill",value:"final@example.test",dataKey:"email",sourceClickId:"email-click",capturedAutomatically:true,target:{label:"Email"}}});
+  events=(await h.dispatch({type:"R2POM_GET_SESSION"})).session.events;
+  assert.equal(events.filter(e=>e.kind==="fill").length,1);
+  assert.equal(events.find(e=>e.kind==="fill").value,"final@example.test");
+  assert.deepEqual(Array.from(events, e=>e.sequence),[1,2,3,4]);
+});
+
 test("pause and resume cannot accidentally start an idle session", async () => {
   const h = await harness();
   await h.installed[0]();

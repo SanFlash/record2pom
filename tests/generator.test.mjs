@@ -16,8 +16,8 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
   assert.match(readme, /docs\/LOCAL_VALIDATION\.md/);
   const validatorSyntax = spawnSync(process.execPath, ["--check", "scripts/validate.mjs"], {encoding:"utf8"});
   assert.equal(validatorSyntax.status, 0, validatorSyntax.stderr);
-  assert.match(readme, /Playwright \+ Python \+ pytest/);
-  assert.match(readme, /Selenium WebDriver \+ Python \+ unittest/);
+  assert.match(readme, /\| Playwright \| Python \| pytest \|/);
+  assert.match(readme, /\| Selenium \| Python \| unittest \|/);
   assert.equal(manifest.manifest_version, 3);
   assert.equal(manifest.side_panel.default_path, "panel.html");
   assert.equal(manifest.permissions.includes("sidePanel"), true);
@@ -29,7 +29,7 @@ test("package, docs, extension manifest and Vercel configuration are valid", asy
 });
 
 test("dashboard and extension scripts parse", async () => {
-  for (const file of ["core.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js", "extension/panel.js"]) {
+  for (const file of ["core.js", "universal-generator.js", "app.js", "extension/background.js", "extension/recorder.js", "extension/popup.js", "extension/panel.js"]) {
     const source = await readFile(file, "utf8");
     assert.doesNotThrow(() => new vm.Script(source), file + " must parse");
   }
@@ -127,16 +127,18 @@ test("generated validator safely reports malformed metadata and validates empty 
   assert.equal(values.input_1, "");
 });
 
-test("recorder asks for explicit test data after clicking an input and does not infer assert-value", async () => {
+test("recorder asserts on first click and automatically stores live input values without inferring assert-value", async () => {
   const recorder = await readFile("extension/recorder.js", "utf8");
-  const panel = await readFile("extension/panel.js", "utf8");
+  const panel = await readFile("extension/panel.html", "utf8");
   const background = await readFile("extension/background.js", "utf8");
-  assert.match(recorder, /requiresTestData:true/);
+  assert.match(recorder, /assert-visible/);
+  assert.match(recorder, /capturedAutomatically/);
+  assert.match(recorder, /sourceClickId/);
   assert.match(recorder, /Never infer a field-value assertion/);
   assert.doesNotMatch(recorder, /assertions\.push\(\{kind:"assert-value"/);
-  assert.match(panel, /renderInputPrompt/);
-  assert.match(panel, /R2POM_SET_TEST_DATA/);
-  assert.match(background, /R2POM_SET_TEST_DATA/);
+  assert.match(panel, /Automatic input capture/);
+  assert.match(background, /sourceClickId/);
+  assert.match(background, /capturedAutomatically/);
 });
 
 test("generated Playwright and Selenium projects preserve assertion execution code", async () => {
@@ -306,8 +308,9 @@ test("recorder redacts sensitive select values before export", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
   assert.match(source, /element instanceof HTMLSelectElement/);
   assert.match(source, /if \(isSensitive\)/);
-  assert.match(source, /requiresTestData:true/);
+  assert.match(source, /inputKind:isSelect \? "select" : "fill"/);
   assert.match(source, /event\.redacted = true/);
+  assert.match(source, /capturedAutomatically/);
 });
 
 
@@ -947,4 +950,44 @@ test("extension automatically enriches locators and supports inspect-and-repair 
   assert.match(popup, /id="inspectRepair"/);
   assert.match(popupScript, /R2POM_INSPECT_LAST_MISSING/);
   assert.match(popupScript, /Export the recording JSON and re-import it into Studio/);
+});
+
+test("recording normalization preserves auto-captured test data metadata and long values", async () => {
+  const context = {};
+  vm.runInNewContext(await readFile("core.js", "utf8"), context);
+  const value = "A".repeat(1200);
+  const normalized = context.Record2POMCore.normalizeRecording({events:[{
+    id:"fill-1",kind:"fill",value,dataKey:"customer_email",sourceClickId:"click-1",
+    inputKind:"fill",capturedAutomatically:true,target:{label:"Email"}
+  }]});
+  assert.equal(normalized.ok,true);
+  const event=normalized.recording.events[0];
+  assert.equal(event.value,value);
+  assert.equal(event.dataKey,"customer_email");
+  assert.equal(event.sourceClickId,"click-1");
+  assert.equal(event.inputKind,"fill");
+  assert.equal(event.capturedAutomatically,true);
+});
+
+test("universal generator creates separate test data and language-specific projects", async () => {
+  const context={};
+  vm.runInNewContext(await readFile("universal-generator.js","utf8"),context);
+  const events=[
+    {sequence:1,kind:"assert-visible",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}],assertion:{expected:"visible"}},
+    {sequence:2,kind:"click",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}]},
+    {sequence:3,kind:"fill",target:{role:"textbox",name:"Email"},locators:[{strategy:"role",value:"textbox",name:"Email",matchCount:1}],dataKey:"email",value:"qa@example.test",capturedAutomatically:true},
+    {sequence:4,kind:"click",target:{role:"button",name:"Continue",css:"#continue"},locators:[{strategy:"css",value:"#continue",matchCount:1}]}
+  ];
+  for(const engine of ["playwright","selenium"]){
+    for(const language of ["javascript","typescript","java"]){
+      const result=context.Record2POMUniversalGenerator.generate({name:"multi-language",url:"https://fixture.test",engine,language,framework:language==="java"?"junit5":engine==="playwright"?"playwright-test":language==="typescript"?"ts-node":"node",events});
+      assert.ok(result.files["test_data/test_data.json"]);
+      assert.deepEqual(JSON.parse(result.files["test_data/test_data.json"]),{email:"qa@example.test"});
+      assert.ok(result.files["data/recorded_test_data.json"]);
+      const pagePath=language==="java"?"src/main/java/pages/RecordedPage.java":"pages/RecordedPage."+ (language==="typescript"?"ts":"js");
+      assert.match(result.files[pagePath],/class RecordedPage/);
+      assert.ok(Object.keys(result.files).some(path=>path.startsWith("tests/")||path.startsWith("src/test/")));
+      assert.ok(result.files["README.md"].includes("test_data/test_data.json"));
+    }
+  }
 });

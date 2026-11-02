@@ -108,7 +108,8 @@ test("recorder captures semantic submit success checkpoints only with expected a
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[button]});
   h.fire("click",{composedPath:()=>[button],target:button});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
-  assert.equal(events[0].kind,"click");
+  assert.equal(events[0].kind,"assert-visible");
+  assert.equal(events[1].kind,"click");
   assert.ok(events.some(e=>e.kind==="assert-url" && e.verification?.generated===true));
   assert.equal(events.find(e=>e.kind==="assert-url").assertion.expected,"/inventory.html");
 });
@@ -117,7 +118,7 @@ test("recorder captures clicks with locator confidence metadata while active", a
   const button = new FakeElement("button", { "aria-label": "Continue", "data-testid": "continue-btn" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
   h.fire("click", { composedPath: () => [button], target: button });
-  const event = h.sent.find(m => m.type === "R2POM_EVENT")?.event;
+  const event = h.sent.filter(m => m.type === "R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind, "click");
   assert.equal(event.target.name, "Continue");
   assert.equal(event.locators[0].strategy, "testId");
@@ -125,29 +126,67 @@ test("recorder captures clicks with locator confidence metadata while active", a
   assert.match(event.description, /Continue/);
 });
 
-test("recorder asks for test data after input click and never captures typed website values", async () => {
-  const email = new FakeInput("input", { name: "email", placeholder: "Work email" }, { type: "email", name: "email", value: "qa@example.test", placeholder: "Work email" });
-  const password = new FakeInput("input", { name: "userPassword", autocomplete: "current-password" }, { type: "password", name: "userPassword", value: "do-not-store", autocomplete: "current-password" });
-  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [email, password] });
+test("first click asserts visibility before the click and live input values are captured automatically", async () => {
+  const email = new FakeInput("input", { name: "email", placeholder: "Work email" }, { type: "email", name: "email", value: "" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [email] });
   h.fire("click", { composedPath: () => [email], target: email });
-  h.fire("change", { target: email });
+  email.value = "qa@example.test";
+  h.fire("input", { target: email });
+  await new Promise(resolve => setTimeout(resolve, 350));
+  const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
+  assert.equal(events[0].kind, "assert-visible", "first-click assertion must be emitted before the action");
+  assert.equal(events[0].assertion.expected, "visible");
+  assert.equal(events[1].kind, "click");
+  assert.equal(events[2].kind, "fill");
+  assert.equal(events[2].value, "qa@example.test");
+  assert.equal(events[2].sourceClickId, events[1].id);
+  assert.equal(events[2].capturedAutomatically, true);
+  assert.match(events[2].dataKey, /^email_/);
+});
+
+test("an intentionally empty input is captured when the clicked field loses focus", async () => {
+  const input = new FakeInput("input", {name:"optionalNote"}, {type:"text",name:"optionalNote",value:""});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("click",{composedPath:()=>[input],target:input});
+  h.fire("blur",{target:input});
+  const fill=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="fill");
+  assert.ok(fill);
+  assert.equal(fill.value,"");
+  assert.equal(fill.capturedAutomatically,true);
+});
+
+test("repeated fills of the same field retain separate data keys and values", async () => {
+  const input = new FakeInput("input", {name:"searchTerm"}, {type:"text",name:"searchTerm",value:""});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="first search";
+  h.fire("input",{target:input});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="second search";
+  h.fire("input",{target:input});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  const fills=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event).filter(e=>e.kind==="fill");
+  assert.equal(fills.length,2);
+  assert.equal(fills[0].value,"first search");
+  assert.equal(fills[1].value,"second search");
+  assert.notEqual(fills[0].dataKey,fills[1].dataKey);
+  assert.notEqual(fills[0].sourceClickId,fills[1].sourceClickId);
+});
+
+test("sensitive input values are never captured even when the user types on the live page", async () => {
+  const password = new FakeInput("input", { name: "userPassword", autocomplete: "current-password" }, { type: "password", name: "userPassword", value: "" });
+  const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [password] });
   h.fire("click", { composedPath: () => [password], target: password });
+  password.value = "do-not-store";
+  h.fire("input", { target: password });
   h.fire("change", { target: password });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
-  assert.equal(events.length,2,"each clicked input should emit one selection event");
-  const emailEvent=events.find(e=>e.dataKey==="email");
-  const passwordEvent=events.find(e=>e.dataKey==="userpassword");
-  assert.equal(emailEvent.kind, "click");
-  assert.equal(emailEvent.requiresTestData, true);
-  assert.equal(emailEvent.inputKind, "fill");
-  assert.equal(emailEvent.redacted, undefined);
-  assert.equal("value" in emailEvent, false);
-  assert.equal(passwordEvent.kind, "click");
-  assert.equal(passwordEvent.requiresTestData, true);
-  assert.equal(passwordEvent.redacted, true);
-  assert.equal("value" in passwordEvent, false, "sensitive value must never be sent to background");
-  assert.equal(passwordEvent.envVar, "USERPASSWORD");
-  assert.equal(events.filter(e => e.kind === "fill").length, 0, "typing into the website must not create a fill action automatically");
+  const fill = events.find(e => e.kind === "fill");
+  assert.ok(fill);
+  assert.equal(fill.redacted, true);
+  assert.equal("value" in fill, false);
+  assert.ok(!JSON.stringify(events).includes("do-not-store"));
 });
 
 test("recorder prioritizes the actual input over a data-testid wrapper", async () => {
@@ -155,10 +194,10 @@ test("recorder prioritizes the actual input over a data-testid wrapper", async (
   const wrapper = new FakeElement("div", {"data-testid":"email-field"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input,wrapper]});
   h.fire("click",{composedPath:()=>[input,wrapper],target:input});
-  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind,"click");
   assert.equal(event.target.tagName,"input");
-  assert.equal(event.requiresTestData,true);
+  assert.equal(event.inputKind,"fill");
   assert.equal(event.dataKey,"accountemail");
   assert.equal("value" in event,false);
 });
@@ -167,7 +206,7 @@ test("non-editable ARIA comboboxes remain click actions instead of requesting te
   const combo = new FakeElement("div", {role:"combobox","aria-label":"Choose a category"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[combo]});
   h.fire("click",{composedPath:()=>[combo],target:combo});
-  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind,"click");
   assert.equal(event.requiresTestData,undefined);
 });
@@ -179,9 +218,9 @@ test("recorder treats contenteditable and ARIA textboxes as fill actions", async
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[content,textbox]});
   h.fire("click",{composedPath:()=>[content],target:content});
   h.fire("click",{composedPath:()=>[textbox],target:textbox});
-  const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event);
+  const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event).filter(event=>event.kind==="click");
   assert.equal(events.length,2);
-  assert.ok(events.every(event=>event.kind==="click"&&event.requiresTestData&&event.inputKind==="fill"));
+  assert.ok(events.every(event=>event.kind==="click"&&event.inputKind==="fill"));
 });
 
 test("recorder marks dropdown clicks for explicit test data and retains checkbox and Enter actions", async () => {
@@ -196,10 +235,10 @@ test("recorder marks dropdown clicks for explicit test data and retains checkbox
   h.control({ type: "R2POM_CONTROL", recording: true, paused: true });
   h.fire("change", { target: textbox });
   const events = h.sent.filter(m => m.type === "R2POM_EVENT").map(m => m.event);
-  assert.deepEqual(events.filter(e => !e.verification?.generated).map(e => e.kind), ["check", "click", "press"]);
-  const dropdown=events.find(e=>e.requiresTestData);
-  assert.equal(dropdown.inputKind, "select");
-  assert.equal("value" in dropdown, false);
+  assert.deepEqual(events.filter(e => !e.verification?.generated).map(e => e.kind), ["check", "click", "select", "press"]);
+  const dropdown=events.find(e=>e.kind==="click"&&e.inputKind==="select");
+  assert.ok(dropdown);
+  assert.equal(events.find(e=>e.kind==="select").value,"in");
   assert.equal(events.find(e=>e.kind==="press").value, "Enter");
 });
 
@@ -242,9 +281,9 @@ test("recorder ignores invalid navigation protocols and tolerates missing compos
   const button = new FakeElement("button", { "aria-label": "Save" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
   h.fire("click", { target: button });
-  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 2);
   h.control({ type: "R2POM_NAVIGATION", url: "javascript:alert(1)" });
-  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 1);
+  assert.equal(h.sent.filter(message => message.type === "R2POM_EVENT").length, 2);
 });
 
 
@@ -259,28 +298,31 @@ test("recorder does not mislabel data-test/data-qa attributes as data-testid loc
 });
 
 
-test("recorder never converts typed input into an automatic value assertion", async () => {
-  const input = new FakeInput("input", {name:"displayName", "aria-label":"Display name", "data-testid":"display-name"}, {type:"text", name:"displayName", value:"Ada Lovelace"});
+test("typed input is stored as fill data and never becomes an expected value assertion", async () => {
+  const input = new FakeInput("input", {name:"displayName", "aria-label":"Display name", "data-testid":"display-name"}, {type:"text", name:"displayName", value:""});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
   h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="Ada Lovelace";
   h.fire("change",{target:input});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
-  assert.equal(events[0].kind,"click");
-  assert.equal(events[0].requiresTestData,true);
+  assert.equal(events[0].kind,"assert-visible");
+  assert.equal(events[1].kind,"click");
+  assert.equal(events[2].kind,"fill");
+  assert.equal(events[2].value,"Ada Lovelace");
   assert.equal(events.some(e=>e.kind==="assert-value"),false);
-  assert.equal(events.some(e=>e.kind==="fill"),false);
-  assert.equal("value" in events[0],false);
 });
 
-test("recorder never creates automatic value assertions for sensitive input", async () => {
-  const input = new FakeInput("input", {name:"password", "aria-label":"Password"}, {type:"password", name:"password", value:"secret-value"});
+test("sensitive inputs create only redacted fill metadata and no value assertion", async () => {
+  const input = new FakeInput("input", {name:"password", "aria-label":"Password"}, {type:"password", name:"password", value:""});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
   h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="secret-value";
   h.fire("change",{target:input});
   const events=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event);
-  assert.equal(events.length,1);
-  assert.equal(events[0].kind,"click");
-  assert.equal(events[0].requiresTestData,true);
-  assert.equal(events[0].redacted,true);
+  const fill=events.find(e=>e.kind==="fill");
+  assert.ok(fill);
+  assert.equal(fill.redacted,true);
+  assert.equal("value" in fill,false);
+  assert.equal(events.some(e=>e.kind==="assert-value"),false);
   assert.ok(!JSON.stringify(events).includes("secret-value"));
 });

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Record2POM Universal Recorder",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Persistent browser side panel for recording, inspecting and generating portable Page Object Model test projects.",
   "permissions": [
     "activeTab",
