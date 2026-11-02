@@ -862,6 +862,11 @@ test("extension popup exposes keyboard focus, accessible control names and live 
   assert.match(html, /aria-label="Export recording as JSON"/);
   assert.match(html, /aria-label="Clear saved recording"/);
   assert.match(html, /aria-label="Studio transfer status"/);
+  assert.match(html, /id="verifyType"/);
+  assert.match(html, /id="verifyExpected"/);
+  assert.match(html, /id="addVerification"/);
+  assert.match(js, /R2POM_START_ASSERT_INSPECT/);
+  assert.match(js, /R2POM_EVENT/);
   assert.match(html, /rel="noopener noreferrer"/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /prefers-reduced-motion/);
@@ -884,6 +889,10 @@ test("extension automatically enriches locators and supports inspect-and-repair 
     assert.equal(check.status, 0, check.stderr);
   }
   assert.match(recorder, /function stableCss\(element\)/);
+  assert.match(recorder, /function verificationFor\(kind, element, extra = \{\}\)/);
+  assert.match(recorder, /assert-value/);
+  assert.match(background, /R2POM_ASSERT_INSPECT_RESULT/);
+  assert.match(core, /raw\.verification/);
   assert.match(recorder, /\["data-testid", "data-test", "data-qa", "name", "aria-label"\]/);
   assert.match(recorder, /function isInteractive\(element\)/);
   assert.match(recorder, /R2POM_INSPECT_MODE/);
