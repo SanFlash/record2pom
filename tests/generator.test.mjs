@@ -1039,7 +1039,7 @@ test("Playwright CRX-imported text locators are supported by the Python Playwrig
 test("Python POM generation accepts window and nested-container scroll events", async () => {
   const playwright = await generateFromFixture("playwright", "scroll");
   assert.match(playwright.code, /window\.scrollTo/);
-  assert.match(playwright.code, /self\.page\.evaluate\("\\(\[x,y,behavior\]\\)/);
+  assert.ok(playwright.code.includes('self.page.evaluate("([x,y,behavior])'));
   assert.match(playwright.status, /Generated/);
   const selenium = await generateFromFixture("selenium", "scroll");
   assert.match(selenium.code, /window\.scrollTo/);
@@ -1049,7 +1049,7 @@ test("Python POM generation accepts window and nested-container scroll events", 
     locators:[{strategy:"css",value:"#scroll-panel",matchCount:1}]
   });
   assert.match(nested.code, /#scroll-panel/);
-  assert.match(nested.code, /\.evaluate\("\\(el, \[x, y, behavior\]\\)/);
+  assert.ok(nested.code.includes('.evaluate("(el, [x, y, behavior])'));
   const parsed = spawnSync("python", ["-c", "import ast,sys; ast.parse(sys.stdin.read())"], {input:nested.code,encoding:"utf8"});
   if (parsed.error?.code !== "ENOENT") assert.equal(parsed.status, 0, parsed.stderr);
 });
