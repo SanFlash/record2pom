@@ -3,7 +3,7 @@ const KEY="record2pom_workspace_v1", $=id=>document.getElementById(id);
 const uid=()=> "ws-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
 const blank=()=>({version:1,folders:[{id:"folder-default",name:"Unsorted"}],suites:[{id:"suite-default",folderId:"folder-default",name:"My tests"}],tests:[],components:[],profiles:[{id:"profile-local",name:"local",variables:[]}],activeProfile:"profile-local"});
 let data=load(),selectedStep=null,activeFolder="folder-default";
-function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&v.version===1&&Array.isArray(v.tests)&&Array.isArray(v.components)&&Array.isArray(v.profiles))return v;}catch{}return blank();}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&v.version===1&&Array.isArray(v.folders)&&Array.isArray(v.suites)&&Array.isArray(v.tests)&&Array.isArray(v.components)&&Array.isArray(v.profiles)&&v.tests.length<=1000&&v.components.length<=500)return v;}catch{}return blank();}
 function persist(message="Saved locally."){localStorage.setItem(KEY,JSON.stringify(data));status(message);render();}
 function status(s){$("wsStatus").textContent=s;}
 function current(){return window.Record2POMStudio?.getEvents?.()||[];}
