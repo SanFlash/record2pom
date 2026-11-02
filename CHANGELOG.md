@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0] - 2026-11-02
+
+- Added optional hover recording with duplicate-event suppression.
+- Added automatic debounced scroll-position capture.
+- Added optional drag-and-drop capture with source and destination locator candidates.
+- Added persistent hover and drag/drop mode controls to the Chrome side panel.
+- Extended the canonical recording schema, validation and Playwright/Selenium generators for advanced browser actions in Python, JavaScript, TypeScript and Java.
+- Added bounded smart waits and scroll-into-view before generated Selenium clicks.
+- Added a public capability parity matrix and staged engineering roadmap. This release does not claim cloud execution, suites, visual regression, team collaboration or integrations are implemented.
+
 ## Unreleased — verification-first recordings
 
 - Capture verification checkpoints for non-sensitive input values when they are changed.

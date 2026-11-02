@@ -991,3 +991,38 @@ test("universal generator creates separate test data and language-specific proje
     }
   }
 });
+
+
+test("advanced hover scroll and drag-drop steps survive normalization and generate in every language", async () => {
+  const coreContext={};
+  vm.runInNewContext(await readFile("core.js","utf8"),coreContext);
+  const recording=coreContext.Record2POMCore.normalizeRecording({schemaVersion:1,targetUrl:"https://fixture.test",events:[
+    {kind:"hover",target:{tagName:"button",css:"#menu"},locators:[{strategy:"css",value:"#menu",matchCount:1}]},
+    {kind:"scroll",x:0,y:640,target:{tagName:"html"}},
+    {kind:"drag-drop",target:{tagName:"div",css:"#drop"},locators:[{strategy:"css",value:"#drop",matchCount:1}],sourceTarget:{tagName:"div",css:"#source"},sourceLocators:[{strategy:"css",value:"#source",matchCount:1}]}
+  ]});
+  assert.equal(recording.ok,true);
+  assert.deepEqual(Array.from(recording.recording.events,e=>e.kind),["hover","scroll","drag-drop"]);
+  assert.equal(recording.recording.events[1].y,640);
+  assert.equal(recording.recording.events[2].sourceLocators[0].value,"#source");
+
+  const generatorContext={};
+  vm.runInNewContext(await readFile("universal-generator.js","utf8"),generatorContext);
+  for(const engine of ["playwright","selenium"]){
+    for(const language of ["javascript","typescript","java"]){
+      const result=generatorContext.Record2POMUniversalGenerator.generate({
+        name:"advanced-actions",url:"https://fixture.test",engine,language,
+        framework:language==="java"?"junit5":engine==="playwright"?"playwright-test":language==="typescript"?"ts-node":"node",
+        events:recording.recording.events
+      });
+      const pagePath=language==="java"?"src/main/java/pages/RecordedPage.java":"pages/RecordedPage."+(language==="typescript"?"ts":"js");
+      const source=result.files[pagePath];
+      assert.match(source,/hover|moveToElement|move_to_element/);
+      assert.match(source,/scrollTo/);
+      assert.match(source,/dragTo|dragAndDrop|drag_and_drop/);
+    }
+  }
+  const studio=await readFile("app.js","utf8");
+  assert.match(studio,/"hover","scroll","drag-drop"/);
+  assert.match(studio,/ActionChains\(self\.driver\)\.drag_and_drop/);
+});

@@ -103,7 +103,7 @@ Record2POM is a website-agnostic browser recording and Page Object Model (POM) p
 
 ## ✦ Verification-first recording
 
-Recorder `0.6.0` uses an assertion-first, action-aware recording pipeline:
+Recorder `0.7.0` uses an assertion-first, action-aware recording pipeline:
 
 - The first click on an element records a visibility assertion **before** the click action. Repeated clicks do not create duplicate first-click assertions for the same live element.
 - When a user types, changes, or selects a value on the live website, Record2POM automatically captures the final value and attaches one `fill` or `select` action to the originating element click. Continued typing updates that action rather than creating a keystroke-per-step timeline.
@@ -111,6 +111,7 @@ Recorder `0.6.0` uses an assertion-first, action-aware recording pipeline:
 - Values are kept in `test_data/test_data.json`, separate from page objects and `data/recorded_test_data.json` action metadata.
 - Passwords, OTPs, payment data and other detected sensitive fields are redacted; configure their `RECORDED_INPUT_*` environment variables locally instead.
 - Use the extension's **Verification checkpoint** controls to add explicit URL, text, field-value, or element-visibility assertions for business outcomes.
+- Scroll positions are captured automatically with debounce. Enable **Record hover** or **Record drag & drop** in the side panel when the journey needs those interactions; both modes are opt-in to keep normal recordings clean. Drag/drop steps retain source and destination locator metadata.
 - The same normalized recording is used for Playwright and Selenium projects in Python, JavaScript, TypeScript and Java.
 
 Assertions, actions and test data remain distinct throughout capture, JSON normalization, review and generation.
@@ -228,6 +229,10 @@ The generated runner uses an argument array rather than shell interpolation and 
 | Selenium | Java | JUnit 5 |
 
 All generated projects keep reusable test data in a separate JSON file and secrets in environment variables. JavaScript/TypeScript projects use Node.js 20+; Java projects use JDK 17+ and Maven.
+
+## ✦ BugBug-inspired extension roadmap
+
+Record2POM is expanding from a recorder into an extension-first testing platform. Current advanced capture includes optional hover, automatic scroll positions and optional drag/drop, with matching action generation for the supported Playwright/Selenium language matrix. Full feature status—including the visual editor, suites/folders, reusable components, variables, conditions, visual regression, rewind, cloud runs, schedules, collaboration and integrations—is tracked transparently in [the feature parity matrix](docs/BUGBUG_FEATURE_PARITY.md). Items marked future are not yet shipped.
 
 ## ✦ Security and scope
 
