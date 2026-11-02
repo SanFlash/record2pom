@@ -345,12 +345,33 @@ def test_generated_playwright_project_handles_dynamic_tabs_and_complete_form_jou
                     "value": "Submitted: Journey User",
                     "assertion": {"expected": "Submitted: Journey User"},
                 },
+                {
+                    "id": "journey-hover", "sequence": 9, "kind": "hover",
+                    "description": "Hover navigation menu", "target": {"css": "#hover-menu"},
+                    "locators": [{"strategy": "css", "value": "#hover-menu", "matchCount": 1}],
+                },
+                {
+                    "id": "journey-scroll", "sequence": 10, "kind": "scroll",
+                    "description": "Scroll to advanced interactions", "x": 0, "y": 450,
+                },
+                {
+                    "id": "journey-drag-drop", "sequence": 11, "kind": "drag-drop",
+                    "description": "Drag source into target", "target": {"css": "#drop-target"},
+                    "locators": [{"strategy": "css", "value": "#drop-target", "matchCount": 1}],
+                    "sourceTarget": {"css": "#drag-source"},
+                    "sourceLocators": [{"strategy": "css", "value": "#drag-source", "matchCount": 1}],
+                },
+                {
+                    "id": "journey-drop-assertion", "sequence": 12, "kind": "assert-text",
+                    "description": "Verify drop outcome", "value": "Drop complete",
+                    "assertion": {"expected": "Drop complete"},
+                },
             ],
         }
         recording_file = tmp_path / "dynamic-journey.json"
         recording_file.write_text(json.dumps(recording), encoding="utf-8")
         page.locator("#file").set_input_files(str(recording_file))
-        expect(page.locator("#count")).to_have_text("8")
+        expect(page.locator("#count")).to_have_text("12")
         page.get_by_role("button", name="Generate project").click()
         with page.expect_download() as download_info:
             page.get_by_role("button", name="Download ZIP").click()
@@ -374,9 +395,9 @@ def test_generated_playwright_project_handles_dynamic_tabs_and_complete_form_jou
         )
         assert "1 passed" in run.stdout, run.stdout
         data = json.loads((project_dir / "data" / "recorded_test_data.json").read_text(encoding="utf-8"))
-        assert len(data["steps"]) == 8
+        assert len(data["steps"]) == 12
         assert [step["kind"] for step in data["steps"]] == [
-            "click", "assert-text", "fill", "select", "check", "fill", "click", "assert-text"
+            "click", "assert-text", "fill", "select", "check", "fill", "click", "assert-text", "hover", "scroll", "drag-drop", "assert-text"
         ]
     finally:
         server.terminate()
