@@ -55,7 +55,7 @@ function renderStep(e,i,engine){
   const expected=q(e.assertion?.expected??e.value??"");
   if(e.kind==="navigate")return head+"\n        "+(engine==="playwright"?"self.page.goto("+q(e.url||"")+")":"self.driver.get("+q(e.url||"")+")");
   if(e.kind==="wait")return head+"\n        "+(engine==="playwright"?"self.page.wait_for_timeout("+Math.min(5000,Math.max(0,Number(e.milliseconds)||500))+")":"time.sleep("+Math.min(5,Math.max(0,(Number(e.milliseconds)||500)/1000))+")");
-  if(e.kind==="assert-url")return head+"\n        "+(engine==="playwright"?"expect(self.page).to_have_url(re.compile("+expected.replace(/\\\\/g,"\\\\\\\\")+", re.I), timeout=10000)":"WebDriverWait(self.driver, 10).until(lambda d: "+expected+" in d.current_url)");
+  if(e.kind==="assert-url")return head+"\n        "+(engine==="playwright"?"expect(self.page).to_have_url(re.compile("+expected.replace(/\\\\/g,"\\\\\\\\")+", re.I), timeout=10000)":"WebDriverWait(self.driver, 10).until(EC.url_to_be("+expected+"))");
   if(e.kind==="assert-text")return head+"\n        "+(engine==="playwright"?"expect(self.page.get_by_text("+expected+", exact=False).first).to_be_visible(timeout=10000)":"WebDriverWait(self.driver, 10).until(lambda d: "+expected+" in d.find_element(By.TAG_NAME, 'body').text)");
   if(e.kind==="assert-visible"||e.kind==="assert-value"){
     const l=locator(e,engine);
