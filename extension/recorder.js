@@ -8,6 +8,11 @@
   let recording = false;
   let paused = false;
   let inspectMode = false;
+  let captureHover = false;
+  let captureDragDrop = false;
+  let lastHovered = new WeakMap();
+  let dragSource = null;
+  let scrollTimer = null;
   let inspectSequence = null;
   let pendingAssertion = null;
   let inspectOverlay = null;
@@ -387,6 +392,51 @@
     captureInput(element);
   }, true);
 
+  // Optional capture modes are explicit so normal recording stays noise-free.
+  document.addEventListener("mouseover", event => {
+    if (!recording || paused || !captureHover || inspectMode) return;
+    const element = event.target;
+    if (!(element instanceof Element) || !isInteractive(element) || !visible(element)) return;
+    const now = Date.now();
+    if (now - (lastHovered.get(element) || 0) < 500) return;
+    lastHovered.set(element, now);
+    emit("hover", element, {description:"Hover "+(target(element).name||target(element).text||target(element).tagName)});
+  }, true);
+
+  document.addEventListener("dragstart", event => {
+    if (!recording || paused || !captureDragDrop || inspectMode) return;
+    const element = event.target;
+    if (!(element instanceof Element)) return;
+    dragSource = {target:target(element),locators:locators(element),selectedLocator:locators(element).find(candidate=>candidate.matchCount===1)||null};
+  }, true);
+
+  document.addEventListener("drop", event => {
+    if (!recording || paused || !captureDragDrop || inspectMode || !dragSource) return;
+    const element = event.target;
+    if (!(element instanceof Element)) { dragSource=null; return; }
+    emit("drag-drop", element, {
+      description:"Drag and drop "+(dragSource.target.name||dragSource.target.text||"element")+" onto "+(target(element).name||target(element).text||target(element).tagName),
+      sourceTarget:dragSource.target,
+      sourceLocators:dragSource.locators,
+      sourceSelectedLocator:dragSource.selectedLocator
+    });
+    dragSource=null;
+  }, true);
+
+  document.addEventListener("dragend", () => { dragSource=null; }, true);
+
+  document.addEventListener("scroll", () => {
+    if (!recording || paused || inspectMode || scrollTimer) return;
+    scrollTimer=setTimeout(() => {
+      scrollTimer=null;
+      emit("scroll", document.documentElement, {
+        x:Math.round(window.scrollX||0),
+        y:Math.round(window.scrollY||0),
+        description:"Scroll page to "+Math.round(window.scrollX||0)+", "+Math.round(window.scrollY||0)
+      });
+    },250);
+  }, true);
+
   function clearInspectHighlight() {
     if (inspectedElement) inspectedElement.style.outline = previousOutline;
     inspectedElement = null;
@@ -469,6 +519,8 @@
     if (message?.type === "R2POM_CONTROL") {
       recording = !!message.recording;
       paused = !!message.paused;
+      captureHover = message.captureHover === true;
+      captureDragDrop = message.captureDragDrop === true;
       return;
     }
     if (message?.type !== "R2POM_NAVIGATION") return;
