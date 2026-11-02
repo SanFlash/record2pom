@@ -56,12 +56,16 @@
           ...(c.selected === true ? {selected:true} : {})
         })).filter(c => c.strategy && c.value),
         source: String(raw.source || "import").slice(0, 80),
+        ...(raw.dataKey != null ? {dataKey:String(raw.dataKey).replace(/[^a-z0-9_]/gi,"_").toLowerCase().slice(0,80)} : {}),
+        ...(raw.sourceClickId != null ? {sourceClickId:String(raw.sourceClickId).slice(0,160)} : {}),
+        ...(raw.inputKind === "fill" || raw.inputKind === "select" ? {inputKind:raw.inputKind} : {}),
+        ...(raw.capturedAutomatically === true ? {capturedAutomatically:true} : {}),
         redacted: isRedacted
       };
       if (isRedacted) {
         event.envVar = String(raw.envVar || "RECORDED_INPUT_" + event.sequence).replace(/[^A-Z0-9_]/gi, "_").toUpperCase().slice(0, 100);
       } else if (raw.value != null) {
-        event.value = String(raw.value).slice(0, 500);
+        event.value = String(raw.value).slice(0, 5000);
       }
       if (raw.assertion && typeof raw.assertion === "object") {
         event.assertion = { ...raw.assertion };
