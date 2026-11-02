@@ -265,6 +265,51 @@
         timestamp: new Date().toISOString(), ...assertion, verification: { generated: true, triggerKind: kind }
       });
     }
+    return event;
+  }
+
+  const assertedElements = new WeakSet();
+  const inputClickIds = new WeakMap();
+  const capturedInputValues = new WeakMap();
+  const inputTimers = new WeakMap();
+
+  function inputValue(element) {
+    if (element.isContentEditable || element.getAttribute("contenteditable") === "true") return String(element.innerText || element.textContent || "");
+    if (element instanceof HTMLSelectElement) return String(element.value || "");
+    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) return String(element.value || "");
+    if (element.getAttribute("role") === "textbox") return String(element.textContent || "");
+    return null;
+  }
+
+  function captureInput(element) {
+    if (!recording || paused || !(element instanceof Element)) return;
+    const value = inputValue(element);
+    if (value === null) return;
+    const sourceClickId = inputClickIds.get(element);
+    if (!sourceClickId) return;
+    if (capturedInputValues.has(element) && capturedInputValues.get(element) === value) return;
+    const isSelect = element instanceof HTMLSelectElement;
+    const info = target(element);
+    const dataKey = (element.name || element.id || info.label || info.placeholder || info.name || "field")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
+    const action = emit(isSelect ? "select" : "fill", element, {
+      description: (isSelect ? "Select " : "Fill ") + (info.name || info.label || info.placeholder || "input"),
+      value,
+      dataKey,
+      sourceClickId,
+      capturedAutomatically: true
+    });
+    if (action) capturedInputValues.set(element, value);
+  }
+
+  function scheduleInputCapture(element) {
+    if (!(element instanceof Element)) return;
+    const previous = inputTimers.get(element);
+    if (previous) clearTimeout(previous);
+    inputTimers.set(element, setTimeout(() => {
+      inputTimers.delete(element);
+      captureInput(element);
+    }, 300));
   }
 
   document.addEventListener("click", event => {
@@ -287,21 +332,56 @@
       const needsData = isSelect || isTextEntry;
       const dataKey = (element.name || element.id || info.label || info.placeholder || info.name || "field")
         .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "field";
-      emit("click", element, {
+      // First selection of an element creates a pre-action visibility assertion.
+      // The assertion is recorded before the click so generated tests verify readiness first.
+      if (!assertedElements.has(element)) {
+        assertedElements.add(element);
+        emit("assert-visible", element, {
+          description: "Assert " + (info.name || info.label || info.placeholder || info.tagName) + " is visible before interaction",
+          assertion: { expected: "visible" },
+          verification: { generated: true, triggerKind: "first-click" },
+          source: "browser-extension:first-click-assertion"
+        });
+      }
+      const clickAction = emit("click", element, {
         description: "Click " + (info.name || info.text || info.tagName),
-        ...(needsData ? { requiresTestData:true, inputKind:isSelect ? "select" : "fill", dataKey } : {})
+        ...(needsData ? { inputKind:isSelect ? "select" : "fill", dataKey, capturesInputAutomatically:true } : {})
       });
+      if (needsData && clickAction) {
+        inputClickIds.set(element, clickAction.id);
+        // Capture values that were already present only after this field is explicitly selected.
+        capturedInputValues.delete(element);
+      }
     }
+  }, true);
+
+  document.addEventListener("input", event => {
+    if (!recording || paused) return;
+    const element = event.target;
+    if (element instanceof Element && !sensitive(element)) scheduleInputCapture(element);
   }, true);
 
   document.addEventListener("change", event => {
     if (!recording || paused) return;
     const element = event.target;
-    if (!(element instanceof HTMLInputElement)) return;
-    if (element.type === "checkbox" || element.type === "radio") {
+    if (!(element instanceof Element)) return;
+    if (element instanceof HTMLInputElement && (element.type === "checkbox" || element.type === "radio")) {
       emit(element.checked ? "check" : "uncheck", element, { description: (element.checked ? "Check " : "Uncheck ") + (label(element) || element.tagName) });
+      return;
     }
-    // Text entry and dropdown values are requested explicitly in the Side Panel.
+    const timer = inputTimers.get(element);
+    if (timer) clearTimeout(timer);
+    inputTimers.delete(element);
+    captureInput(element);
+  }, true);
+
+  document.addEventListener("blur", event => {
+    const element = event.target;
+    if (!(element instanceof Element)) return;
+    const timer = inputTimers.get(element);
+    if (timer) clearTimeout(timer);
+    inputTimers.delete(element);
+    captureInput(element);
   }, true);
 
   function clearInspectHighlight() {
@@ -372,6 +452,7 @@
 
   document.addEventListener("keydown", event => {
     if (recording && !paused && event.key === "Enter" && event.target instanceof Element) {
+      captureInput(event.target);
       emit("press", event.target, { value: "Enter", description: "Press Enter" });
     }
   }, true);
