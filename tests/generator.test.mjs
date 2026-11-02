@@ -64,7 +64,7 @@ async function generateFromFixture(engine, kind = "click", strategy = "role", re
   vm.runInNewContext(source, context);
   const role = kind === "select" ? "combobox" : "button";
   const name = kind === "select" ? "Country" : "Continue";
-  const event = {id:"fixture-1",sequence,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted && !omitEnvVar ? "PASSWORD" : undefined,source:"fixture"};
+  const event = {id:"fixture-1",sequence,kind,description:kind === "select" ? "Select Country" : kind === "press" ? "Press Enter" : "Click Continue",page:{url:"https://fixture.test/form"},target:strategy === "label" ? {label:"Full name"} : {role,name},locators:strategy === "label" ? [{strategy:"label",value:"Full name"},{strategy:"css",value:"#full-name"}] : [{strategy:"role",value:role,name},{strategy:"css",value:"#continue"}],value:redacted ? undefined : kind === "select" ? "India" : kind === "press" ? "Enter" : kind === "fill" ? "Ada" : undefined,redacted,envVar:redacted && !omitEnvVar ? "PASSWORD" : undefined,source:"fixture"};
   el("file").files = [{text:async()=>JSON.stringify({targetUrl:"https://fixture.test/form",events:[event]})}];
   await el("file").onchange({target:el("file")});
   el("generate").onclick();
@@ -110,6 +110,9 @@ test("Playwright generator binds recorded locator to the page object", async () 
   assert.match(result.code, /live DOM repair/);
   assert.match(result.code, /recorded element fingerprint/);
   assert.match(result.code, /Current page:/);
+  assert.match(result.code, /recordedUrl/);
+  assert.match(result.code, /Refusing locator recovery across origins/);
+  assert.match(result.code, /urlparse\(self\.page\.url\)/);
   assert.match(result.status, /tests have NOT been executed/);
 });
 
