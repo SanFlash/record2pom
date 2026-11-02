@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Record2POM Universal Recorder",
-  "version": "0.3.0",
-  "description": "Record browser journeys with automatic verification checkpoints and generate portable POM projects.",
+  "version": "0.4.0",
+  "description": "Persistent browser side panel for recording, inspecting and generating portable Page Object Model test projects.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage",
-    "tabs"
+    "tabs",
+    "sidePanel"
   ],
   "host_permissions": [
     "http://*/*",
@@ -26,8 +27,7 @@
       "32": "icons/icon128.png",
       "48": "icons/icon128.png",
       "128": "icons/icon128.png"
-    },
-    "default_popup": "popup.html"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -44,5 +44,8 @@
       "run_at": "document_idle",
       "all_frames": false
     }
-  ]
+  ],
+  "side_panel": {
+    "default_path": "panel.html"
+  }
 }
