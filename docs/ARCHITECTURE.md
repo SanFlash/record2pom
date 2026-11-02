@@ -5,9 +5,9 @@
 
 ## Product boundaries
 
-Record2POM is a local-first browser journey recorder and Python Page Object Model (POM) project generator. It is split into three execution zones:
+Record2POM is a local-first Chrome extension and visual browser-test authoring platform with portable Playwright/Selenium Page Object Model generators. It is split into three execution zones:
 
-1. **Browser extension** captures supported interactions on a user-selected HTTP/HTTPS page.
+1. **Browser extension** captures supported interactions on a user-selected HTTP/HTTPS page, with optional hover/drag-drop modes and automatic scroll capture.
 2. **Studio dashboard** validates and reviews a recording, then generates a downloadable project archive.
 3. **Generated project** runs locally on the user's machine.
 
@@ -26,7 +26,7 @@ flowchart TD
   G --> H[Python POM generator]
   H --> I[Downloadable ZIP]
   I --> J[Local virtual environment]
-  J --> K[Playwright + pytest or Selenium + unittest]
+  J --> K[Playwright or Selenium · Python / JavaScript / TypeScript / Java]
   K --> L[Logs, step results, diagnostics and screenshots]
 ```
 
@@ -37,7 +37,7 @@ flowchart TD
 | `index.html`, `styles.css`, `app.js` | Studio UI, review workflow, project generation and downloads |
 | `core.js` | Recording validation, normalization, aliases and locator ranking |
 | `extension/manifest.json` | Manifest V3 permissions and extension entry points |
-| `extension/recorder.js` | DOM event capture, accessible-name hints and sensitive-field handling |
+| `extension/recorder.js` | DOM event capture, accessible-name hints, optional hover/drag-drop modes, debounced scroll capture and sensitive-field handling |
 | `extension/background.js` | Session lifecycle, storage, event validation and Studio handoff |
 | `extension/popup.*` | Recorder controls and import acknowledgement UI |
 | `tests/generator.test.mjs` | Fast Node regression suite for schemas, generation and extension contracts |
@@ -63,7 +63,7 @@ The canonical normalizer accepts selected legacy aliases and produces a consiste
 5. Inspect the ZIP and run it locally.
 6. Review diagnostics and test reports produced by that local run.
 
-Supported outputs: **Python + Playwright + pytest** and **Python + Selenium WebDriver + unittest**. Other engines and languages are not implemented.
+Supported output matrix: **Playwright + Python/JavaScript/TypeScript/Java** and **Selenium + Python/JavaScript/TypeScript/Java**. Treat generated output as a starting artifact until each selected combination has been executed against a representative fixture.
 
 ## Trust boundaries and data handling
 
@@ -76,7 +76,7 @@ Supported outputs: **Python + Playwright + pytest** and **Python + Selenium WebD
 
 ## Diagnostics contract
 
-The generated runner can emit structured result data, step timing/status, logs, HTML summaries and JUnit data (engine-dependent). Diagnostics should identify the failed action and provide repair guidance without exposing secrets. A future improvement is per-step screenshot capture with deliberate evidence redaction.
+The generated runner can emit structured result data, step timing/status, logs, HTML summaries and JUnit data (engine-dependent). Diagnostics should identify the failed action and provide repair guidance without exposing secrets. Per-step screenshot capture with deliberate evidence redaction remains future work. See [BugBug feature parity](BUGBUG_FEATURE_PARITY.md) for the full public capability map and delivery plan.
 
 ## Design principles
 
