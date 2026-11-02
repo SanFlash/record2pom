@@ -27,12 +27,12 @@ A recording is a portable description of browser actions. Treat it as test input
 | `value` | string | Synthetic input or expected text where applicable |
 | `assertion` | object | Assertion expectation when applicable |
 | `redacted` | boolean | Indicates that the original value was intentionally omitted |
-| `envVar` | string | Optional environment-variable name for externally supplied sensitive test data |
+| `envVar` | string | Optional environment-variable name for externally supplied sensitive test data |\n| `sourceTarget` | object | Drag source element hints for a `drag-drop` action |\n| `sourceLocators` | array | Candidate locators for the drag source |\n| `x`, `y` | number | Scroll destination coordinates for a `scroll` action |
 | `source` | string | Capture/import provenance |
 
-Supported canonical kinds: `click`, `fill`, `select`, `check`, `uncheck`, `press`, `navigate`, `wait`, `assert-visible`, `assert-text`, `assert-url`, and `assert-value`.
+Supported canonical kinds: `click`, `fill`, `select`, `check`, `uncheck`, `press`, `navigate`, `wait`, `assert-visible`, `assert-text`, `assert-url`, and `assert-value`, `hover`, `scroll`, and `drag-drop`.
 
-The shared normalizer accepts selected legacy aliases such as `input`, `type`, `change`, and `navigation`, then canonicalizes them. Unknown kinds and unsupported schema versions should fail validation rather than being silently interpreted.
+Hover is recorded only when the optional hover mode is enabled. Scroll capture is debounced. Drag/drop capture is recorded only when its optional mode is enabled and retains both source and destination locators. Generated tests must review these locators before relying on them.\n\nThe shared normalizer accepts selected legacy aliases such as `input`, `type`, `change`, and `navigation`, then canonicalizes them. Unknown kinds and unsupported schema versions should fail validation rather than being silently interpreted.
 
 ## Example
 
