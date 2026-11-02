@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — verification-first recordings
+
+- Capture verification checkpoints for non-sensitive input values when they are changed.
+- Add extension popup controls to create manual URL, text, field-value, and target-visibility assertions during an active recording.
+- Preserve page and verification metadata across canonical recording normalization and code generation.
+- Generated Playwright and Selenium Page Objects now use their active page/driver context consistently for assertions.
+
 - Chrome extension `0.2.2` now selects the highest-priority locator verified as unique during recording and carries it into Studio and generated projects.
 
 
