@@ -64,7 +64,7 @@ function renderStep(e,i,engine){
     return head+"\n        "+(engine==="playwright"?"expect("+l+").to_have_value("+expected+", timeout=10000)":"WebDriverWait(self.driver, 10).until(lambda d: "+l+".get_attribute('value') == "+expected+")");
   }
   let l=locator(e,engine);
-  if(e.kind==="click")return head+"\n        "+l+".click()";
+  if(e.kind==="click")return head+"\n        "+(engine==="playwright"?l+".click(timeout=10000)":"WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable("+l+"))\n        self.driver.execute_script(\"arguments[0].scrollIntoView({block: 'center'})\", "+l+")\n        "+l+".click()");
   if(e.kind==="hover")return head+"\n        "+(engine==="playwright"?l+".hover()":"ActionChains(self.driver).move_to_element("+l+").perform()");
   if(e.kind==="scroll")return head+"\n        "+(engine==="playwright"?"self.page.evaluate(\"([x,y]) => window.scrollTo(x,y)\", ["+(Number(e.x)||0)+", "+(Number(e.y)||0)+"])":"self.driver.execute_script(\"window.scrollTo(arguments[0], arguments[1])\", "+(Number(e.x)||0)+", "+(Number(e.y)||0)+")");
   if(e.kind==="drag-drop"){const source=locator({...e,locators:e.sourceLocators||[],selectedLocator:e.sourceSelectedLocator||null,target:e.sourceTarget||{}},engine);return head+"\n        "+(engine==="playwright"?source+".drag_to("+l+")":"ActionChains(self.driver).drag_and_drop("+source+", "+l+").perform()");}
