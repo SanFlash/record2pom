@@ -24,7 +24,7 @@ function parseLocator(expression){
  return {strategy,value,...(name!=null?{name}:{}),matchCount:null,confidence:"unverified",source:"playwright-crx"};
 }
 function makeEvent(kind,locator,extra,index,url){
- const target={...(locator?.strategy==="role"?{role:locator.value}:{}),...(locator?.name?{name:locator.name}:{}),...(locator?.strategy==="label"?{label:locator.value}:{}),...(locator?.strategy==="placeholder"?{placeholder:locator.value}:{}),...(locator?.strategy==="testId"?{testId:locator.value}:{}),...(locator?.strategy==="css"?{css:locator.value}:{})};
+ const target={...(locator?.strategy==="role"?{role:locator.value}:{}),...(locator?.name?{name:locator.name}:{}),...(locator?.strategy==="label"?{label:locator.value}:{}),...(locator?.strategy==="placeholder"?{placeholder:locator.value}:{}),...(locator?.strategy==="testId"?{testId:locator.value}:{}),...(locator?.strategy==="css"?{css:locator.value}:{}),...(locator?.strategy==="text"?{text:locator.value}:{}),...(locator?.strategy==="alt"?{alt:locator.value}:{}),...(locator?.strategy==="title"?{title:locator.value}:{})};
  const locators=locator?[{...locator}]:[];
  const event={schemaVersion:1,id:"crx-"+(index+1),sequence:index+1,kind,description:extra.description||kind,url:url||"",target,locators,source:"playwright-crx-import",...extra};
  if(locator?.strategy==="testId")event.selectedLocator={...locator,selected:true};
