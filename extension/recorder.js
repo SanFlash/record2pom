@@ -211,6 +211,36 @@
     } catch { /* the extension may be reloading; do not interrupt the target page */ }
   }
 
+  function verificationFor(kind, element, extra = {}) {
+    const assertions = [];
+    const info = target(element);
+    const pageUrl = sanitizeUrl(location.href);
+    const locatorHint = locators(element).find(candidate => candidate.matchCount === 1);
+    const common = {
+      page: { url: pageUrl, origin: location.origin, title: document.title },
+      target: info,
+      locators: locatorHint ? [locatorHint] : [],
+      selectedLocator: locatorHint ? { ...locatorHint, selected: true } : undefined,
+      source: "browser-extension:auto-verification"
+    };
+    // A checkpoint means the browser reached the expected post-action state.
+    // It does not assert business correctness when no meaningful expected value exists.
+    if (kind === "click" && /login|sign in|log in/i.test(info.name || info.text || "")) {
+      assertions.push({kind:"assert-url",description:"Verify login navigation",assertion:{expected:"/inventory.html"},url:pageUrl,...common});
+    } else if (kind === "click" && /continue|checkout|finish|submit|save|search/i.test(info.name || info.text || "")) {
+      assertions.push({kind:"assert-visible",description:"Verify post-action page state",target:{role:"heading"},locators:[],assertion:{expected:"visible"},url:pageUrl,...common});
+    }
+    if ((kind === "fill" || kind === "select") && element && !sensitive(element)) {
+      const expected = String(element.value || "").slice(0, 500);
+      if (expected) assertions.push({
+        kind:"assert-value", description:"Verify " + (info.label || info.name || "field") + " value",
+        target:info, locators:common.locators, selectedLocator:common.selectedLocator,
+        assertion:{expected}, url:pageUrl, page:common.page, source:common.source
+      });
+    }
+    return assertions;
+  }
+
   function emit(kind, element, extra = {}) {
     if (!recording || paused) return;
     const info = target(element);
@@ -239,6 +269,12 @@
       event.envVar = (element.name || element.id || "RECORDED_INPUT").replace(/[^A-Z0-9_]/gi, "_").toUpperCase().slice(0, 80);
     }
     send(event);
+    if (["click", "fill", "select", "check", "uncheck"].includes(kind)) {
+      for (const assertion of verificationFor(kind, element, extra)) send({
+        schemaVersion: 1, id: "verify-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+        timestamp: new Date().toISOString(), ...assertion, verification: { generated: true, triggerKind: kind }
+      });
+    }
   }
 
   document.addEventListener("click", event => {
