@@ -162,6 +162,15 @@ test("recorder prioritizes the actual input over a data-testid wrapper", async (
   assert.equal("value" in event,false);
 });
 
+test("non-editable ARIA comboboxes remain click actions instead of requesting text data", async () => {
+  const combo = new FakeElement("div", {role:"combobox","aria-label":"Choose a category"});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[combo]});
+  h.fire("click",{composedPath:()=>[combo],target:combo});
+  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  assert.equal(event.kind,"click");
+  assert.equal(event.requiresTestData,undefined);
+});
+
 test("recorder treats contenteditable and ARIA textboxes as fill actions", async () => {
   const content = new FakeElement("div", {"contenteditable":"true","aria-label":"Notes"});
   content.isContentEditable=true;
