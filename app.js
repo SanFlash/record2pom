@@ -491,3 +491,21 @@ window.addEventListener("record2pom:import-recording", event => {
     window.dispatchEvent(new CustomEvent("record2pom:import-ack", {detail:{ok:false, sessionId:event.detail?.metadata?.sessionId || null, error:error.message}}));
   }
 });
+
+
+// Public, narrow bridge for the local-first workspace. Keep the canonical event
+// array in this module; the workspace never mutates hidden generator internals.
+window.Record2POMStudio = Object.freeze({
+  getEvents: () => events.map(event => structuredClone(event)),
+  setEvents: next => {
+    if (!Array.isArray(next) || next.length > 5000) throw new Error("A test journey must contain at most 5,000 steps.");
+    const normalized = window.Record2POMCore?.normalizeRecording({schemaVersion:1,targetUrl:$("url").value,events:next});
+    if (!normalized?.ok) throw new Error(normalized?.errors?.join("; ") || "Invalid test journey.");
+    events = normalized.recording.events;
+    selected = events[0]?.id || null;
+    render();
+    window.dispatchEvent(new CustomEvent("record2pom:journey-updated", {detail:{count:events.length}}));
+    return events.length;
+  },
+  getProject: () => ({...proj()})
+});
