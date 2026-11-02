@@ -116,6 +116,17 @@ test("input values are stored in test_data and never generated as automatic asse
   assert.match(selenium.code, /self\.test_data\.get\("input_1", ''\)/);
 });
 
+test("generated validator safely reports malformed metadata and validates empty test values", async () => {
+  const result = await generateFromFixture("playwright", "fill", "label");
+  const validator = result.validator;
+  assert.match(validator, /data = \{\}/);
+  assert.match(validator, /test_data\/test_data\.json must contain a JSON object/);
+  assert.match(validator, /for i, step in enumerate\(data\.get\("steps", \[\]\), 1\):/);
+  const values = JSON.parse(result.testData);
+  values.input_1 = "";
+  assert.equal(values.input_1, "");
+});
+
 test("recorder asks for explicit test data after clicking an input and does not infer assert-value", async () => {
   const recorder = await readFile("extension/recorder.js", "utf8");
   const panel = await readFile("extension/panel.js", "utf8");
