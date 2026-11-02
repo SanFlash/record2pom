@@ -290,11 +290,12 @@ test("Selenium label locators resolve associated controls, not the label node", 
 
 test("Selenium generator emits real select and keyboard APIs", async () => {
   const select = await generateFromFixture("selenium", "select");
-  assert.match(select.code, /Select\(self\._resolve_locator/);
-  assert.match(select.code, /select_by_visible_text\(self\.test_data\.get/);
+  assert.match(select.code, /Select\\(self\\._resolve_locator/);
+  assert.match(select.code, /select_by_value\\(self\\.test_data\\.get/);
   const press = await generateFromFixture("selenium", "press");
-  assert.match(press.code, /send_keys\(Keys\.ENTER\)/);
+  assert.match(press.code, /send_keys\\(Keys\\.ENTER\\)/);
 });
+
 
 test("recorder automatically selects a unique locator at capture time", async () => {
   const source = await readFile("extension/recorder.js", "utf8");
@@ -721,19 +722,17 @@ test("generated locator recovery re-measures dynamic matches and explains safe r
   }
 });
 
-test("Playwright select actions recover native controls by option text when accessible names are unstable", async () => {
+test("Playwright select actions use the recorded locator and selected option value", async () => {
   const select = await generateFromFixture("playwright", "select");
-  assert.match(select.code, /def _resolve_select_locator\(self, label\)/);
-  assert.match(select.code, /self\._resolve_select_locator\(self\.test_data\.get\("input_1"/);
-  assert.ok(select.code.includes("all_text_contents()"));
-  assert.ok(select.code.includes("locator(\'option\')") || select.code.includes('locator("option")'));
-  assert.match(select.code, /Expected exactly one native select containing option/);
-  assert.ok(select.code.includes("timeout=2500"));
+  assert.match(select.code, /self\\._resolve_locator\\(/);
+  assert.match(select.code, /select_option\\(value=self\\.test_data\\.get/);
+  assert.doesNotMatch(select.code, /self\\._resolve_select_locator\\(/);
   assert.ok(select.config.includes("BASE_URL = os.environ.get"));
   assert.doesNotThrow(() => JSON.parse(select.data));
   assert.equal(JSON.parse(select.data).steps[0].value, null);
   assert.deepEqual(JSON.parse(select.testData), {input_1:"India"});
 });
+
 
 test("generated runners include structured diagnostics, step timelines and actionable repair guidance", async () => {
   for (const engine of ["playwright", "selenium"]) {
