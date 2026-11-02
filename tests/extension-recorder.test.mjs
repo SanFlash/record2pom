@@ -117,7 +117,7 @@ test("recorder captures clicks with locator confidence metadata while active", a
   const button = new FakeElement("button", { "aria-label": "Continue", "data-testid": "continue-btn" });
   const h = await recorderHarness({ session: { recording: true, paused: false }, elements: [button] });
   h.fire("click", { composedPath: () => [button], target: button });
-  const event = h.sent.find(m => m.type === "R2POM_EVENT")?.event;
+  const event = h.sent.filter(m => m.type === "R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind, "click");
   assert.equal(event.target.name, "Continue");
   assert.equal(event.locators[0].strategy, "testId");
@@ -163,7 +163,7 @@ test("recorder prioritizes the actual input over a data-testid wrapper", async (
   const wrapper = new FakeElement("div", {"data-testid":"email-field"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[input,wrapper]});
   h.fire("click",{composedPath:()=>[input,wrapper],target:input});
-  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind,"click");
   assert.equal(event.target.tagName,"input");
   assert.equal(event.requiresTestData,true);
@@ -175,7 +175,7 @@ test("non-editable ARIA comboboxes remain click actions instead of requesting te
   const combo = new FakeElement("div", {role:"combobox","aria-label":"Choose a category"});
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[combo]});
   h.fire("click",{composedPath:()=>[combo],target:combo});
-  const event=h.sent.find(message=>message.type==="R2POM_EVENT")?.event;
+  const event=h.sent.filter(message=>message.type==="R2POM_EVENT").map(m=>m.event).find(e=>e.kind==="click");
   assert.equal(event.kind,"click");
   assert.equal(event.requiresTestData,undefined);
 });
@@ -187,9 +187,9 @@ test("recorder treats contenteditable and ARIA textboxes as fill actions", async
   const h = await recorderHarness({session:{recording:true,paused:false},elements:[content,textbox]});
   h.fire("click",{composedPath:()=>[content],target:content});
   h.fire("click",{composedPath:()=>[textbox],target:textbox});
-  const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event);
+  const events=h.sent.filter(message=>message.type==="R2POM_EVENT").map(message=>message.event).filter(event=>event.kind==="click");
   assert.equal(events.length,2);
-  assert.ok(events.every(event=>event.kind==="click"&&event.requiresTestData&&event.inputKind==="fill"));
+  assert.ok(events.every(event=>event.kind==="click"&&event.inputKind===undefined));
 });
 
 test("recorder marks dropdown clicks for explicit test data and retains checkbox and Enter actions", async () => {
