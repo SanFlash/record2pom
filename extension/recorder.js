@@ -231,7 +231,7 @@
     } else if (kind === "click" && /continue|checkout|finish|submit|save|search/i.test(info.name || info.text || "")) {
       assertions.push({kind:"assert-visible",description:"Verify post-action page state",target:{role:"heading"},locators:[],assertion:{expected:"visible"},url:pageUrl,...common});
     }
-    if ((kind === "fill" || kind === "select") && element && !sensitive(element)) {
+    if (kind === "fill" && element && !sensitive(element)) {
       const expected = String(element.value || "").slice(0, 500);
       if (expected) assertions.push({
         kind:"assert-value", description:"Verify " + (info.label || info.name || "field") + " value",
