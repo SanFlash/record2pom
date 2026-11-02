@@ -107,6 +107,7 @@ Recorder `0.5.0` separates browser interactions, test data, and assertions:
 
 - Click an editable field or dropdown first. The Side Panel then asks for the reusable test value and adds a distinct `fill` or `select` action.
 - Values typed directly into the website during recording are not captured as expected values and never create automatic `assert-value` assertions.
+- Input prompts are processed in recording order. Empty strings are valid test data for negative and required-field scenarios.
 - Non-sensitive values are generated separately in `test_data/test_data.json`; sensitive fields are represented by environment variables and must be configured in `.env`.
 - A login action can produce a URL checkpoint for the expected inventory route where that login pattern is detected.
 - Use the extension's **Verification checkpoint** controls while recording to add a manual URL, text, field-value, or element-visibility assertion.
