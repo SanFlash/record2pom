@@ -1034,3 +1034,52 @@ test("Playwright CRX-imported text locators are supported by the Python Playwrig
   assert.match(app,/c\.strategy==="title"\)expr="self\.page\.get_by_title/);
   assert.match(app,/select_option\(value=/);
 });
+
+
+test("Python POM generation accepts recorded scroll events instead of rejecting the journey", async () => {
+  const playwright = await generateFromFixture("playwright", "scroll");
+  assert.match(playwright.code, /window\.scrollTo/);
+  assert.match(playwright.status, /Generated/);
+  const selenium = await generateFromFixture("selenium", "scroll");
+  assert.match(selenium.code, /window\.scrollTo/);
+});
+
+test("shared recording schema canonicalizes legacy wheel and scroll aliases and preserves offsets", async () => {
+  const context = {window:{}};
+  vm.runInNewContext(await readFile("core.js", "utf8"), context);
+  const result = context.Record2POMCore.normalizeRecording({schemaVersion:1,events:[
+    {kind:"wheel",scrollX:12,scrollY:640,deltaY:120},
+    {type:"scroll_to",scroll:{left:5,top:250},scrollMode:"element",target:{css:"#results"},locators:[{strategy:"css",value:"#results"}]},
+    {action:"page-scroll",x:0,y:0}
+  ]});
+  assert.equal(result.ok,true,JSON.stringify(result.errors));
+  assert.deepEqual(Array.from(result.recording.events, event=>event.kind),["scroll","scroll","scroll"]);
+  assert.equal(result.recording.events[0].x,12);
+  assert.equal(result.recording.events[0].y,640);
+  assert.equal(result.recording.events[0].deltaY,120);
+  assert.equal(result.recording.events[1].scrollMode,"element");
+  assert.equal(result.recording.events[1].x,5);
+  assert.equal(result.recording.events[1].y,250);
+});
+
+test("universal JS, TS and Java generators emit window and nested-container scrolling", async () => {
+  const context = {window:{}};
+  vm.runInNewContext(await readFile("core.js","utf8"),context);
+  context.Record2POMCore=context.Record2POMCore||context.window.Record2POMCore;
+  vm.runInNewContext(await readFile("universal-generator.js","utf8"),context);
+  for (const language of ["javascript","typescript","java"]) {
+    for (const engine of ["playwright","selenium"]) {
+      const result=context.Record2POMUniversalGenerator.generate({
+        name:"scroll-fixture",url:"https://fixture.test",language,engine,
+        events:[
+          {kind:"scroll",x:0,y:640,sequence:1},
+          {kind:"wheel",deltaX:0,deltaY:120,sequence:2},
+          {kind:"scroll",scrollMode:"element",x:0,y:250,target:{css:"#results"},locators:[{strategy:"css",value:"#results"}],sequence:3}
+        ]
+      });
+      const source=Object.values(result.files).join("\\n");
+      assert.match(source,/scrollTo|scrollBy/ ,language+" "+engine+" must emit scroll actions");
+      assert.match(source,/#results/,language+" "+engine+" must retain the nested scroll container");
+    }
+  }
+});
