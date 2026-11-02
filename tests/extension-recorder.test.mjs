@@ -141,7 +141,26 @@ test("first click asserts visibility before the click and live input values are 
   assert.equal(events[2].value, "qa@example.test");
   assert.equal(events[2].sourceClickId, events[1].id);
   assert.equal(events[2].capturedAutomatically, true);
-  assert.equal(events[2].dataKey, "email");
+  assert.match(events[2].dataKey, /^email_/);
+});
+
+test("repeated fills of the same field retain separate data keys and values", async () => {
+  const input = new FakeInput("input", {name:"searchTerm"}, {type:"text",name:"searchTerm",value:""});
+  const h = await recorderHarness({session:{recording:true,paused:false},elements:[input]});
+  h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="first search";
+  h.fire("input",{target:input});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  h.fire("click",{composedPath:()=>[input],target:input});
+  input.value="second search";
+  h.fire("input",{target:input});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  const fills=h.sent.filter(m=>m.type==="R2POM_EVENT").map(m=>m.event).filter(e=>e.kind==="fill");
+  assert.equal(fills.length,2);
+  assert.equal(fills[0].value,"first search");
+  assert.equal(fills[1].value,"second search");
+  assert.notEqual(fills[0].dataKey,fills[1].dataKey);
+  assert.notEqual(fills[0].sourceClickId,fills[1].sourceClickId);
 });
 
 test("sensitive input values are never captured even when the user types on the live page", async () => {
